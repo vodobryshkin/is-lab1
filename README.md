@@ -1,10 +1,9 @@
 # Лабораторная работа №1 по дисциплине "Информационные системы".
 ![Java](https://img.shields.io/badge/java-21-orange)
 ![Jakarta EE](https://img.shields.io/badge/Jakarta%20EE-10-blue)
-![Lines Of code](https://tokei.rs/b1/github/vodobryshkin/is-lab1)
-![Checkstyle](https://github.com/vodobryshkin/is-lab1/actions/workflows/ci.yml/badge.svg)
-[![Tests](https://img.shields.io/github/actions/workflow/status/vodobryshkin/is-lab1/ci.yml?label=tests)](https://github.com/vodobryshkin/is-lab1/actions)
-[![Codecov](https://codecov.io/gh/vodobryshkin/is-lab1/branch/main/graph/badge.svg)](https://codecov.io/gh/vodobryshkin/is-lab1)
+![CI](https://github.com/vodobryshkin/is-lab1/actions/workflows/ci.yml/badge.svg)
+![Tests](https://img.shields.io/github/actions/workflow/status/vodobryshkin/is-lab1/ci.yml?label=tests)
+![Codecov](https://codecov.io/gh/vodobryshkin/is-lab1/branch/main/graph/badge.svg)
 
  Реализовать информационную систему, которая позволяет взаимодействовать с объектами класса Worker, описание которого приведено ниже:
 ```java
