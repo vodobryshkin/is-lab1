@@ -3,8 +3,9 @@ plugins {
   id 'war'
   id 'checkstyle'
   id 'pmd'
-    id 'org.jetbrains.kotlin.jvm' version '2.4.20'
-    id "org.jetbrains.kotlin.plugin.jpa" version '2.4.20'
+  id 'jacoco'
+  id 'org.jetbrains.kotlin.jvm' version '2.4.20'
+  id 'org.jetbrains.kotlin.plugin.jpa' version '2.4.20'
 }
 
 group = 'com.github.vodobryshkin.is-lab1'
@@ -43,6 +44,13 @@ pmd {
 
   ruleSetFiles = files('config/pmd/pmd.xml')
   ruleSets = []
+}
+
+jacocoTestReport {
+  reports {
+    xml.required = true
+    html.required = true
+  }
 }
 
 tasks.withType(Pmd).configureEach {

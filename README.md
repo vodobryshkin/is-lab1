@@ -1,4 +1,16 @@
 # Лабораторная работа №1 по дисциплине "Информационные системы".
+![Java](https://img.shields.io/badge/java-21-orange)
+
+![Jakarta EE](https://img.shields.io/badge/Jakarta%20EE-10-blue)
+
+![LOC](https://tokei.rs/b1/github/vodobryshkin/is-lab1)
+
+![Checkstyle](https://github.com/vodobryshkin/is-lab1/actions/workflows/ci.yml/badge.svg)
+
+[![Tests](https://img.shields.io/github/actions/workflow/status/vodobryshkin/is-lab1/ci.yml?label=tests)](https://github.com/vodobryshkin/is-lab1/actions)
+
+[![Codecov](https://codecov.io/gh/vodobryshkin/is-lab1/branch/main/graph/badge.svg)](https://codecov.io/gh/vodobryshkin/is-lab1)
+
  Реализовать информационную систему, которая позволяет взаимодействовать с объектами класса Worker, описание которого приведено ниже:
 ```java
 public class Worker {
@@ -47,32 +59,32 @@ public class Location {
 public enum Position {
     DIRECTOR,
     HEAD_OF_DIVISION,
-    LEAD_DEVELOPER;
+    LEAD_DEVELOPER
 }
 public enum Status {
     HIRED,
     RECOMMENDED_FOR_PROMOTION,
-    REGULAR;
+    REGULAR
 }
 public enum OrganizationType {
     PUBLIC,
     GOVERNMENT,
     TRUST,
     PRIVATE_LIMITED_COMPANY,
-    OPEN_JOINT_STOCK_COMPANY;
+    OPEN_JOINT_STOCK_COMPANY
 }
 public enum Color {
     BLACK,
     BLUE,
     ORANGE,
     WHITE,
-    BROWN;
+    BROWN
 }
 public enum Country {
     RUSSIA,
     UNITED_KINGDOM,
     SPAIN,
-    ITALY;
+    ITALY
 }
 ```
 Разработанная система должна удовлетворять следующим требованиям:
