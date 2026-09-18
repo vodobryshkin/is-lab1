@@ -3,6 +3,8 @@ plugins {
   id 'war'
   id 'checkstyle'
   id 'pmd'
+    id 'org.jetbrains.kotlin.jvm' version '2.4.20'
+    id "org.jetbrains.kotlin.plugin.jpa" version '2.4.20'
 }
 
 group = 'com.github.vodobryshkin.is-lab1'
@@ -55,6 +57,7 @@ dependencies {
 
   testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+  testImplementation 'org.jetbrains.kotlin:kotlin-test'
 }
 
 test {
