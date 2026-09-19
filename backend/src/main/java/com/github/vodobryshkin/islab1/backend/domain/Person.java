@@ -1,6 +1,7 @@
 package com.github.vodobryshkin.islab1.backend.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
@@ -14,7 +15,8 @@ import java.time.ZonedDateTime;
 @Table(name = "persons")
 public class Person {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @SequenceGenerator(name = "persons_seq", sequenceName = "persons_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "persons_seq")
     @Column(name = "id")
     private Integer id;
 
@@ -28,17 +30,13 @@ public class Person {
     private Color hairColor;                  //Поле не может быть null
 
     @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "x", column = @Column(name = "location_x")),
-            @AttributeOverride(name = "y", column = @Column(name = "location_y")),
-            @AttributeOverride(name = "z", column = @Column(name = "location_z"))
-    })
+    @NotNull
+    @Valid
     private Location location;                //Поле не может быть null
 
     @Column(name = "birthday", columnDefinition = "TIMESTAMPTZ")
     @NotNull
     private ZonedDateTime birthday;           //Поле не может быть null
-
 
     @Column(name = "weight")
     @NotNull

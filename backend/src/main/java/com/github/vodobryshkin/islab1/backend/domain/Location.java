@@ -1,6 +1,7 @@
 package com.github.vodobryshkin.islab1.backend.domain;
 
 import jakarta.persistence.Embeddable;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 
 /**
@@ -9,12 +10,12 @@ import jakarta.validation.constraints.NotNull;
  */
 @Embeddable
 public class Location {
-    @NotNull
-    private Integer x; //Поле не может быть null
+    private Integer x;
+    private Integer y;
+    private Long z;
 
-    @NotNull
-    private Integer y; //Поле не может быть null
-
-    @NotNull
-    private Long z;    //Поле не может быть null
+    @AssertTrue
+    public boolean isComplete() {
+        return x != null && y != null && z != null;
+    }
 }

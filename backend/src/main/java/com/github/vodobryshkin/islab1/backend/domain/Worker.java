@@ -1,9 +1,12 @@
 package com.github.vodobryshkin.islab1.backend.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+
+import java.time.ZonedDateTime;
 
 /**
  * @author vodobryshkin
@@ -13,7 +16,8 @@ import jakarta.validation.constraints.Positive;
 @Table(name = "workers")
 public class Worker {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @SequenceGenerator(name = "workers_seq", sequenceName = "workers_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "workers_seq")
     @Column(name = "id")
     @Positive
     private Integer id; //Поле не может быть null, Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически
@@ -23,7 +27,12 @@ public class Worker {
     private String name; //Поле не может быть null, Строка не может быть пустой
 
     @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "x", column = @Column(name = "coordinate_x")),
+            @AttributeOverride(name = "y", column = @Column(name = "coordinate_y"))
+    })
     @NotNull
+    @Valid
     private Coordinates coordinates; //Поле не может быть null
 
     @Column(name = "creation_date")
@@ -57,4 +66,11 @@ public class Worker {
 
     @OneToOne
     private Person person; //Поле может быть null
+
+    @PrePersist
+    protected void onCreate() {
+        if (creationDate == null) {
+            creationDate = ZonedDateTime.now();
+        }
+    }
 }

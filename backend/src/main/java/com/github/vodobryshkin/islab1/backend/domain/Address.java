@@ -1,6 +1,7 @@
 package com.github.vodobryshkin.islab1.backend.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 
 /**
@@ -11,19 +12,16 @@ import jakarta.validation.constraints.NotBlank;
 @Table(name = "addresses")
 public class Address {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @SequenceGenerator(name = "addresses_seq", sequenceName = "addresses_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "addresses_seq")
     @Column(name = "id")
     private Integer id;
 
-    @Column(name = "street")
+    @Column(name = "street", columnDefinition = "TEXT")
     @NotBlank
     private String street; //Строка не может быть пустой, Поле не может быть null
 
     @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "x", column = @Column(name = "town_x")),
-            @AttributeOverride(name = "y", column = @Column(name = "town_y")),
-            @AttributeOverride(name = "z", column = @Column(name = "town_z"))
-    })
+    @Valid
     private Location town; //Поле может быть null
 }
