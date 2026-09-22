@@ -9,11 +9,51 @@ servers:
   - url: 'http://localhost:8080/api/v1'
 
 paths:
+  /workers:
+    post:
+      tags:
+        - workers
+      operationId: CreateWorker
+      summary: Создание работника
+      description: Создание экземпляра объекта Worker, владельцем которого будет данный пользователь
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWorkerRequest"
+
+      responses:
+        "201":
+          description: Работник был успешно создан
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/CreateWorkerCreatedResponse"
+
+        "400":
+          description: Запрос невозможно разобрать из-за некорректного типа одного или нескольких полей
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/BadRequestDetails"
+
+        "422":
+          description: Запрос невозможно обработать из-за несоответствия одного или нескольких полей правилам валидации
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/CreateWorkerUnprocessableEntityDetails"
+
   /workers/{id}:
     get:
       tags:
-        - SingleWorker
-      operationId: getWorkerById
+        - workers/{id}
+      operationId: ReadWorkerById
       summary: Получение информации о работнике
       description: Получение информации об объекте Worker по ИД
       parameters:
@@ -52,7 +92,7 @@ paths:
                 $ref: "#/components/schemas/WorkerNotFoundProblemDetails"
 
         "422":
-          description: Запрос невозможно разобрать из-за несоответствия идентификатора правилам валидации
+          description: Запрос невозможно обработать из-за несоответствия идентификатора правилам валидации
           content:
             application/json:
               schema:
@@ -60,8 +100,8 @@ paths:
                 $ref: "#/components/schemas/WorkerUnprocessableEntityProblemDetails"
     delete:
       tags:
-        - SingleWorker
-      operationId: deleteWorkerById
+        - workers/{id}
+      operationId: DeleteWorkerById
       summary: Удаление работника
       description: Удаление объекта Worker по его идентификатору
       parameters:
@@ -107,7 +147,6 @@ components:
     ProblemDetails:
       description: DTO ошибки, которое соответствует спецификации RFC 9457.
       type: object
-      additionalProperties: true
 
       properties:
         type:
@@ -423,3 +462,400 @@ components:
             - z
             - nationality
           nullable: true
+
+    CreateWorkerRequest:
+      description: DTO, которое возвращается в ответ на запрос на получение информации об объекте Worker по ИД
+      type: object
+      properties:
+        name:
+          description: Имя сотрудника
+          type: string
+          minLength: 1
+          maxLength: 255
+          pattern: "^[\\p{L}\\d\\s_.'\"-]{1,255}$"
+          nullable: false
+          example: Добрышкин Владимир Александрович
+
+        coordinate_x:
+          description: Координата X сотрудника
+          type: integer
+          format: int32
+          minimum: -953
+          nullable: false
+          example: 1
+
+        coordinate_y:
+          description: Координата Y сотрудника
+          type: integer
+          format: int64
+          minimum: -391
+          nullable: false
+          example: 1
+
+        organization_id:
+          description: ID организации, к которой хочет прикрепиться сотрудник.
+          type: integer
+          format: int32
+          minimum: 1
+          nullable: true
+          example: 1
+
+        salary:
+          description: Зарплата сотрудника
+          type: number
+          format: double
+          minimum: 0
+          exclusiveMinimum: true
+          nullable: false
+          example: 1000000
+
+        rating:
+          description: Рейтинг сотрудника
+          type: integer
+          format: int32
+          minimum: 1
+          nullable: false
+          example: 1000
+
+        start_date:
+          description: Дата и время начала работы сотрудником
+          type: string
+          format: date-time
+          nullable: false
+          example: "2026-09-22T12:30:00Z"
+
+        position:
+          description: Должность, которую занимает сотрудник
+          type: string
+          enum:
+            - DIRECTOR
+            - HEAD_OF_DIVISION
+            - LEAD_DEVELOPER
+          nullable: true
+          example: LEAD_DEVELOPER
+
+        status:
+          description: Статус сотрудника в контексте успехов на работе
+          type: string
+          enum:
+            - HIRED
+            - RECOMMENDED_FOR_PROMOTION
+            - REGULAR
+          nullable: true
+          example: RECOMMENDED_FOR_PROMOTION
+
+        person:
+          description: Дополнительные параметры сотрудника
+          type: object
+          properties:
+            eye_color:
+              description: Цвет глаз человека
+              type: string
+              enum:
+                - BLACK
+                - BLUE
+                - ORANGE
+                - WHITE
+                - BROWN
+              nullable: true
+              example: BROWN
+
+            hair_color:
+              description: Цвет глаз человека
+              type: string
+              enum:
+                - BLACK
+                - BLUE
+                - ORANGE
+                - WHITE
+                - BROWN
+              nullable: false
+              example: BROWN
+
+            birthday:
+              description: Дата рождения человека
+              type: string
+              format: date-time
+              nullable: false
+              example: "2026-10-20T12:00:00Z"
+
+            weight:
+              description: Вес человека
+              type: number
+              format: float
+              minimum: 0
+              exclusiveMinimum: true
+              nullable: false
+              example: 80
+
+            x:
+              description: Компонент x локации человека
+              type: integer
+              format: int32
+              nullable: false
+              example: 1
+
+            y:
+              description: Компонент y локации человека
+              type: integer
+              format: int32
+              nullable: false
+              example: 1
+
+            z:
+              description: Компонент z локации человека
+              type: integer
+              format: int64
+              nullable: false
+              example: 1
+
+            nationality:
+              description: Национальность человека
+              type: string
+              enum:
+                - RUSSIA
+                - UNITED_KINGDOM
+                - SPAIN
+                - ITALY
+              nullable: false
+              example: RUSSIA
+
+          required:
+            - hair_color
+            - birthday
+            - weight
+            - x
+            - y
+            - z
+            - nationality
+          nullable: true
+
+    CreateWorkerCreatedResponse:
+      description: DTO, которое возвращается в ответ на успешный запрос на создание объекта Worker
+      type: object
+
+      properties:
+        id:
+          description: Идентификатор работника
+          type: integer
+          format: int32
+          minimum: 1
+          nullable: false
+          example: 1
+
+        name:
+          description: Имя сотрудника
+          type: string
+          minLength: 1
+          maxLength: 255
+          pattern: "^[\\p{L}\\d\\s_.'\"-]{1,255}$"
+          nullable: false
+          example: Добрышкин Владимир Александрович
+
+      required:
+        - id
+        - name
+
+    CreateWorkerUnprocessableEntityDetails:
+      allOf:
+        - $ref: "#/components/schemas/ProblemDetails"
+        - type: object
+          properties:
+            type:
+              type: string
+              format: uri-reference
+              enum:
+                - /problems/create-worker-unprocessable-entity-conflict
+
+            title:
+              type: string
+              enum:
+                - One or more worker fields were not validated according to the rules
+
+            status:
+              type: integer
+              enum:
+                - 422
+
+            detail:
+              type: object
+              properties:
+                name:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    type: string
+                    enum:
+                      - NULL_NOT_ALLOWED
+                      - MUST_BE_NOT_BLANKED
+                      - MUST_MATCH_REGEX
+
+                coordinate_x:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    type: string
+                    enum:
+                      - NULL_NOT_ALLOWED
+                      - MUST_BE_GREATER_THAN_MINUS_953
+
+                coordinate_y:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    type: string
+                    enum:
+                      - NULL_NOT_ALLOWED
+                      - MUST_BE_GREATER_THAN_MINUS_391
+
+                organization_id:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    type: string
+                    enum:
+                      - MUST_BE_GREATER_THAN_0
+
+                salary:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    type: string
+                    enum:
+                      - NULL_NOT_ALLOWED
+                      - MUST_BE_GREATER_THAN_0
+
+                rating:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    type: string
+                    enum:
+                      - NULL_NOT_ALLOWED
+                      - MUST_BE_GREATER_THAN_0
+
+                start_date:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    type: string
+                    enum:
+                      - NULL_NOT_ALLOWED
+                      - MUST_MATCH_REGEX
+
+                position:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    type: string
+                    enum:
+                      - MUST_BE_IN_THE_LIST_OF_POSSIBLE_ARGS_OR_NULL
+
+                status:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    type: string
+                    enum:
+                      - MUST_BE_IN_THE_LIST_OF_POSSIBLE_ARGS_OR_NULL
+
+                person_eye_color:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    type: string
+                    enum:
+                      - MUST_BE_IN_THE_LIST_OF_POSSIBLE_ARGS_OR_NULL
+
+                person_hair_color:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    type: string
+                    enum:
+                      - NULL_NOT_ALLOWED
+                      - MUST_BE_IN_THE_LIST_OF_POSSIBLE_ARGS
+
+                person_x:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    type: string
+                    enum:
+                      - NULL_NOT_ALLOWED
+
+                person_y:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    type: string
+                    enum:
+                      - NULL_NOT_ALLOWED
+
+                person_z:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    type: string
+                    enum:
+                      - NULL_NOT_ALLOWED
+
+                person_birthday:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    type: string
+                    enum:
+                      - NULL_NOT_ALLOWED
+
+                person_weight:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    type: string
+                    enum:
+                      - NULL_NOT_ALLOWED
+                      - MUST_BE_GREATER_THAN_0
+
+                nationality:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    type: string
+                    enum:
+                      - NULL_NOT_ALLOWED
+                      - MUST_BE_IN_THE_LIST_OF_POSSIBLE_ARGS
+
+            instance:
+              type: string
+              example: /api/v1/workers
+
+    BadRequestDetails:
+      allOf:
+        - $ref: "#/components/schemas/ProblemDetails"
+        - type: object
+          properties:
+            type:
+              type: string
+              format: uri-reference
+              enum:
+                - /problems/bad-request
+
+            title:
+              type: string
+              enum:
+                - One or more fields have incorrect data types.
+                - Not all required fields were submitted.
+
+            status:
+              type: integer
+              enum:
+                - 400
+
+            detail:
+              type: string
+              example: Not all required fields were submitted.
+
+            instance:
+              type: string
+              example: /api/v1/workers/vova
