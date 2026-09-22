@@ -59,7 +59,7 @@ public class Worker {
 
     @Column(name = "creation_date")
     @NotNull
-    private java.time.ZonedDateTime creationDate; // Поле не может быть null,
+    private ZonedDateTime creationDate; // Поле не может быть null,
     // Значение этого поля должно генерироваться автоматически
 
     @ManyToOne
@@ -77,7 +77,7 @@ public class Worker {
 
     @Column(name = "start_date")
     @NotNull
-    private java.time.ZonedDateTime startDate; // Поле не может быть null
+    private ZonedDateTime startDate; // Поле не может быть null
 
     @Column(name = "position")
     @Enumerated(EnumType.STRING)
