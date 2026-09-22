@@ -1,0 +1,425 @@
+openapi: 3.1.0
+
+info:
+  title: Workers API
+  description: API приложения по управлению объектами, созданным на основе класса Worker.
+  version: 1.1.0
+
+servers:
+  - url: 'http://localhost:8080/api/v1'
+
+paths:
+  /workers/{id}:
+    get:
+      tags:
+        - SingleWorker
+      operationId: getWorkerById
+      summary: Получение информации о работнике
+      description: Получение информации об объекте Worker по ИД
+      parameters:
+        - name: id
+          description: Идентификатор работника
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+
+      responses:
+        "200":
+          description: Информация о работнике получена
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/WorkerResponse"
+
+        "400":
+          description: Запрос невозможно разобрать из-за некорректного типа идентификатора
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/WorkerBadRequestProblemDetails"
+
+        "404":
+          description: Работник с таким идентификатором не найден, ввиду чего получение информации о нем невозможно
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/WorkerNotFoundProblemDetails"
+
+        "422":
+          description: Запрос невозможно разобрать из-за несоответствия идентификатора правилам валидации
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/WorkerUnprocessableEntityProblemDetails"
+    delete:
+      tags:
+        - SingleWorker
+      operationId: deleteWorkerById
+      summary: Удаление работника
+      description: Удаление объекта Worker по его идентификатору
+      parameters:
+        - name: id
+          description: Идентификатор работника
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+
+      responses:
+        "204":
+          description: Работник успешно удалён.
+
+        "400":
+          description: Запрос невозможно разобрать из-за некорректного типа идентификатора
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/WorkerBadRequestProblemDetails"
+
+        "404":
+          description: Работник с таким идентификатором не найден, ввиду чего его удаление невозможно
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/WorkerNotFoundProblemDetails"
+
+        "422":
+          description: Запрос невозможно разобрать из-за несоответствия идентификатора правилам валидации
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/WorkerUnprocessableEntityProblemDetails"
+
+components:
+  schemas:
+    ProblemDetails:
+      description: DTO ошибки, которое соответствует спецификации RFC 9457.
+      type: object
+      additionalProperties: true
+
+      properties:
+        type:
+          type: string
+          format: uri-reference
+          description: Идентификатор типа ошибки
+
+        title:
+          type: string
+          description: Краткое название типа ошибки
+
+        status:
+          type: integer
+          minimum: 100
+          maximum: 599
+          description: HTTP-код
+
+        detail:
+          type: string
+          description: Описание конкретной ошибки
+
+        instance:
+          type: string
+          format: uri-reference
+          description: Идентификатор конкретного возникновения ошибки
+
+      required:
+        - type
+        - title
+        - status
+
+    WorkerBadRequestProblemDetails:
+      allOf:
+        - $ref: "#/components/schemas/ProblemDetails"
+        - type: object
+          properties:
+            type:
+              type: string
+              format: uri-reference
+              enum:
+                - /problems/worker-bad-request
+
+            title:
+              type: string
+              enum:
+                - The ID is not an integer.
+
+            status:
+              type: integer
+              enum:
+                - 400
+
+            detail:
+              type: string
+              example: The provided ID "vova" is not an integer.
+
+            instance:
+              type: string
+              example: /api/v1/workers/vova
+
+    WorkerNotFoundProblemDetails:
+      allOf:
+        - $ref: "#/components/schemas/ProblemDetails"
+        - type: object
+          properties:
+            type:
+              type: string
+              format: uri-reference
+              enum:
+                - /problems/worker-not-found
+
+            title:
+              type: string
+              enum:
+                - Worker not found
+
+            status:
+              type: integer
+              enum:
+                - 404
+
+            detail:
+              type: string
+              example: Worker with id 42 does not exist
+
+            instance:
+              type: string
+              example: /api/v1/workers/42
+
+    WorkerUnprocessableEntityProblemDetails:
+      allOf:
+        - $ref: "#/components/schemas/ProblemDetails"
+        - type: object
+          properties:
+            type:
+              type: string
+              format: uri-reference
+              enum:
+                - /problems/worker-unprocessable-entity
+
+            title:
+              type: string
+              enum:
+                - The ID does not comply with the validation rules.
+
+            status:
+              type: integer
+              enum:
+                - 422
+
+            detail:
+              type: string
+              example: The passed ID "-1" is less than 1.
+
+            instance:
+              type: string
+              example: /api/v1/workers/-1
+
+    WorkerResponse:
+      description: DTO, которое возвращается в ответ на запрос на получение информации об объекте Worker по ИД
+      type: object
+      properties:
+        id:
+          description: Идентификатор работника
+          type: integer
+          format: int32
+          minimum: 1
+          nullable: false
+          example: 1
+
+        name_of_owner_user:
+          description: Имя пользователя, который владеет сотрудником
+          type: string
+          minLength: 3
+          maxLength: 64
+          pattern: "^[a-zA-Z0-9_]{3,64}$"
+          nullable: false
+          example: vodobryshkin
+
+        name:
+          description: Имя сотрудника
+          type: string
+          minLength: 1
+          maxLength: 255
+          pattern: "^[\\p{L}\\d\\s_.'\"-]{1,255}$"
+          nullable: false
+          example: Добрышкин Владимир Александрович
+
+        coordinate_x:
+          description: Координата X сотрудника
+          type: integer
+          format: int32
+          minimum: -953
+          nullable: false
+          example: 1
+
+        coordinate_y:
+          description: Координата Y сотрудника
+          type: integer
+          format: int64
+          minimum: -391
+          nullable: false
+          example: 1
+
+        creation_date:
+          description: Дата и время создания сотрудника
+          type: string
+          format: date-time
+          nullable: false
+          example: "2026-09-22T12:30:00Z"
+
+        organization_full_name:
+          description: Полное имя организации, которой принадлежит сотрудник
+          type: string
+          nullable: true
+          example: "ООО \"Магистраль\""
+
+        salary:
+          description: Зарплата сотрудника
+          type: number
+          format: double
+          minimum: 0
+          exclusiveMinimum: true
+          nullable: false
+          example: 1000000
+
+        rating:
+          description: Рейтинг сотрудника
+          type: integer
+          format: int32
+          minimum: 1
+          nullable: false
+          example: 1000
+
+        start_date:
+          description: Дата и время начала работы сотрудником
+          type: string
+          format: date-time
+          nullable: false
+          example: "2026-09-22T12:30:00Z"
+
+        position:
+          description: Должность, которую занимает сотрудник
+          type: string
+          enum:
+            - DIRECTOR
+            - HEAD_OF_DIVISION
+            - LEAD_DEVELOPER
+          nullable: true
+          example: LEAD_DEVELOPER
+
+        status:
+          description: Статус сотрудника в контексте успехов на работе
+          type: string
+          enum:
+            - HIRED
+            - RECOMMENDED_FOR_PROMOTION
+            - REGULAR
+          nullable: true
+          example: RECOMMENDED_FOR_PROMOTION
+
+        person:
+          description: Дополнительные параметры сотрудника
+          type: object
+          properties:
+            id:
+              description: Идентификатор человека
+              type: integer
+              format: int32
+              minimum: 1
+              nullable: false
+              example: 1
+
+            eye_color:
+              description: Цвет глаз человека
+              type: string
+              enum:
+                - BLACK
+                - BLUE
+                - ORANGE
+                - WHITE
+                - BROWN
+              nullable: true
+              example: BROWN
+
+            hair_color:
+              description: Цвет глаз человека
+              type: string
+              enum:
+                - BLACK
+                - BLUE
+                - ORANGE
+                - WHITE
+                - BROWN
+              nullable: false
+              example: BROWN
+
+            birthday:
+              description: Дата рождения человека
+              type: string
+              format: date-time
+              nullable: false
+              example: "2026-10-20T12:00:00Z"
+
+            weight:
+              description: Вес человека
+              type: number
+              format: float
+              minimum: 0
+              exclusiveMinimum: true
+              nullable: false
+              example: 80
+
+            x:
+              description: Компонент x локации человека
+              type: integer
+              format: int32
+              nullable: false
+              example: 1
+
+            y:
+              description: Компонент y локации человека
+              type: integer
+              format: int32
+              nullable: false
+              example: 1
+
+            z:
+              description: Компонент z локации человека
+              type: integer
+              format: int64
+              nullable: false
+              example: 1
+
+            nationality:
+              description: Национальность человека
+              type: string
+              enum:
+                - RUSSIA
+                - UNITED_KINGDOM
+                - SPAIN
+                - ITALY
+              nullable: false
+              example: RUSSIA
+
+          required:
+            - id
+            - hair_color
+            - birthday
+            - weight
+            - x
+            - y
+            - z
+            - nationality
+          nullable: true
