@@ -40,6 +40,10 @@ public class Worker {
     // Значение этого поля должно быть уникальным,
     // Значение этого поля должно генерироваться автоматически
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
     @Column(name = "name")
     @NotBlank
     private String name; // Поле не может быть null, Строка не может быть пустой
