@@ -87,7 +87,7 @@ public class Worker {
     @Enumerated(EnumType.STRING)
     private Status status; // Поле может быть null
 
-    @OneToOne
+    @OneToOne(mappedBy = "worker")
     private Person person; // Поле может быть null
 
     /**
