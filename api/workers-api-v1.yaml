@@ -98,6 +98,59 @@ paths:
               schema:
                 type: object
                 $ref: "#/components/schemas/WorkerUnprocessableEntityProblemDetails"
+
+    put:
+      tags:
+        - workers/{id}
+      operationId: UpdateWorkerById
+      summary: Обновление информации о сотруднике
+      description: Обновление данных объекта Worker по его идентификатору
+
+      parameters:
+        - name: id
+          description: Идентификатор работника
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWorkerRequest"
+
+      responses:
+        "204":
+          description: Данные работника были успешно обновлены.
+
+        "400":
+          description: Запрос невозможно разобрать из-за некорректного типа идентификатора
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/UpdateWorkerByIdBadRequestDetails"
+
+        "404":
+          description: Работник с таким идентификатором не найден, ввиду чего его удаление невозможно
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/WorkerNotFoundProblemDetails"
+
+        "422":
+          description: Запрос невозможно разобрать из-за несоответствия идентификатора правилам валидации
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/CreateWorkerUnprocessableEntityDetails"
+
     delete:
       tags:
         - workers/{id}
@@ -859,3 +912,13 @@ components:
             instance:
               type: string
               example: /api/v1/workers/vova
+
+    UpdateWorkerByIdBadRequestDetails:
+      allOf:
+        - $ref: "#/components/schemas/BadRequestDetails"
+        - type: object
+          properties:
+            title:
+              type: string
+              enum:
+                - The ID is not an integer.
