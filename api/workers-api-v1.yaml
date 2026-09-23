@@ -8,7 +8,77 @@ info:
 servers:
   - url: 'http://localhost:8080/api/v1'
 
+security:
+  - BearerAuth: []
+
 paths:
+  /auth/register:
+    post:
+      security: []
+      tags:
+        - User
+      operationId: Register
+      summary: Регистрация в системе
+      description: Создания экземпляра объекта User, после которой пользователь сможет входить в систему
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                username:
+                  description: Имя пользователя
+                  type: string
+                  minLength: 3
+                  maxLength: 64
+                  pattern: "^[a-zA-Z0-9_]{3,64}$"
+                  nullable: false
+                  example: vodobryshkin
+                password:
+                  description: Пароль пользователя
+                  type: string
+                  minLength: 3
+                  maxLength: 64
+                  pattern: "^[a-zA-Z0-9_]{6,32}$"
+                  nullable: false
+                  example: Vova123
+
+              required:
+                - username
+                - password
+
+      responses:
+        "201":
+          description: Пользователь был успешно создан
+          content:
+            application/json:
+              schema:
+                description: DTO, которое возвращается в ответ на успешный запрос на создание объекта Worker
+                type: object
+
+                properties:
+                  id:
+                    description: Идентификатор пользователя
+                    type: integer
+                    format: int32
+                    minimum: 1
+                    nullable: false
+                    example: 1
+
+                  username:
+                    description: Имя пользователя
+                    type: string
+                    minLength: 1
+                    maxLength: 255
+                    pattern: "^[a-zA-Z0-9_]{6,32}$"
+                    nullable: false
+                    example: vodobryshkin
+
+                required:
+                  - id
+                  - username
+
   /workers:
     post:
       tags:
@@ -196,6 +266,12 @@ paths:
                 $ref: "#/components/schemas/WorkerUnprocessableEntityProblemDetails"
 
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     ProblemDetails:
       description: DTO ошибки, которое соответствует спецификации RFC 9457.
