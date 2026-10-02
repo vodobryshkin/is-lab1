@@ -7,7 +7,7 @@ const addressExample: AddressFields = #{
     town: locationExample
 };
 
-@doc("Данные, которые пользователь передает при создании адреса.")
+@doc("Данные, которые пользователь передает при domainсоздании адреса.")
 @example(addressExample)
 model AddressFields {
     @doc("Название улицы, к которой принадлежит адрес.")

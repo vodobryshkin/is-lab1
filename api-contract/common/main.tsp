@@ -1,3 +1,10 @@
+import "./error/BadRequestError.tsp";
+import "./error/UnauthorizedError.tsp";
+import "./error/ForbiddenError.tsp";
+import "./error/NotFoundError.tsp";
+import "./error/ConflictError.tsp";
+import "./error/UnprocessableContentError.tsp";
+
 import "./enum/Color.tsp";
 import "./enum/Country.tsp";
 import "./enum/OrganizationType.tsp";

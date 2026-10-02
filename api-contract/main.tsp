@@ -1,7 +1,7 @@
 import "@typespec/http";
 import "@typespec/openapi3";
 
-import "./domain";
+import "./common";
 import "./workers";
 
 using TypeSpec.Http;

@@ -1,4 +1,4 @@
-import "../../../domain/model/WorkerFields.tsp";
+import "../../../common/model/WorkerFields.tsp";
 
 namespace WorkersApi.Workers;
 
