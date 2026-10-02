@@ -4,7 +4,8 @@ namespace WorkersApi.Domain;
 
 @doc("Данные, которые пользователь передает при создании адреса.")
 model Address {
+    @pattern("^.+$")
     street: string;
 
-    town: Location;
+    town: Location | null;
 }
