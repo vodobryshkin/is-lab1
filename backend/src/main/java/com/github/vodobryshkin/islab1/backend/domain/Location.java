@@ -26,7 +26,7 @@ public class Location {
     )
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "locations_seq")
     @Column(name = "id")
-    private Long id;
+    private Integer id;
 
     @NotNull
     private Integer x; // Поле не может быть null

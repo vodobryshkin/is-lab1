@@ -27,7 +27,7 @@ public class Coordinates {
     )
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "coordinates_seq")
     @Column(name = "id")
-    private Long id;
+    private Integer id;
 
     @Column(name = "x")
     @Min(value = -953)

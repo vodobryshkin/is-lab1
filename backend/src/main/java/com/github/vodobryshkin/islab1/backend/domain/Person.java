@@ -29,7 +29,7 @@ public class Person {
     @SequenceGenerator(name = "persons_seq", sequenceName = "persons_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "persons_seq")
     @Column(name = "id")
-    private Long id;
+    private Integer id;
 
     @Column(name = "eye_color")
     @Enumerated(EnumType.STRING)

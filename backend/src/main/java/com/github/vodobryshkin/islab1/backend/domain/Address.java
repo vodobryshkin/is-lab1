@@ -28,7 +28,7 @@ public class Address {
     )
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "addresses_seq")
     @Column(name = "id")
-    private Long id;
+    private Integer id;
 
     @Column(name = "street", columnDefinition = "TEXT")
     @NotBlank
