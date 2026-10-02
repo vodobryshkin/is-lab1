@@ -32,7 +32,7 @@ public class Organization {
     )
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "organizations_seq")
     @Column(name = "id")
-    private Integer id;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "official_address_id", nullable = false)

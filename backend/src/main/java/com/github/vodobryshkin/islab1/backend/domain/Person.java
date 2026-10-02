@@ -1,7 +1,6 @@
 package com.github.vodobryshkin.islab1.backend.domain;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -9,10 +8,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.time.ZonedDateTime;
@@ -30,7 +29,7 @@ public class Person {
     @SequenceGenerator(name = "persons_seq", sequenceName = "persons_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "persons_seq")
     @Column(name = "id")
-    private Integer id;
+    private Long id;
 
     @Column(name = "eye_color")
     @Enumerated(EnumType.STRING)
@@ -41,9 +40,9 @@ public class Person {
     @NotNull
     private Color hairColor;                  // Поле не может быть null
 
-    @Embedded
+    @ManyToOne
+    @JoinColumn(name = "location_id")
     @NotNull
-    @Valid
     private Location location;                // Поле не может быть null
 
     @Column(name = "birthday", columnDefinition = "TIMESTAMPTZ")

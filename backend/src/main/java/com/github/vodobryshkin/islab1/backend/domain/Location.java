@@ -1,7 +1,13 @@
 package com.github.vodobryshkin.islab1.backend.domain;
 
-import jakarta.persistence.Embeddable;
-import jakarta.validation.constraints.AssertTrue;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * Класс, который отвечает за представление локации. Встраивается в JPA-сущности.
@@ -9,14 +15,25 @@ import jakarta.validation.constraints.AssertTrue;
  * @author vodobryshkin
  * @since 18.09.2026 14:54
  */
-@Embeddable
+@Entity
+@Table(name = "locations")
 public class Location {
-    private Integer x; // Поле не может быть null
-    private Integer y; // Поле не может быть null
-    private Long z;    // Поле не может быть null
+    @Id
+    @SequenceGenerator(
+            name = "locations_seq",
+            sequenceName = "locations_id_seq",
+            allocationSize = 1
+    )
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "locations_seq")
+    @Column(name = "id")
+    private Long id;
 
-    @AssertTrue
-    public boolean isComplete() {
-        return x != null && y != null && z != null;
-    }
+    @NotNull
+    private Integer x; // Поле не может быть null
+
+    @NotNull
+    private Integer y; // Поле не может быть null
+
+    @NotNull
+    private Long z;    // Поле не может быть null
 }

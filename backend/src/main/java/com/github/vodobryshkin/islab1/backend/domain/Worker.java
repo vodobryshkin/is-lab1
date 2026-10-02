@@ -1,9 +1,6 @@
 package com.github.vodobryshkin.islab1.backend.domain;
 
-import jakarta.persistence.AttributeOverride;
-import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -16,7 +13,6 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -42,19 +38,16 @@ public class Worker {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @NotNull
     private User user;
 
     @Column(name = "name")
     @NotBlank
     private String name; // Поле не может быть null, Строка не может быть пустой
 
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "x", column = @Column(name = "coordinate_x")),
-            @AttributeOverride(name = "y", column = @Column(name = "coordinate_y"))
-    })
+    @ManyToOne
+    @JoinColumn(name = "coordinates_id")
     @NotNull
-    @Valid
     private Coordinates coordinates; // Поле не может быть null
 
     @Column(name = "creation_date")

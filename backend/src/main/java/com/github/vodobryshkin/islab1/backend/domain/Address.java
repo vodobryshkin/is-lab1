@@ -1,14 +1,14 @@
 package com.github.vodobryshkin.islab1.backend.domain;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 
 /**
@@ -28,13 +28,13 @@ public class Address {
     )
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "addresses_seq")
     @Column(name = "id")
-    private Integer id;
+    private Long id;
 
     @Column(name = "street", columnDefinition = "TEXT")
     @NotBlank
     private String street; // Строка не может быть пустой, Поле не может быть null
 
-    @Embedded
-    @Valid
+    @ManyToOne
+    @JoinColumn(name = "town_id")
     private Location town; // Поле может быть null
 }
