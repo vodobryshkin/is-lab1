@@ -6,10 +6,17 @@ import "./CreateWorkerWithoutOrganizationRequest.tsp";
 
 namespace WorkersApi.Workers;
 
+using TypeSpec.OpenAPI;
+
 @doc("Данные для создания работника.")
-@TypeSpec.OpenAPI.oneOf
+@oneOf
 union CreateWorkerRequest {
+    @doc("Используется, когда мы хотим добавить работника в уже существующую организацию, передав id этой организации.")
     existingOrganization: CreateWorkerWithExistingOrganizationRequest,
+
+    @doc("Используется, когда мы хотим добавить работника в организацию, которой ещё не существует, создав ее вместе с работником.")
     newOrganization: CreateWorkerWithNewOrganizationRequest,
+
+    @doc("Используется, когда мы хотим добавить работника без привязки к организации.")
     withoutOrganization: CreateWorkerWithoutOrganizationRequest,
 }
