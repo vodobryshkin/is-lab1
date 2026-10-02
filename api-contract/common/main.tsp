@@ -5,6 +5,10 @@ import "./error/NotFoundError.tsp";
 import "./error/ConflictError.tsp";
 import "./error/UnprocessableContentError.tsp";
 
+import "./ok/OkResponse.tsp";
+import "./ok/CreatedResponse.tsp";
+import "./ok/NoContentResponse.tsp";
+
 import "./enum/Color.tsp";
 import "./enum/Country.tsp";
 import "./enum/OrganizationType.tsp";
