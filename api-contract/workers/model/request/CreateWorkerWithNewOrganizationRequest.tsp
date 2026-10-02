@@ -1,5 +1,5 @@
-import "../../domain/model/WorkerFields.tsp";
-import "../../domain/model/OrganizationFields.tsp";
+import "../../../domain/model/WorkerFields.tsp";
+import "../../../domain/model/OrganizationFields.tsp";
 
 namespace WorkersApi.Workers;
 

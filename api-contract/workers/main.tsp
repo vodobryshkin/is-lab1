@@ -1,9 +1,7 @@
 import "@typespec/http";
 
-import "./model/CreateWorkerRequest.tsp";
-import "./model/CreateWorkerWithExistingOrganizationRequest.tsp";
-import "./model/CreateWorkerWithNewOrganizationRequest.tsp";
-import "./model/CreateWorkerWithoutOrganizationRequest.tsp";
+import "./model/request/CreateWorkerRequest.tsp";
+import "./model/request/UpdateWorkerRequest.tsp";
 
 
 using TypeSpec.Http;

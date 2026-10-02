@@ -1,5 +1,5 @@
-import "../../domain/model/WorkerFields.tsp";
-import "../../domain/model/OrganizationFields.tsp";
+import "../../../domain/model/WorkerFields.tsp";
+import "../../../domain/model/OrganizationFields.tsp";
 
 namespace WorkersApi.Workers;
 
@@ -14,6 +14,6 @@ model CreateWorkerWithExistingOrganizationRequest {
     ...WorkerFields;
 
     @doc("Id организации, к которой нужно прикрепить работника.")
-    @minValueExclusive(1)
+    @minValueExclusive(0)
     organization_id: int32;
 }
