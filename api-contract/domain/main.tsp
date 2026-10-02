@@ -4,11 +4,11 @@ import "./enum/OrganizationType.tsp";
 import "./enum/Position.tsp";
 import "./enum/Status.tsp";
 
-import "./model/Address.tsp";
-import "./model/Coordinates.tsp";
-import "./model/Location.tsp";
-import "./model/Organization.tsp";
-import "./model/Person.tsp";
-import "./model/Worker.tsp";
+import "./model/AddressFields.tsp";
+import "./model/CoordinatesFields.tsp";
+import "./model/LocationFields.tsp";
+import "./model/OrganizationFields.tsp";
+import "./model/PersonFields.tsp";
+import "./model/WorkerFields.tsp";
 
 namespace WorkersApi.Domain;

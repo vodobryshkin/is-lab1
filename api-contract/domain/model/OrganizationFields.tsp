@@ -1,9 +1,9 @@
-import "./Address.tsp";
+import "./AddressFields.tsp";
 import "../enum/OrganizationType.tsp";
 
 namespace WorkersApi.Domain;
 
-const organizationExample: Organization = #{
+const organizationExample: OrganizationFields = #{
     official_address: addressExample,
     annual_turnover: 1000000,
     employees_count: 3,
@@ -15,9 +15,9 @@ const organizationExample: Organization = #{
 
 @doc("Данные, которые пользователь передает при создании организации.")
 @example(organizationExample)
-model Organization {
+model OrganizationFields {
     @doc("Официальный адрес организации.")
-    official_address: Address;
+    official_address: AddressFields;
 
     @doc("Годовой оборот организации.")
     @minValueExclusive(0)
@@ -39,5 +39,5 @@ model Organization {
     type: OrganizationType | null;
 
     @doc("Почтовый адрес компании.")
-    postal_address: Address;
+    postal_address: AddressFields;
 }

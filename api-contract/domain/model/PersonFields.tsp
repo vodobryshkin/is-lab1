@@ -1,10 +1,10 @@
-import "./Location.tsp";
+import "./LocationFields.tsp";
 import "../enum/Country.tsp";
 import "../enum/Color.tsp";
 
 namespace WorkersApi.Domain;
 
-const personExample: Person = #{
+const personExample: PersonFields = #{
     eye_color: Color.BROWN,
     hair_color: Color.BROWN,
     location: locationExample,
@@ -15,7 +15,7 @@ const personExample: Person = #{
 
 @doc("Данные, которые пользователь передаёт для создания персональных данных работника.")
 @example(personExample)
-model Person {
+model PersonFields {
     @doc("Цвет глаз человека.")
     eye_color: Color | null;
 
@@ -23,7 +23,7 @@ model Person {
     hair_color: Color;
 
     @doc("Локация человека.")
-    location: Location;
+    location: LocationFields;
 
     @doc("Дата рождения человека.")
     birthday: utcDateTime;

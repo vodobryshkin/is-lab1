@@ -1,15 +1,14 @@
-import "./Coordinates.tsp";
-import "./Organization.tsp";
-import "./Person.tsp";
+import "./CoordinatesFields.tsp";
+import "./OrganizationFields.tsp";
+import "./PersonFields.tsp";
 import "../enum/Position.tsp";
 import "../enum/Status.tsp";
 
 namespace WorkersApi.Domain;
 
-const workerExample: Worker = #{
+const workerExample: WorkerFields = #{
     name: "Добрышкин Владимир Александрович",
     coordinates: coordinatesExample,
-    organization_id: 1,
     salary: 100000,
     rating: 1000,
     start_date: utcDateTime.fromISO(""),
@@ -20,16 +19,13 @@ const workerExample: Worker = #{
 
 @doc("Данные, которые пользователь передаёт для создания работника.")
 @example(workerExample)
-model Worker {
+model WorkerFields {
     @doc("Имя работника.")
     @pattern("^.+$")
     name: string;
 
     @doc("Координаты работника.")
-    coordinates: Coordinates;
-
-    @doc("Идентификатор организации, в которой работает работник.")
-    organization_id: int64 | null;
+    coordinates: CoordinatesFields;
 
     @doc("Зарплата работника.")
     @minValueExclusive(0)
@@ -49,5 +45,5 @@ model Worker {
     status: Status | null;
 
     @doc("Личные данные работника")
-    person: Person | null;
+    person: PersonFields | null;
 }

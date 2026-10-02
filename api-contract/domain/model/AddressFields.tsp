@@ -1,19 +1,19 @@
-import "./Location.tsp";
+import "./LocationFields.tsp";
 
 namespace WorkersApi.Domain;
 
-const addressExample: Address = #{
+const addressExample: AddressFields = #{
     street: "Ул. Пушкина",
     town: locationExample
 };
 
 @doc("Данные, которые пользователь передает при создании адреса.")
 @example(addressExample)
-model Address {
+model AddressFields {
     @doc("Название улицы, к которой принадлежит адрес.")
     @pattern("^.+$")
     street: string;
 
     @doc("Локация города, к которому принадлежит адрес.")
-    town: Location | null;
+    town: LocationFields | null;
 }

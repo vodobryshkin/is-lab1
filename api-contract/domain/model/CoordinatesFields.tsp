@@ -1,13 +1,13 @@
 namespace WorkersApi.Domain;
 
-const coordinatesExample: Coordinates = #{
+const coordinatesExample: CoordinatesFields = #{
     x: 10,
     y: 10
 };
 
 @doc("Данные, которые пользователь передаёт для создания координат.")
 @example(coordinatesExample)
-model Coordinates {
+model CoordinatesFields {
     @doc("Координата x.")
     @minValueExclusive(-954)
     x: int32;

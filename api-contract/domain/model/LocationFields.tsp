@@ -1,6 +1,6 @@
 namespace WorkersApi.Domain;
 
-const locationExample: Location = #{
+const locationExample: LocationFields = #{
     x: 10,
     y: 10,
     z: 10
@@ -8,7 +8,7 @@ const locationExample: Location = #{
 
 @doc("Данные, которые пользователь передает при создании локации.")
 @example(locationExample)
-model Location {
+model LocationFields {
     @doc("Координата x локации.")
     x: int32;
 
