@@ -7,53 +7,53 @@ namespace WorkersApi.Errors;
 union WorkerValidationIssue {
     name: {
         field: "name";
-        title: "required" | "must_not_be_null" | "invalid_type"
-            | "must_not_be_empty" | "must_match_pattern";
+        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE"
+            | "MUST_NOT_BE_EMPTY" | "MUST_MATCH_PATTERN";
         description: string;
     },
 
     coordinates: {
         field: "coordinates";
-        title: "required" | "must_not_be_null" | "invalid_type";
+        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE";
         description: string;
     },
 
     salary: {
         field: "salary";
-        title: "required" | "must_not_be_null" | "invalid_type"
-            | "must_be_positive" | "out_of_range";
+        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE"
+            | "MUST_BE_POSITIVE" | "OUT_OF_RANGE";
         description: string;
     },
 
     rating: {
         field: "rating";
-        title: "required" | "must_not_be_null" | "invalid_type"
-            | "must_be_positive" | "out_of_range";
+        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE"
+            | "MUST_BE_POSITIVE" | "OUT_OF_RANGE";
         description: string;
     },
 
     start_date: {
         field: "start_date";
-        title: "required" | "must_not_be_null"
-            | "invalid_type" | "invalid_date_time";
+        title: "REQUIRED" | "MUST_NOT_BE_NULL"
+            | "INVALID_TYPE" | "INVALID_DATE_TIME";
         description: string;
     },
 
     position: {
         field: "position";
-        title: "required" | "invalid_type" | "invalid_enum_value";
+        title: "REQUIRED" | "INVALID_TYPE" | "INVALID_ENUM_VALUE";
         description: string;
     },
 
     status: {
         field: "status";
-        title: "required" | "invalid_type" | "invalid_enum_value";
+        title: "REQUIRED" | "INVALID_TYPE" | "INVALID_ENUM_VALUE";
         description: string;
     },
 
     person: {
         field: "person";
-        title: "required" | "invalid_type";
+        title: "REQUIRED" | "INVALID_TYPE";
         description: string;
     },
 

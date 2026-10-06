@@ -6,14 +6,13 @@ namespace WorkersApi.Errors;
 union AddressValidationIssue<path extends string> {
     street: {
         field: "${path}.street";
-        title: "required" | "must_not_be_null" | "invalid_type"
-            | "must_not_be_empty" | "must_match_pattern";
+        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "MUST_NOT_BE_EMPTY" | "MUST_MATCH_PATTERN";
         description: string;
     },
 
     town: {
         field: "${path}.town";
-        title: "required" | "invalid_type";
+        title: "REQUIRED" | "INVALID_TYPE";
         description: string;
     },
 

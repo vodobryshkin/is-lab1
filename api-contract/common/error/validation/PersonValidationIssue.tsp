@@ -6,41 +6,37 @@ namespace WorkersApi.Errors;
 union PersonValidationIssue<path extends string> {
     eye_color: {
         field: "${path}.eye_color";
-        title: "required" | "invalid_type" | "invalid_enum_value";
+        title: "REQUIRED" | "INVALID_TYPE" | "INVALID_ENUM_VALUE";
         description: string;
     },
 
     hair_color: {
         field: "${path}.hair_color";
-        title: "required" | "must_not_be_null"
-            | "invalid_type" | "invalid_enum_value";
+        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "INVALID_ENUM_VALUE";
         description: string;
     },
 
     location: {
         field: "${path}.location";
-        title: "required" | "must_not_be_null" | "invalid_type";
+        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE";
         description: string;
     },
 
     birthday: {
         field: "${path}.birthday";
-        title: "required" | "must_not_be_null"
-            | "invalid_type" | "invalid_date_time";
+        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "INVALID_DATE_TIME";
         description: string;
     },
 
     weight: {
         field: "${path}.weight";
-        title: "required" | "must_not_be_null" | "invalid_type"
-            | "must_be_positive" | "out_of_range";
+        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "MUST_BE_POSITIVE" | "OUT_OF_RANGE";
         description: string;
     },
 
     nationality: {
         field: "${path}.nationality";
-        title: "required" | "must_not_be_null"
-            | "invalid_type" | "invalid_enum_value";
+        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "INVALID_ENUM_VALUE";
         description: string;
     },
 

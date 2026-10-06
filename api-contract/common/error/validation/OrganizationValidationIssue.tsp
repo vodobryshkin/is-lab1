@@ -6,47 +6,47 @@ namespace WorkersApi.Errors;
 union OrganizationValidationIssue<path extends string> {
     official_address: {
         field: "${path}.official_address";
-        title: "required" | "must_not_be_null" | "invalid_type";
+        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE";
         description: string;
     },
 
     annual_turnover: {
         field: "${path}.annual_turnover";
-        title: "required" | "must_not_be_null" | "invalid_type"
-            | "must_be_positive" | "out_of_range";
+        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE"
+            | "MUST_BE_POSITIVE" | "OUT_OF_RANGE";
         description: string;
     },
 
     employees_count: {
         field: "${path}.employees_count";
-        title: "required" | "must_not_be_null" | "invalid_type"
-            | "must_be_positive" | "out_of_range";
+        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE"
+            | "MUST_BE_POSITIVE" | "OUT_OF_RANGE";
         description: string;
     },
 
     full_name: {
         field: "${path}.full_name";
-        title: "required" | "must_not_be_null" | "invalid_type"
-            | "must_not_be_empty" | "must_match_pattern";
+        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE"
+            | "MUST_NOT_BE_EMPTY" | "MUST_MATCH_PATTERN";
         description: string;
     },
 
     rating: {
         field: "${path}.rating";
-        title: "required" | "must_not_be_null" | "invalid_type"
-            | "must_be_positive" | "out_of_range";
+        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE"
+            | "MUST_BE_POSITIVE" | "OUT_OF_RANGE";
         description: string;
     },
 
     type: {
         field: "${path}.type";
-        title: "required" | "invalid_type" | "invalid_enum_value";
+        title: "REQUIRED" | "INVALID_TYPE" | "INVALID_ENUM_VALUE";
         description: string;
     },
 
     postal_address: {
         field: "${path}.postal_address";
-        title: "required" | "must_not_be_null" | "invalid_type";
+        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE";
         description: string;
     },
 
