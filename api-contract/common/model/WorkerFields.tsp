@@ -11,7 +11,7 @@ const workerExample: WorkerFields = #{
     coordinates: coordinatesExample,
     salary: 100000,
     rating: 1000,
-    start_date: utcDateTime.fromISO(""),
+    start_date: utcDateTime.fromISO("2026-10-06T12:00:00Z"),
     position: Position.LEAD_DEVELOPER,
     status: Status.HIRED,
     person: personExample
