@@ -1,12 +1,17 @@
 import "../../../common/model/WorkerFields.tsp";
-import "../../../common/model/OrganizationFields.tsp";
-
-namespace WorkersApi.Workers;
 
 using WorkersApi.Domain;
 
+namespace WorkersApi.Workers;
+
+const createWorkerWithoutOrganizationExample:
+    CreateWorkerWithoutOrganizationRequest = #{
+        ...workerExample
+    };
+
 @doc("Создание работника без организации.")
-@example(#{...workerExample})
+@example(createWorkerWithoutOrganizationExample)
 model CreateWorkerWithoutOrganizationRequest {
     ...WorkerFields;
+    ...Record<never>;
 }

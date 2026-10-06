@@ -1,19 +1,22 @@
 import "../../../common/model/WorkerFields.tsp";
-import "../../../common/model/OrganizationFields.tsp";
-
-namespace WorkersApi.Workers;
 
 using WorkersApi.Domain;
 
-@doc("Создание работника вместе с существующей организацией.")
-@example(#{
-    ...workerExample,
-    organization_id: 1
-})
+namespace WorkersApi.Workers;
+
+const createWorkerWithExistingOrganizationExample:
+    CreateWorkerWithExistingOrganizationRequest = #{
+        ...workerExample,
+        organization_id: 1
+    };
+
+@doc("Создание работника в существующей организации.")
+@example(createWorkerWithExistingOrganizationExample)
 model CreateWorkerWithExistingOrganizationRequest {
     ...WorkerFields;
+    ...Record<never>;
 
-    @doc("Id организации, к которой нужно прикрепить работника.")
+    @doc("ID существующей организации.")
     @minValueExclusive(0)
     organization_id: int32;
 }
