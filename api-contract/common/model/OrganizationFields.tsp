@@ -13,7 +13,7 @@ const organizationExample: OrganizationFields = #{
     postal_address: addressExample
 };
 
-@doc("Данные, которые пользователь передает при создании организации.")
+@doc("Данные организации.")
 @example(organizationExample)
 model OrganizationFields {
     @doc("Официальный адрес организации.")
@@ -23,11 +23,12 @@ model OrganizationFields {
     @minValueExclusive(0)
     annual_turnover: float32;
 
-    @doc("Количество сотрудников в организации.")
+    @doc("Количество сотрудников.")
     @minValueExclusive(0)
     employees_count: int64;
 
-    @doc("Полное юридическое название организации.")
+    @doc("Полное название организации. Должно быть уникальным в БД.")
+    @minLength(1)
     @pattern("^.+$")
     full_name: string;
 
@@ -38,6 +39,6 @@ model OrganizationFields {
     @doc("Тип организации.")
     type: OrganizationType | null;
 
-    @doc("Почтовый адрес компании.")
+    @doc("Почтовый адрес организации.")
     postal_address: AddressFields;
 }

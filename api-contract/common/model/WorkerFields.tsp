@@ -17,10 +17,11 @@ const workerExample: WorkerFields = #{
     person: personExample
 };
 
-@doc("Данные, которые пользователь передаёт для создания работника.")
+@doc("Поля работника без идентификатора, даты создания и организации.")
 @example(workerExample)
 model WorkerFields {
     @doc("Имя работника.")
+    @minLength(1)
     @pattern("^.+$")
     name: string;
 
@@ -35,15 +36,15 @@ model WorkerFields {
     @minValueExclusive(0)
     rating: int32;
 
-    @doc("Дата начала работы работником.")
+    @doc("Дата начала работы.")
     start_date: utcDateTime;
 
-    @doc("Должность, которую занимает работник.")
+    @doc("Должность работника.")
     position: Position | null;
 
     @doc("Статус работника.")
     status: Status | null;
 
-    @doc("Личные данные работника")
+    @doc("Личные данные работника.")
     person: PersonFields | null;
 }
