@@ -10,4 +10,4 @@ using TypeSpec.Http;
 
 @route("/workers")
 @tag("Workers")
-namespace WorkersApi.Worker;
+namespace WorkersApi.Workers;
