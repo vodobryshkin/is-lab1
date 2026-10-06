@@ -1,17 +1,35 @@
 import "../../../common/model/WorkerFields.tsp";
-
-namespace WorkersApi.Workers;
+import "../../../common/model/OrganizationFields.tsp";
 
 using WorkersApi.Domain;
 
-@doc("Тело запроса на получение сотрудника в успешном случае.")
-@example(#{
+namespace WorkersApi.Workers;
+
+const getSingleWorkerExample: GetSingleWorkerResponse = #{
     ...workerExample,
+    id: 42,
+    creation_date: utcDateTime.fromISO("2026-10-06T12:00:00Z"),
     organization: organizationExample
-})
+};
+
+const getSingleWorkerWithoutOrganizationExample: GetSingleWorkerResponse = #{
+    ...getSingleWorkerExample,
+    organization: null
+};
+
+@doc("Данные работника.")
+@example(getSingleWorkerExample)
+@example(getSingleWorkerWithoutOrganizationExample)
 model GetSingleWorkerResponse {
     ...WorkerFields;
 
-    @doc("Организация, к которой принадлежит сотрудник.")
+    @doc("ID работника.")
+    @minValueExclusive(0)
+    id: int32;
+
+    @doc("Дата создания работника.")
+    creation_date: utcDateTime;
+
+    @doc("Организация работника или null.")
     organization: OrganizationFields | null;
 }
