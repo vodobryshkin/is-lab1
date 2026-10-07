@@ -4,6 +4,7 @@ import "@typespec/openapi3";
 import "./common";
 import "./auth";
 import "./workers";
+import "./organizations";
 
 using TypeSpec.Http;
 

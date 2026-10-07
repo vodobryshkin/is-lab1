@@ -6,6 +6,7 @@ import "./error/ConflictError.tsp";
 import "./error/UnprocessableContentError.tsp";
 import "./error/ValidationError.tsp";
 import "./error/ParameterValidationIssue.tsp";
+import "./error/AddressNotFoundError.tsp";
 
 import "./ok/OkResponse.tsp";
 import "./ok/CreatedResponse.tsp";
@@ -26,5 +27,6 @@ import "./model/WorkerFields.tsp";
 import "./model/IdResponse.tsp";
 import "./model/CountResponse.tsp";
 import "./model/PageResponse.tsp";
+import "./model/OrganizationRequest.tsp";
 
 namespace WorkersApi.Domain;

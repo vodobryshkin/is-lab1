@@ -3,13 +3,17 @@ import "../enum/OrganizationType.tsp";
 
 namespace WorkersApi.Domain;
 
-const organizationExample: OrganizationFields = #{
-    official_address: addressExample,
+const organizationBaseExample = #{
     annual_turnover: 1000000,
     employees_count: 3,
     full_name: "ООО ЛТК Магистраль",
     rating: 1000,
-    type: OrganizationType.OPEN_JOINT_STOCK_COMPANY,
+    type: OrganizationType.OPEN_JOINT_STOCK_COMPANY
+};
+
+const organizationExample: OrganizationFields = #{
+    ...organizationBaseExample,
+    official_address: addressExample,
     postal_address: addressExample
 };
 

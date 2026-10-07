@@ -8,6 +8,7 @@ import "../model/error/CreateWorkerOrganizationNotFoundError.tsp";
 import "../model/error/CreateWorkerOrganizationNameConflictError.tsp";
 
 import "../../common/error/BadRequestError.tsp";
+import "../../common/error/AddressNotFoundError.tsp";
 import "../../common/error/UnauthorizedError.tsp";
 import "../../common/error/ForbiddenError.tsp";
 
@@ -25,6 +26,21 @@ const createWorkerWithNewOrganizationOperationExample = #{
 const createWorkerWithExistingOrganizationOperationExample = #{
     parameters: #{ body: createWorkerWithExistingOrganizationExample },
     returnType: createWorkerCreatedExample
+};
+
+const createWorkerWithExistingAddressesOperationExample = #{
+    ...createWorkerWithNewOrganizationOperationExample,
+    parameters: #{ body: createWorkerWithExistingAddressesExample }
+};
+
+const createWorkerWithNewOfficialAddressOperationExample = #{
+    ...createWorkerWithNewOrganizationOperationExample,
+    parameters: #{ body: createWorkerWithNewOfficialAddressExample }
+};
+
+const createWorkerWithNewPostalAddressOperationExample = #{
+    ...createWorkerWithNewOrganizationOperationExample,
+    parameters: #{ body: createWorkerWithNewPostalAddressExample }
 };
 
 const createWorkerWithoutOrganizationOperationExample = #{
@@ -70,18 +86,26 @@ const createWorkerValidationOperationExample = #{
     returnType: createWorkerValidationExample
 };
 
+const createWorkerAddressNotFoundOperationExample = #{
+    returnType: addressNotFoundErrorExample
+};
+
 @post
 @route("")
 @useAuth(BearerAuth)
 @summary("Создать работника.")
 @doc("Создаёт работника и новые вложенные объекты в одной транзакции.")
 @opExample(createWorkerWithNewOrganizationOperationExample)
+@opExample(createWorkerWithExistingAddressesOperationExample)
+@opExample(createWorkerWithNewOfficialAddressOperationExample)
+@opExample(createWorkerWithNewPostalAddressOperationExample)
 @opExample(createWorkerWithExistingOrganizationOperationExample)
 @opExample(createWorkerWithoutOrganizationOperationExample)
 @opExample(createWorkerBadRequestOperationExample)
 @opExample(createWorkerUnauthorizedOperationExample)
 @opExample(createWorkerForbiddenOperationExample)
 @opExample(createWorkerOrganizationNotFoundOperationExample)
+@opExample(createWorkerAddressNotFoundOperationExample)
 @opExample(createWorkerOrganizationNameConflictOperationExample)
 @opExample(createWorkerValidationOperationExample)
 op createWorker(
@@ -92,5 +116,6 @@ op createWorker(
     | UnauthorizedError
     | ForbiddenError
     | CreateWorkerOrganizationNotFoundError
+    | AddressNotFoundError
     | CreateWorkerOrganizationNameConflictError
     | CreateWorkerValidationError;
