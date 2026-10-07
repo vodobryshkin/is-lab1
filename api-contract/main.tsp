@@ -5,6 +5,7 @@ import "./common";
 import "./auth";
 import "./workers";
 import "./organizations";
+import "./addresses";
 
 using TypeSpec.Http;
 
