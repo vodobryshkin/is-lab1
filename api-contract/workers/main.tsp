@@ -5,6 +5,8 @@ import "./model/request/UpdateWorkerRequest.tsp";
 
 import "./operations/get.tsp";
 import "./operations/create.tsp";
+import "./operations/update.tsp";
+import "./operations/delete.tsp";
 
 using TypeSpec.Http;
 

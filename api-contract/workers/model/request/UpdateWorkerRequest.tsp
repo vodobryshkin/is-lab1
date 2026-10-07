@@ -1,19 +1,27 @@
 import "../../../common/model/WorkerFields.tsp";
 
-namespace WorkersApi.Workers;
-
 using WorkersApi.Domain;
 
-@doc("Данные, которые клиент отправляет при обновлении работника.")
-@example(#{
+namespace WorkersApi.Workers;
+
+const updateWorkerExample: UpdateWorkerRequest = #{
     ...workerExample,
     organization_id: 1
-})
-@withOptionalProperties
+};
+
+const updateWorkerWithoutOrganizationExample: UpdateWorkerRequest = #{
+    ...updateWorkerExample,
+    organization_id: null
+};
+
+@doc("Данные для обновления работника.")
+@example(updateWorkerExample)
+@example(updateWorkerWithoutOrganizationExample)
 model UpdateWorkerRequest {
     ...WorkerFields;
+    ...Record<never>;
 
-    @doc("Новый Id организации, к которой принадлежит работник.")
+    @doc("ID существующей организации или null.")
     @minValueExclusive(0)
-    organization_id: int32;
+    organization_id: int32 | null;
 }
