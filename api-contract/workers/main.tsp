@@ -7,6 +7,9 @@ import "./operations/get.tsp";
 import "./operations/create.tsp";
 import "./operations/update.tsp";
 import "./operations/delete.tsp";
+import "./operations/count_by_status.tsp";
+import "./operations/rating_less_than.tsp";
+import "./operations/hire.tsp";
 
 using TypeSpec.Http;
 
