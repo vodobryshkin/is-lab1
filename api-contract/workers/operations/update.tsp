@@ -94,7 +94,7 @@ const updateWorkerValidationOperationExample = #{
 @opExample(updateWorkerValidationOperationExample)
 op updateWorker(
     @path
-    @minValueExclusive(0)
+    @minValue(1)
     id: int32,
     @body body: UpdateWorkerRequest
 ):

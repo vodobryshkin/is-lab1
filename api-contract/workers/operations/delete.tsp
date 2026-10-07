@@ -68,7 +68,7 @@ const deleteWorkerConflictOperationExample = #{
 @opExample(deleteWorkerConflictOperationExample)
 op deleteWorker(
     @path
-    @minValueExclusive(0)
+    @minValue(1)
     id: int32
 ):
     WorkersApi.Ok.NoContentResponse

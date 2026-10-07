@@ -85,7 +85,7 @@ const getWorkerNotFoundOperationExample = #{
 @opExample(getWorkerNotFoundOperationExample)
 op getWorker(
     @path
-    @minValueExclusive(0)
+    @minValue(1)
     id: int32
 ):
     WorkersApi.Ok.OkResponse<GetSingleWorkerResponse>
