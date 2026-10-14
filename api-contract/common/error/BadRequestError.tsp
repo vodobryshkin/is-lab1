@@ -7,11 +7,15 @@ const badRequestExample: BadRequestError = #{
     contentType: "application/json",
     body: #{
         type: "/problems/malformed-json",
-        title: "Некорректный JSON",
+        title: "Malformed JSON",
         status: 400,
-        detail: "Тело запроса содержит незакрытую строку.",
+        detail: "The request body contains invalid JSON.",
         instance: "/problem-occurrences/example-400"
     }
+};
+
+const badRequestOperationExample = #{
+    returnType: badRequestExample
 };
 
 @error

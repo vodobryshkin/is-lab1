@@ -11,11 +11,30 @@ const unauthorizedExample: UnauthorizedError = #{
     contentType: "application/problem+json",
     body: #{
         type: "/problems/invalid-token",
-        title: "Недействительный токен",
+        title: "Invalid token",
         status: 401,
-        detail: "Срок действия токена истёк. Пройдите аутентификацию повторно.",
+        detail: "The bearer token is invalid or expired.",
         instance: "/problem-occurrences/example-401"
     }
+};
+
+const missingTokenExample: UnauthorizedError = #{
+    ...unauthorizedExample,
+    wwwAuthenticate: "Bearer realm=\"Workers API\"",
+    body: #{
+        type: "/problems/missing-token",
+        title: "Authentication required",
+        status: 401,
+        detail: "A bearer token is required."
+    }
+};
+
+const missingTokenOperationExample = #{
+    returnType: missingTokenExample
+};
+
+const invalidTokenOperationExample = #{
+    returnType: unauthorizedExample
 };
 
 @error

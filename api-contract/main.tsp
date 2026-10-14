@@ -7,6 +7,9 @@ import "./auth";
 import "./workers";
 import "./organizations";
 import "./addresses";
+import "./coordinates";
+import "./locations";
+import "./persons";
 
 using TypeSpec.Http;
 using TypeSpec.OpenAPI;

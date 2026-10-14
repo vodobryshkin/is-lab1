@@ -1,0 +1,45 @@
+import "@typespec/http";
+
+import "../main.tsp";
+import "../../common/ok/NoContentResponse.tsp";
+import "../model/error/CoordinatesErrors.tsp";
+
+using TypeSpec.Http;
+using WorkersApi.Domain;
+using WorkersApi.Ok;
+using WorkersApi.Errors;
+using WorkersApi.Coordinates.Errors;
+
+namespace WorkersApi.Coordinates;
+
+const updateCoordinatesSuccessOperationExample = #{
+    parameters: #{ id: 5, body: coordinatesWriteExample },
+    returnType: #{ statusCode: 204 }
+};
+
+@put
+@route("/{id}")
+@summary("Обновить координаты.")
+@doc("Заменяет все поля координат, включая используемые работниками.")
+@returnsDoc("Координаты обновлены.")
+@opExample(updateCoordinatesSuccessOperationExample)
+@opExample(invalidIdOperationExample)
+@opExample(badRequestOperationExample)
+@opExample(missingTokenOperationExample)
+@opExample(invalidTokenOperationExample)
+@opExample(forbiddenOperationExample)
+@opExample(coordinatesNotFoundOperationExample)
+@opExample(coordinatesValidationOperationExample)
+op updateCoordinates(
+    @path
+    @minValue(1)
+    id: int32,
+    @body body: CoordinatesWriteRequest
+):
+    WorkersApi.Ok.NoContentResponse
+    | ValidationError<400, ParameterValidationIssue>
+    | BadRequestError
+    | UnauthorizedError
+    | ForbiddenError
+    | NotFoundError<CoordinatesNotFoundDetails>
+    | CoordinatesValidationError;

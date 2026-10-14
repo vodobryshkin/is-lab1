@@ -4,6 +4,27 @@ import "./ParameterValidationIssue.tsp";
 
 namespace WorkersApi.Errors;
 
+const invalidIdExample: ValidationError<400, ParameterValidationIssue> = #{
+    statusCode: 400,
+    contentType: "application/json",
+    body: #{
+        type: "/problems/validation-failed",
+        title: "Invalid request parameters",
+        status: 400,
+        errors: #[
+            #{
+                field: "id",
+                title: "MUST_BE_POSITIVE",
+                description: "ID must be greater than zero."
+            }
+        ]
+    }
+};
+
+const invalidIdOperationExample = #{
+    returnType: invalidIdExample
+};
+
 const parameterValidationErrorExample:
     ValidationError<400, ParameterValidationIssue> = #{
         statusCode: 400,

@@ -9,11 +9,15 @@ const forbiddenExample: ForbiddenError = #{
     contentType: "application/json",
     body: #{
         type: "/problems/insufficient-permissions",
-        title: "Недостаточно прав",
+        title: "Insufficient permissions",
         status: 403,
-        detail: "У пользователя нет права изменять этого работника.",
+        detail: "Modifying this resource is not allowed.",
         instance: "/problem-occurrences/example-403"
     }
+};
+
+const forbiddenOperationExample = #{
+    returnType: forbiddenExample
 };
 
 @error
