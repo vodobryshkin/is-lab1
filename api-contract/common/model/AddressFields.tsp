@@ -19,7 +19,7 @@ model AddressFields {
     ...Record<never>;
 
     @doc("Название улицы.")
-    @pattern(".*\\S.*")
+    @pattern("\\S")
     @minLength(1)
     street: string;
 

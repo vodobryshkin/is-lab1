@@ -8,7 +8,7 @@ union WorkerValidationIssue {
     name: {
         field: "name";
         title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE"
-            | "MUST_NOT_BE_EMPTY" | "MUST_MATCH_PATTERN";
+            | "MUST_NOT_BE_EMPTY" | "MUST_MATCH_PATTERN" | "OUT_OF_RANGE";
         description: string;
     },
 

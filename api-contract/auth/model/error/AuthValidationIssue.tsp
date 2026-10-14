@@ -7,8 +7,8 @@ namespace WorkersApi.Auth.Errors;
 
 const authValidationIssueExample = #{
     field: "password",
-    title: "MUST_NOT_BE_EMPTY",
-    description: "Password must not be empty."
+    title: "OUT_OF_RANGE",
+    description: "Password must contain between 6 and 255 characters."
 };
 
 const authBadRequestExample: BadRequestError = #{
@@ -70,14 +70,14 @@ union AuthValidationIssue {
     username: {
         field: "username";
         title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE"
-            | "MUST_NOT_BE_EMPTY";
+            | "MUST_NOT_BE_EMPTY" | "OUT_OF_RANGE" | "MUST_MATCH_PATTERN";
         description: string;
     },
 
     password: {
         field: "password";
         title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE"
-            | "MUST_NOT_BE_EMPTY";
+            | "MUST_NOT_BE_EMPTY" | "OUT_OF_RANGE" | "MUST_MATCH_PATTERN";
         description: string;
     },
 

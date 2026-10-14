@@ -33,7 +33,7 @@ model OrganizationFields {
 
     @doc("Полное название организации. Должно быть уникальным в БД.")
     @minLength(1)
-    @pattern(".*\\S.*")
+    @pattern("\\S")
     full_name: string;
 
     @doc("Рейтинг организации.")
