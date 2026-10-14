@@ -8,6 +8,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
 import java.util.List;
 
 /**
@@ -26,6 +30,8 @@ public class User {
     private Long id;
 
     @Column(name = "username", nullable = false, unique = true, length = 64)
+    @NotBlank
+    @Size(max = 64)
     private String username;
 
     @OneToMany(mappedBy = "user")

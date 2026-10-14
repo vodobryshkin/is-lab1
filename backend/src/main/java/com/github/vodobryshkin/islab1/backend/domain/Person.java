@@ -61,6 +61,6 @@ public class Person {
     private Country nationality;              // Поле не может быть null
 
     @OneToOne
-    @JoinColumn(name = "worker_id")
+    @JoinColumn(name = "worker_id", unique = true)
     private Worker worker;
 }

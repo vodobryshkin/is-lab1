@@ -16,6 +16,8 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
+
 import java.time.ZonedDateTime;
 
 /**
@@ -43,6 +45,7 @@ public class Worker {
 
     @Column(name = "name", nullable = false)
     @NotBlank
+    @Size(max = 255)
     private String name; // Поле не может быть null, Строка не может быть пустой
 
     @ManyToOne(optional = false)
