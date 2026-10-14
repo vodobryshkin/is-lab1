@@ -28,7 +28,7 @@ import java.time.ZonedDateTime;
 @Table(name = "workers")
 public class Worker {
     @Id
-    @SequenceGenerator(name = "workers_seq", sequenceName = "workers_id_seq", allocationSize = 1)
+    @SequenceGenerator(name = "workers_seq", sequenceName = "workers_worker_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "workers_seq")
     @Column(name = "id")
     @Positive

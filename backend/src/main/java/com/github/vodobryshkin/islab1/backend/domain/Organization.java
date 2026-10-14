@@ -27,12 +27,12 @@ public class Organization {
     @Id
     @SequenceGenerator(
             name = "organizations_seq",
-            sequenceName = "organizations_id_seq",
+            sequenceName = "organizations_organization_id_seq",
             allocationSize = 1
     )
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "organizations_seq")
-    @Column(name = "id")
-    private Integer id;
+    @Column(name = "organization_id")
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "official_address_id", nullable = false)

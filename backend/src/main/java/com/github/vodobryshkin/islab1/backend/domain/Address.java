@@ -23,12 +23,12 @@ public class Address {
     @Id
     @SequenceGenerator(
             name = "addresses_seq",
-            sequenceName = "addresses_id_seq",
+            sequenceName = "addresses_address_id_seq",
             allocationSize = 1
     )
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "addresses_seq")
-    @Column(name = "id")
-    private Integer id;
+    @Column(name = "address_id")
+    private Long id;
 
     @Column(name = "street", columnDefinition = "TEXT")
     @NotBlank

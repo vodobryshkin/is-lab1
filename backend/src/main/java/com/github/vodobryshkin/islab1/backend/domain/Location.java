@@ -21,12 +21,12 @@ public class Location {
     @Id
     @SequenceGenerator(
             name = "locations_seq",
-            sequenceName = "locations_id_seq",
+            sequenceName = "locations_location_id_seq",
             allocationSize = 1
     )
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "locations_seq")
-    @Column(name = "id")
-    private Integer id;
+    @Column(name = "location_id")
+    private Long id;
 
     @NotNull
     private Integer x; // Поле не может быть null

@@ -26,10 +26,10 @@ import java.time.ZonedDateTime;
 @Table(name = "persons")
 public class Person {
     @Id
-    @SequenceGenerator(name = "persons_seq", sequenceName = "persons_id_seq", allocationSize = 1)
+    @SequenceGenerator(name = "persons_seq", sequenceName = "persons_person_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "persons_seq")
-    @Column(name = "id")
-    private Integer id;
+    @Column(name = "person_id")
+    private Long id;
 
     @Column(name = "eye_color")
     @Enumerated(EnumType.STRING)

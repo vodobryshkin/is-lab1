@@ -6,9 +6,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Класс, который отвечает за представление пользователя системы. Является JPA-сущностью.
@@ -20,9 +20,10 @@ import java.util.UUID;
 @Table(name = "users")
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id")
-    private UUID id;
+    @SequenceGenerator(name = "users_seq", sequenceName = "users_user_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_seq")
+    @Column(name = "user_id")
+    private Long id;
 
     @Column(name = "username", nullable = false)
     private String username;

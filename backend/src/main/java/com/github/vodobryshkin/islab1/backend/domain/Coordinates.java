@@ -22,12 +22,12 @@ public class Coordinates {
     @Id
     @SequenceGenerator(
             name = "coordinates_seq",
-            sequenceName = "coordinates_id_seq",
+            sequenceName = "coordinates_coordinates_id_seq",
             allocationSize = 1
     )
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "coordinates_seq")
-    @Column(name = "id")
-    private Integer id;
+    @Column(name = "coordinates_id")
+    private Long id;
 
     @Column(name = "x")
     @Min(value = -953)
