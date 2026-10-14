@@ -4,6 +4,43 @@ import "./ParameterValidationIssue.tsp";
 
 namespace WorkersApi.Errors;
 
+const listParameterValidationExample:
+    ValidationError<400, ParameterValidationIssue> = #{
+        statusCode: 400,
+        contentType: "application/json",
+        body: #{
+            type: "/problems/validation-failed",
+            title: "Invalid request parameters",
+            status: 400,
+            errors: #[
+                #{
+                    field: "page",
+                    title: "MUST_BE_POSITIVE",
+                    description: "Page must be greater than zero."
+                },
+                #{
+                    field: "page_size",
+                    title: "OUT_OF_RANGE",
+                    description: "Page size must not exceed 100."
+                },
+                #{
+                    field: "sort_by",
+                    title: "INVALID_ENUM_VALUE",
+                    description: "The sort field is not supported."
+                },
+                #{
+                    field: "sort_order",
+                    title: "INVALID_ENUM_VALUE",
+                    description: "Sort order must be asc or desc."
+                }
+            ]
+        }
+    };
+
+const listParameterValidationOperationExample = #{
+    returnType: listParameterValidationExample
+};
+
 const invalidIdExample: ValidationError<400, ParameterValidationIssue> = #{
     statusCode: 400,
     contentType: "application/json",

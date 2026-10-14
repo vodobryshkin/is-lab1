@@ -19,6 +19,7 @@ model PageResponse<TItem> {
 
     @doc("Размер страницы.")
     @minValueExclusive(0)
+    @maxValue(100)
     page_size: int32;
 
     @doc("Количество объектов с учётом фильтров.")
