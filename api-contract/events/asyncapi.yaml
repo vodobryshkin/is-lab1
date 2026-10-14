@@ -1,0 +1,240 @@
+asyncapi: 3.0.0
+
+info:
+  title: Workers API Events
+  version: 0.1.0
+  description: |
+    Уведомления об изменениях данных. Документ описывает сервер.
+
+    Подключение: `ws://localhost:8080/api/v1/events`; вне локальной разработки — `wss`.
+    До HTTP Upgrade сервер проверяет `Origin` по списку разрешённых адресов фронтенда.
+    Отсутствующий или запрещённый `Origin` отклоняется HTTP-ответом 403.
+    Параметры URL не поддерживаются; при их наличии сервер возвращает HTTP 400.
+
+    Первое прикладное сообщение клиента — `AUTHENTICATE` с access-токеном из login или refresh.
+    Его нужно отправить в течение 5 секунд после подключения.
+    Сервер проверяет подпись JWT, срок действия и остальные условия проверки access-токена в REST.
+    При успехе сервер сначала отправляет `AUTHENTICATED`, затем разрешает уведомления.
+    До этого момента данные не рассылаются. Refresh-cookie для WebSocket не используется.
+    Access-токен не передаётся в URL и не записывается в журналы.
+
+    После фиксации транзакции, изменившей работников, организации, адреса, координаты,
+    локации или персон, сервер отправляет `DATA_CHANGED` всем аутентифицированным клиентам,
+    включая инициатора изменения. Это относится и к найму, и к индексации зарплат.
+    Одна транзакция даёт одно уведомление, даже если изменила несколько объектов.
+    Откат транзакции и операции без изменений не создают уведомлений.
+
+    Получив `AUTHENTICATED`, клиент загружает актуальное состояние через REST.
+    По `DATA_CHANGED` клиент перечитывает открытые списки, карточки и результаты специальных операций.
+    Если уведомление пришло во время REST-запроса, перечитывание повторяется после его завершения.
+    История событий не хранится и не воспроизводится; после переподключения данные загружаются заново.
+    Клиент может объединять несколько уведомлений в одно перечитывание.
+
+    Повторная аутентификация в том же соединении не поддерживается.
+    При истечении access-токена сервер отправляет `ERROR` с кодом `TOKEN_EXPIRED` и закрывает соединение.
+    Клиент обновляет токен через существующий REST refresh и подключается заново.
+    После успешного refresh активное соединение заменяется новым, с новым access-токеном.
+    При выходе клиент закрывает соединение кодом 1000 и прекращает переподключения.
+    При временном обрыве клиент повторяет подключение с увеличивающейся задержкой до 30 секунд.
+    Ошибка login или refresh требует повторного входа, без бесконечных повторов.
+
+    Прикладные сообщения — текстовый JSON, максимум 16384 байта на сообщение клиента.
+    Кроме первого `AUTHENTICATE`, прикладные сообщения клиента не поддерживаются.
+    Служебные WebSocket Ping/Pong не являются прикладными сообщениями.
+    Перед закрытием сервер по возможности отправляет `ERROR`; получение ошибки не гарантируется при обрыве связи.
+
+    Коды закрытия:
+    - 4001 — аутентификация отсутствует, токен недействителен или истёк.
+    - 4002 — некорректный JSON, неизвестное сообщение, лишнее поле или повторный `AUTHENTICATE`.
+    - 1003 — бинарное сообщение.
+    - 1009 — превышен размер сообщения.
+    Коды 4001 и 4002 — прикладные коды WebSocket, а не HTTP-статусы.
+
+defaultContentType: application/json
+
+servers:
+  local:
+    host: localhost:8080
+    protocol: ws
+    description: Локальный сервер.
+
+channels:
+  events:
+    address: /api/v1/events
+    title: Обновления данных.
+    description: Один канал для аутентификации и уведомлений.
+    servers:
+      - $ref: '#/servers/local'
+    bindings:
+      ws:
+        method: GET
+        bindingVersion: 0.1.0
+        headers:
+          type: object
+          required: [Origin]
+          properties:
+            Origin:
+              type: string
+              format: uri
+              description: Разрешённый адрес фронтенда, проверяется до подключения.
+        query:
+          type: object
+          additionalProperties: false
+    messages:
+      authenticate:
+        $ref: '#/components/messages/Authenticate'
+      authenticated:
+        $ref: '#/components/messages/Authenticated'
+      data_changed:
+        $ref: '#/components/messages/DataChanged'
+      error:
+        $ref: '#/components/messages/Error'
+
+operations:
+  receive_authentication:
+    action: receive
+    title: Принять access-токен.
+    summary: Аутентифицирует новое соединение.
+    channel:
+      $ref: '#/channels/events'
+    messages:
+      - $ref: '#/channels/events/messages/authenticate'
+
+  send_messages:
+    action: send
+    title: Отправить сообщение клиенту.
+    summary: Подтверждение входа, уведомление или ошибка.
+    channel:
+      $ref: '#/channels/events'
+    messages:
+      - $ref: '#/channels/events/messages/authenticated'
+      - $ref: '#/channels/events/messages/data_changed'
+      - $ref: '#/channels/events/messages/error'
+
+components:
+  messages:
+    Authenticate:
+      name: Authenticate
+      title: Аутентификация соединения.
+      summary: Первое сообщение клиента.
+      payload:
+        $ref: '#/components/schemas/Authenticate'
+      examples:
+        - name: authenticate
+          summary: Передать access-токен.
+          payload:
+            type: AUTHENTICATE
+            access_token: example-access-token
+
+    Authenticated:
+      name: Authenticated
+      title: Соединение аутентифицировано.
+      summary: После этого сообщения клиент загружает данные через REST.
+      payload:
+        $ref: '#/components/schemas/Authenticated'
+      examples:
+        - name: authenticated
+          summary: Подтвердить вход.
+          payload:
+            type: AUTHENTICATED
+
+    DataChanged:
+      name: DataChanged
+      title: Данные изменились.
+      summary: Клиент перечитывает открытые данные через REST.
+      payload:
+        $ref: '#/components/schemas/DataChanged'
+      examples:
+        - name: data_changed
+          summary: Сообщить об изменении.
+          payload:
+            type: DATA_CHANGED
+
+    Error:
+      name: Error
+      title: Ошибка соединения.
+      summary: После ошибки сервер закрывает соединение.
+      payload:
+        $ref: '#/components/schemas/Error'
+      examples:
+        - name: authentication_required
+          summary: Аутентификация не выполнена вовремя.
+          payload:
+            type: ERROR
+            code: AUTHENTICATION_REQUIRED
+            description: Authenticate within 5 seconds of connecting.
+        - name: invalid_token
+          summary: Недействительный access-токен.
+          payload:
+            type: ERROR
+            code: INVALID_TOKEN
+            description: The access token is invalid.
+        - name: token_expired
+          summary: Истёк access-токен.
+          payload:
+            type: ERROR
+            code: TOKEN_EXPIRED
+            description: The access token has expired.
+        - name: invalid_message
+          summary: Неподдерживаемое сообщение.
+          payload:
+            type: ERROR
+            code: INVALID_MESSAGE
+            description: The message does not match the expected format.
+
+  schemas:
+    Authenticate:
+      title: Данные аутентификации.
+      type: object
+      additionalProperties: false
+      required: [type, access_token]
+      properties:
+        type:
+          type: string
+          enum: [AUTHENTICATE]
+        access_token:
+          type: string
+          minLength: 1
+          description: Access-токен из REST login или refresh; пример является заглушкой.
+
+    Authenticated:
+      title: Подтверждение аутентификации.
+      type: object
+      additionalProperties: false
+      required: [type]
+      properties:
+        type:
+          type: string
+          enum: [AUTHENTICATED]
+
+    DataChanged:
+      title: Уведомление об изменениях.
+      type: object
+      additionalProperties: false
+      required: [type]
+      properties:
+        type:
+          type: string
+          enum: [DATA_CHANGED]
+
+    Error:
+      title: Данные ошибки.
+      type: object
+      additionalProperties: false
+      required: [type, code, description]
+      properties:
+        type:
+          type: string
+          enum: [ERROR]
+        code:
+          type: string
+          description: Код ошибки.
+          enum:
+            - AUTHENTICATION_REQUIRED
+            - INVALID_TOKEN
+            - TOKEN_EXPIRED
+            - INVALID_MESSAGE
+        description:
+          type: string
+          minLength: 1
+          description: Описание ошибки на английском языке.
