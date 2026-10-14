@@ -35,13 +35,13 @@ public class Person {
     @Enumerated(EnumType.STRING)
     private Color eyeColor;                   // Поле может быть null
 
-    @Column(name = "hair_color")
+    @Column(name = "hair_color", nullable = false)
     @Enumerated(EnumType.STRING)
     @NotNull
     private Color hairColor;                  // Поле не может быть null
 
-    @ManyToOne
-    @JoinColumn(name = "location_id")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "location_id", nullable = false)
     @NotNull
     private Location location;                // Поле не может быть null
 
@@ -49,13 +49,13 @@ public class Person {
     @NotNull
     private ZonedDateTime birthday;           // Поле не может быть null
 
-    @Column(name = "weight")
+    @Column(name = "weight", nullable = false)
     @NotNull
     @Positive
     private Float weight;                     // Поле не может быть null,
     // Значение поля должно быть больше 0
 
-    @Column(name = "nationality")
+    @Column(name = "nationality", nullable = false)
     @Enumerated(EnumType.STRING)
     @NotNull
     private Country nationality;              // Поле не может быть null

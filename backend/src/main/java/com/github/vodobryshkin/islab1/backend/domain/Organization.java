@@ -34,26 +34,26 @@ public class Organization {
     @Column(name = "organization_id")
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "official_address_id", nullable = false)
     @NotNull
     private Address officialAddress; // Поле не может быть null
 
-    @Column(name = "annual_turnover")
+    @Column(name = "annual_turnover", nullable = false)
     @Positive
     private float annualTurnover;    // Значение поля должно быть больше 0
 
-    @Column(name = "employees_count")
+    @Column(name = "employees_count", nullable = false)
     @NotNull
     @Positive
     private Long employeesCount;     // Поле не может быть null, Значение поля должно быть больше 0
 
-    @Column(name = "full_name", unique = true, columnDefinition = "TEXT")
+    @Column(name = "full_name", unique = true, columnDefinition = "TEXT", nullable = false)
     @NotBlank
     private String fullName;         // Значение этого поля должно быть уникальным,
     // Строка не может быть пустой, Поле не может быть null
 
-    @Column(name = "rating")
+    @Column(name = "rating", nullable = false)
     @NotNull
     @Positive
     private Integer rating;          // Поле не может быть null, Значение поля должно быть больше 0
@@ -62,7 +62,7 @@ public class Organization {
     @Enumerated(EnumType.STRING)
     private OrganizationType type;   // Поле может быть null
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "postal_address_id", nullable = false)
     @NotNull
     private Address postalAddress;   // Поле не может быть null

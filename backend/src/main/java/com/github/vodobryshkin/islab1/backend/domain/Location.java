@@ -28,12 +28,15 @@ public class Location {
     @Column(name = "location_id")
     private Long id;
 
+    @Column(name = "x", nullable = false)
     @NotNull
     private Integer x; // Поле не может быть null
 
+    @Column(name = "y", nullable = false)
     @NotNull
     private Integer y; // Поле не может быть null
 
+    @Column(name = "z", nullable = false)
     @NotNull
     private Long z;    // Поле не может быть null
 }

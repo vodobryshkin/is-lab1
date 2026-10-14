@@ -30,7 +30,7 @@ public class Address {
     @Column(name = "address_id")
     private Long id;
 
-    @Column(name = "street", columnDefinition = "TEXT")
+    @Column(name = "street", nullable = false, columnDefinition = "TEXT")
     @NotBlank
     private String street; // Строка не может быть пустой, Поле не может быть null
 

@@ -29,12 +29,12 @@ public class Coordinates {
     @Column(name = "coordinates_id")
     private Long id;
 
-    @Column(name = "x")
+    @Column(name = "x", nullable = false)
     @Min(value = -953)
     @NotNull
     private Integer x; // Значение поля должно быть больше -954, Поле не может быть null
 
-    @Column(name = "y")
+    @Column(name = "y", nullable = false)
     @Min(value = -391)
     @NotNull
     private Long y;    // Значение поля должно быть больше -392, Поле не может быть null

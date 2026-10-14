@@ -36,21 +36,21 @@ public class Worker {
     // Значение этого поля должно быть уникальным,
     // Значение этого поля должно генерироваться автоматически
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
     @NotNull
     private User user;
 
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     @NotBlank
     private String name; // Поле не может быть null, Строка не может быть пустой
 
-    @ManyToOne
-    @JoinColumn(name = "coordinates_id")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "coordinates_id", nullable = false)
     @NotNull
     private Coordinates coordinates; // Поле не может быть null
 
-    @Column(name = "creation_date")
+    @Column(name = "creation_date", nullable = false, columnDefinition = "TIMESTAMPTZ")
     @NotNull
     private ZonedDateTime creationDate; // Поле не может быть null,
     // Значение этого поля должно генерироваться автоматически
@@ -59,16 +59,16 @@ public class Worker {
     @JoinColumn(name = "organization_id")
     private Organization organization; // Поле может быть null
 
-    @Column(name = "salary")
+    @Column(name = "salary", nullable = false)
     @Positive
     private double salary; // Значение поля должно быть больше 0
 
-    @Column(name = "rating")
+    @Column(name = "rating", nullable = false)
     @NotNull
     @Positive
     private Integer rating; // Поле не может быть null, Значение поля должно быть больше 0
 
-    @Column(name = "start_date")
+    @Column(name = "start_date", nullable = false, columnDefinition = "TIMESTAMPTZ")
     @NotNull
     private ZonedDateTime startDate; // Поле не может быть null
 

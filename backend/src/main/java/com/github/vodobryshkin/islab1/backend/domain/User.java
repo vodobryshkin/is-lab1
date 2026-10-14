@@ -25,7 +25,7 @@ public class User {
     @Column(name = "user_id")
     private Long id;
 
-    @Column(name = "username", nullable = false)
+    @Column(name = "username", nullable = false, unique = true, length = 64)
     private String username;
 
     @OneToMany(mappedBy = "user")
