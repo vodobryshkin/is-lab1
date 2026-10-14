@@ -86,6 +86,6 @@ model DeleteCoordinatesConflictError is ConflictError<
 
         @doc("ID координат.")
         @minValue(1)
-        coordinates_id: int32;
+        coordinates_id: int64;
     }
 >;

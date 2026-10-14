@@ -33,7 +33,7 @@ const updateCoordinatesSuccessOperationExample = #{
 op updateCoordinates(
     @path
     @minValue(1)
-    id: int32,
+    id: int64,
     @body body: CoordinatesWriteRequest
 ):
     WorkersApi.Ok.NoContentResponse

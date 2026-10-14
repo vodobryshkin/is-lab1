@@ -11,5 +11,5 @@ model HireWorkerRequest {
 
     @doc("ID существующей организации.")
     @minValue(1)
-    organization_id: int32;
+    organization_id: int64;
 }

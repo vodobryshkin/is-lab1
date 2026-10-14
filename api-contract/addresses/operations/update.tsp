@@ -48,7 +48,7 @@ const updateAddressWithExistingLocationOperationExample = #{
 op updateAddress(
     @path
     @minValue(1)
-    id: int32,
+    id: int64,
     @body body: AddressFields
 ):
     WorkersApi.Ok.NoContentResponse

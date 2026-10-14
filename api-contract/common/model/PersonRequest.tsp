@@ -28,6 +28,6 @@ union PersonRequest {
 
         @doc("ID персоны.")
         @minValue(1)
-        id: int32;
+        id: int64;
     },
 }

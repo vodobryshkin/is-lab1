@@ -24,5 +24,5 @@ model CreateWorkerResponse {
 
     @doc("ID организации или null.")
     @minValueExclusive(0)
-    organization_id: int32 | null;
+    organization_id: int64 | null;
 }

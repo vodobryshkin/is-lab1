@@ -28,6 +28,6 @@ model CreateWorkerOrganizationNotFoundError is ProblemResponse<
         type: "/problems/organization-not-found";
 
         @minValueExclusive(0)
-        organization_id: int32;
+        organization_id: int64;
     }
 >;

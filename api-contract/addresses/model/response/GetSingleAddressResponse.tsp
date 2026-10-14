@@ -19,7 +19,7 @@ model GetSingleAddressResponse {
 
     @doc("ID адреса.")
     @minValue(1)
-    id: int32;
+    id: int64;
 
     @doc("Локация города или null.")
     town: GetSingleLocationResponse | null;

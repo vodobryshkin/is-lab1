@@ -30,7 +30,7 @@ const deleteAddressSuccessOperationExample = #{
 op deleteAddress(
     @path
     @minValue(1)
-    id: int32
+    id: int64
 ):
     WorkersApi.Ok.NoContentResponse
     | ValidationError<400, ParameterValidationIssue>

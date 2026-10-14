@@ -37,6 +37,15 @@ const getWorkerWithoutOrganizationOperationExample = #{
     }
 };
 
+const getWorkerMaxIdOperationExample = #{
+    parameters: #{ id: 2147483647 },
+    returnType: #{
+        statusCode: 200,
+        contentType: "application/json",
+        body: #{ ...getSingleWorkerExample, id: 2147483647 }
+    }
+};
+
 const getWorkerMissingTokenExample: UnauthorizedError = #{
     statusCode: 401,
     wwwAuthenticate: "Bearer realm=\"Workers API\"",
@@ -84,6 +93,7 @@ const getWorkerNotFoundOperationExample = #{
 @summary("Получить работника.")
 @doc("Возвращает работника и его вложенные объекты.")
 @opExample(getWorkerSuccessOperationExample)
+@opExample(getWorkerMaxIdOperationExample)
 @opExample(getWorkerWithoutOrganizationOperationExample)
 @opExample(getWorkerInvalidIdOperationExample)
 @opExample(getWorkerMissingTokenOperationExample)

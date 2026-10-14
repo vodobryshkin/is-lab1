@@ -201,7 +201,7 @@ model OrganizationNotFoundError is ProblemResponse<
 
         @doc("ID организации.")
         @minValue(1)
-        organization_id: int32;
+        organization_id: int64;
     }
 >;
 
@@ -232,7 +232,7 @@ model DeleteOrganizationConflictError is ProblemResponse<
 
         @doc("ID организации.")
         @minValue(1)
-        organization_id: int32;
+        organization_id: int64;
     }
 >;
 

@@ -13,7 +13,7 @@ const validationProblemDetailsExample: ValidationProblemDetails = #{
         validationIssueExample,
         #{
             field: "rating",
-            title: "RATING_MUST_BE_POSITIVE",
+            title: "MUST_BE_POSITIVE",
             description: "Rating must be positive."
         }
     ]

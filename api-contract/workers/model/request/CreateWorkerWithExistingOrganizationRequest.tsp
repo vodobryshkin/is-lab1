@@ -18,5 +18,5 @@ model CreateWorkerWithExistingOrganizationRequest {
 
     @doc("ID существующей организации.")
     @minValueExclusive(0)
-    organization_id: int32;
+    organization_id: int64;
 }

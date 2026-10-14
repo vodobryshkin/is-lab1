@@ -11,12 +11,12 @@ using TypeSpec.OpenAPI;
 @doc("Данные для создания работника.")
 @oneOf
 union CreateWorkerRequest {
-    @doc("Используется, когда мы хотим добавить работника в уже существующую организацию, передав id этой организации.")
-    existingOrganization: CreateWorkerWithExistingOrganizationRequest,
+    @doc("Работник в существующей организации.")
+    existing_organization: CreateWorkerWithExistingOrganizationRequest,
 
-    @doc("Используется, когда мы хотим добавить работника в организацию, которой ещё не существует, создав ее вместе с работником.")
-    newOrganization: CreateWorkerWithNewOrganizationRequest,
+    @doc("Работник с новой организацией.")
+    new_organization: CreateWorkerWithNewOrganizationRequest,
 
-    @doc("Используется, когда мы хотим добавить работника без привязки к организации.")
-    withoutOrganization: CreateWorkerWithoutOrganizationRequest,
+    @doc("Работник без организации.")
+    without_organization: CreateWorkerWithoutOrganizationRequest,
 }

@@ -22,15 +22,15 @@ model GetSingleOrganizationResponse {
 
     @doc("ID организации.")
     @minValue(1)
-    id: int32;
+    id: int64;
 
     @doc("ID официального адреса.")
     @minValue(1)
-    official_address_id: int32;
+    official_address_id: int64;
 
     @doc("ID почтового адреса.")
     @minValue(1)
-    postal_address_id: int32;
+    postal_address_id: int64;
 
     @doc("Официальный адрес.")
     official_address: GetSingleAddressResponse;

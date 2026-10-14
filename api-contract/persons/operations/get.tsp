@@ -37,7 +37,7 @@ const getPersonSuccessOperationExample = #{
 op getPerson(
     @path
     @minValue(1)
-    id: int32
+    id: int64
 ):
     WorkersApi.Ok.OkResponse<GetSinglePersonResponse>
     | ValidationError<400, ParameterValidationIssue>

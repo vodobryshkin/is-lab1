@@ -19,7 +19,7 @@ model GetSinglePersonResponse {
 
     @doc("ID персоны.")
     @minValue(1)
-    id: int32;
+    id: int64;
 
     @doc("Локация персоны.")
     location: GetSingleLocationResponse;

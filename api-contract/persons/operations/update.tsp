@@ -41,7 +41,7 @@ const updatePersonWithExistingLocationOperationExample = #{
 op updatePerson(
     @path
     @minValue(1)
-    id: int32,
+    id: int64,
     @body body: PersonWriteRequest
 ):
     WorkersApi.Ok.NoContentResponse

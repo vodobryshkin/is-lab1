@@ -22,6 +22,15 @@ const countWorkersByStatusOperationExample = #{
     }
 };
 
+const countWorkersWithoutStatusOperationExample = #{
+    parameters: #{ status: "null" },
+    returnType: #{
+        statusCode: 200,
+        contentType: "application/json",
+        body: countResponseExample
+    }
+};
+
 const countWorkersByStatusGreaterThanOperationExample = #{
     parameters: #{ status: Status.RECOMMENDED_FOR_PROMOTION },
     returnType: #{
@@ -52,7 +61,7 @@ const workerStatusValidationOperationExample = #{
                 #{
                     field: "status",
                     title: "INVALID_ENUM_VALUE",
-                    description: "Status must be one of the declared enum values."
+                    description: "The status value is not supported by this operation."
                 }
             ]
         }
@@ -63,14 +72,15 @@ const workerStatusValidationOperationExample = #{
 @route("/count_by_status")
 @useAuth(BearerAuth)
 @summary("Посчитать работников по статусу.")
-@doc("Считает работников с указанным статусом. При отсутствии совпадений возвращает 0.")
+@doc("Считает работников с указанным статусом. Для пустого статуса передайте status=null. При отсутствии совпадений возвращает 0.")
 @returnsDoc("Количество работников.")
 @opExample(countWorkersByStatusOperationExample)
+@opExample(countWorkersWithoutStatusOperationExample)
 @opExample(workerStatusValidationOperationExample)
 @opExample(getWorkerMissingTokenOperationExample)
 @opExample(getWorkerInvalidTokenOperationExample)
 op countWorkersByStatus(
-    @query status: Status
+    @query status: Status | "null"
 ):
     WorkersApi.Ok.OkResponse<CountResponse>
     | ValidationError<400, ParameterValidationIssue>

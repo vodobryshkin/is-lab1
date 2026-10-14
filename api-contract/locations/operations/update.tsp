@@ -33,7 +33,7 @@ const updateLocationSuccessOperationExample = #{
 op updateLocation(
     @path
     @minValue(1)
-    id: int32,
+    id: int64,
     @body body: LocationWriteRequest
 ):
     WorkersApi.Ok.NoContentResponse

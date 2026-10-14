@@ -1,14 +1,14 @@
 namespace WorkersApi.Auth;
 
 const tokenResponseExample: TokenResponse = #{
-    access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMWU4MmU5MS0wZGI3LTRjMDYtODRlMi05MmUwODEwOGJlZjAiLCJqdGkiOiJsb2dpbi1leGFtcGxlIn0.example-signature",
+    access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0MiIsImp0aSI6ImxvZ2luLWV4YW1wbGUifQ.example-signature",
     token_type: "Bearer",
     expires_in: 900
 };
 
 const refreshedTokenResponseExample: TokenResponse = #{
     ...tokenResponseExample,
-    access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMWU4MmU5MS0wZGI3LTRjMDYtODRlMi05MmUwODEwOGJlZjAiLCJqdGkiOiJyZWZyZXNoLWV4YW1wbGUifQ.example-signature"
+    access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0MiIsImp0aSI6InJlZnJlc2gtZXhhbXBsZSJ9.example-signature"
 };
 
 @doc("Access-токен сессии.")

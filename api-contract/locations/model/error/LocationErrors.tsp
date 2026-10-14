@@ -91,6 +91,6 @@ model DeleteLocationConflictError is ConflictError<
 
         @doc("ID локации.")
         @minValue(1)
-        location_id: int32;
+        location_id: int64;
     }
 >;

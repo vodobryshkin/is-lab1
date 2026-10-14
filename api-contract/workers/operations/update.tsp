@@ -107,7 +107,7 @@ const updateWorkerWithExistingPersonLocationOperationExample = #{
 @route("/{id}")
 @useAuth(BearerAuth)
 @summary("Обновить работника.")
-@doc("Заменяет поля и привязки работника в одной транзакции.")
+@doc("Заменяет поля и привязки в одной транзакции. person: null отвязывает персону без удаления; organization_id: null отвязывает организацию.")
 @opExample(locationNotFoundOperationExample)
 @opExample(coordinatesNotFoundOperationExample)
 @opExample(personNotFoundOperationExample)

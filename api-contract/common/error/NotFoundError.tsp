@@ -35,7 +35,7 @@ model OrganizationNotFoundDetails {
 
     @doc("ID организации.")
     @minValue(1)
-    organization_id: int32;
+    organization_id: int64;
 }
 
 @doc("Адрес не найден.")
@@ -51,7 +51,7 @@ model CoordinatesNotFoundDetails {
 
     @doc("ID координат.")
     @minValue(1)
-    coordinates_id: int32;
+    coordinates_id: int64;
 }
 
 @doc("Локация не найдена.")
@@ -61,7 +61,7 @@ model LocationNotFoundDetails {
 
     @doc("ID локации.")
     @minValue(1)
-    location_id: int32;
+    location_id: int64;
 }
 
 @doc("Персона не найдена.")
@@ -71,7 +71,7 @@ model PersonNotFoundDetails {
 
     @doc("ID персоны.")
     @minValue(1)
-    person_id: int32;
+    person_id: int64;
 }
 
 const coordinatesNotFoundExample: NotFoundError<CoordinatesNotFoundDetails> = #{

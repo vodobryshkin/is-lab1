@@ -34,7 +34,7 @@ model PersonAlreadyAssignedDetails {
 
     @doc("ID занятой персоны.")
     @minValue(1)
-    person_id: int32;
+    person_id: int64;
 }
 
 const personAlreadyAssignedExample:

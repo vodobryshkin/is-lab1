@@ -37,7 +37,7 @@ const getCoordinatesSuccessOperationExample = #{
 op getCoordinates(
     @path
     @minValue(1)
-    id: int32
+    id: int64
 ):
     WorkersApi.Ok.OkResponse<GetSingleCoordinatesResponse>
     | ValidationError<400, ParameterValidationIssue>

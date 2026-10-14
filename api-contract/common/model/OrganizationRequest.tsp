@@ -61,11 +61,11 @@ union OrganizationRequest {
 
         @doc("ID официального адреса.")
         @minValue(1)
-        official_address_id: int32;
+        official_address_id: int64;
 
         @doc("ID почтового адреса.")
         @minValue(1)
-        postal_address_id: int32;
+        postal_address_id: int64;
     },
 
     new_official_address: {
@@ -77,7 +77,7 @@ union OrganizationRequest {
 
         @doc("ID почтового адреса.")
         @minValue(1)
-        postal_address_id: int32;
+        postal_address_id: int64;
     },
 
     new_postal_address: {
@@ -86,7 +86,7 @@ union OrganizationRequest {
 
         @doc("ID официального адреса.")
         @minValue(1)
-        official_address_id: int32;
+        official_address_id: int64;
 
         @doc("Новый почтовый адрес.")
         postal_address: AddressFields;

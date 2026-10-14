@@ -46,7 +46,7 @@ model HireWorkerNotFoundError is ProblemResponse<
 
         @doc("ID организации.")
         @minValue(1)
-        organization_id: int32;
+        organization_id: int64;
     }
 >;
 
@@ -74,6 +74,6 @@ model SalaryIndexationConflictError is ProblemResponse<
 
         @doc("ID организации.")
         @minValue(1)
-        organization_id: int32;
+        organization_id: int64;
     }
 >;

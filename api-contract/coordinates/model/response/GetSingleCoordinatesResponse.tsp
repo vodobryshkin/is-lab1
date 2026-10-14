@@ -16,5 +16,5 @@ model GetSingleCoordinatesResponse {
 
     @doc("ID координат.")
     @minValue(1)
-    id: int32;
+    id: int64;
 }

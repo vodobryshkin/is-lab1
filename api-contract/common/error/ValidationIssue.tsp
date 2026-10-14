@@ -3,7 +3,7 @@ namespace WorkersApi.Errors;
 const validationIssueExample: ValidationIssue = #{
     field: "salary",
     title: "MUST_BE_POSITIVE",
-    description: "Зарплата должна быть больше нуля."
+    description: "Salary must be greater than zero."
 };
 
 @doc("Отдельное нарушение правила валидации.")

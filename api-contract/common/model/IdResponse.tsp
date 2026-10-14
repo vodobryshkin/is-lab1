@@ -9,5 +9,5 @@ const idResponseExample: IdResponse = #{
 model IdResponse {
     @doc("ID объекта.")
     @minValueExclusive(0)
-    id: int32;
+    id: int64;
 }

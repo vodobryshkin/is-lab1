@@ -91,6 +91,6 @@ model DeletePersonConflictError is ConflictError<
 
         @doc("ID персоны.")
         @minValue(1)
-        person_id: int32;
+        person_id: int64;
     }
 >;

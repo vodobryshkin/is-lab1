@@ -22,7 +22,7 @@ const workerExample: WorkerFields = #{
 model WorkerFields {
     @doc("Имя работника.")
     @minLength(1)
-    @pattern("^.+$")
+    @pattern(".*\\S.*")
     name: string;
 
     @doc("Новые координаты или ID существующих.")

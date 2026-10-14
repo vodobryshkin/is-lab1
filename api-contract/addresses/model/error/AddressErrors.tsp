@@ -157,7 +157,7 @@ model DeleteAddressConflictError is ProblemResponse<
 
         @doc("ID адреса.")
         @minValue(1)
-        address_id: int32;
+        address_id: int64;
     }
 >;
 

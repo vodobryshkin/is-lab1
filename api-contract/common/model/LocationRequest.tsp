@@ -22,6 +22,6 @@ union LocationRequest {
 
         @doc("ID локации.")
         @minValue(1)
-        id: int32;
+        id: int64;
     },
 }
