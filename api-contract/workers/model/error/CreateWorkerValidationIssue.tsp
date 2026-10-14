@@ -23,4 +23,16 @@ union CreateWorkerValidationIssue {
     },
 
     organization_fields: OrganizationValidationIssue<"organization">,
+
+    body: {
+        field: "$";
+        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE";
+        description: string;
+    },
+
+    unknown_field: {
+        field: string;
+        title: "UNKNOWN_FIELD";
+        description: string;
+    },
 }

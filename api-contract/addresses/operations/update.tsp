@@ -1,5 +1,7 @@
 import "@typespec/http";
 
+import "../../common/error/NotFoundError.tsp";
+
 import "../../common/model/AddressFields.tsp";
 import "../../common/ok/NoContentResponse.tsp";
 import "../model/error/AddressErrors.tsp";
@@ -22,11 +24,18 @@ const updateAddressWithoutTownOperationExample = #{
     parameters: #{ id: 42, body: #{ ...addressExample, town: null } }
 };
 
+const updateAddressWithExistingLocationOperationExample = #{
+    ...updateAddressSuccessOperationExample,
+    parameters: #{ id: 42, body: addressWithExistingLocationExample }
+};
+
 @put
 @route("/{id}")
 @summary("Обновить адрес.")
-@doc("Заменяет поля адреса, включая вложенную локацию.")
+@doc("Заменяет поля адреса и привязку локации в одной транзакции.")
 @returnsDoc("Адрес обновлён.")
+@opExample(locationNotFoundOperationExample)
+@opExample(updateAddressWithExistingLocationOperationExample)
 @opExample(updateAddressSuccessOperationExample)
 @opExample(updateAddressWithoutTownOperationExample)
 @opExample(addressInvalidIdOperationExample)
@@ -47,5 +56,5 @@ op updateAddress(
     | BadRequestError
     | UnauthorizedError
     | ForbiddenError
-    | AddressNotFoundError
+    | NotFoundError<AddressNotFoundDetails | LocationNotFoundDetails>
     | AddressValidationError;

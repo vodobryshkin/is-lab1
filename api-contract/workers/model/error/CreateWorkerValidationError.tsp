@@ -28,6 +28,33 @@ const createWorkerValidationExample: CreateWorkerValidationError = #{
     }
 };
 
+const createWorkerReferenceValidationExample: CreateWorkerValidationError = #{
+    statusCode: 422,
+    contentType: "application/json",
+    body: #{
+        type: "/problems/create-worker-validation",
+        title: "Validation failed",
+        status: 422,
+        errors: #[
+            #{
+                field: "coordinates.id",
+                title: "MUST_BE_POSITIVE",
+                description: "Coordinates ID must be greater than zero."
+            },
+            #{
+                field: "person.location.id",
+                title: "MUST_BE_POSITIVE",
+                description: "Location ID must be greater than zero."
+            }
+        ]
+    }
+};
+
+const createWorkerReferenceValidationOperationExample = #{
+    returnType: createWorkerReferenceValidationExample
+};
+
+@example(createWorkerReferenceValidationExample)
 @error
 @doc("Ошибка валидации работника.")
 @example(createWorkerValidationExample)

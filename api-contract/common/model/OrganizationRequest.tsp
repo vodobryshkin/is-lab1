@@ -30,9 +30,16 @@ const organizationWithNewPostalAddressExample = #{
     postal_address: addressExample
 };
 
+const organizationWithExistingLocationsExample = #{
+    ...organizationBaseExample,
+    official_address: addressWithExistingLocationExample,
+    postal_address: addressWithExistingLocationExample
+};
+
 @doc("Данные организации. Для каждого адреса передаётся ID или новый адрес.")
 @oneOf
 @example(organizationWithNewAddressesExample)
+@example(organizationWithExistingLocationsExample)
 @example(organizationWithExistingAddressesExample)
 @example(organizationWithNewOfficialAddressExample)
 @example(organizationWithNewPostalAddressExample)

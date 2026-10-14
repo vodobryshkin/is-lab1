@@ -1,5 +1,8 @@
 import "@typespec/http";
 
+import "../../common/error/NotFoundError.tsp";
+import "../../common/error/ConflictError.tsp";
+
 import "../model/request/CreateWorkerRequest.tsp";
 import "../model/response/CreateWorkerResponse.tsp";
 
@@ -13,6 +16,7 @@ import "../../common/error/UnauthorizedError.tsp";
 import "../../common/error/ForbiddenError.tsp";
 
 using TypeSpec.Http;
+using WorkersApi.Domain;
 using WorkersApi.Errors;
 using WorkersApi.Workers.Errors;
 
@@ -90,11 +94,39 @@ const createWorkerAddressNotFoundOperationExample = #{
     returnType: addressNotFoundErrorExample
 };
 
+const createWorkerWithExistingObjectsOperationExample = #{
+    ...createWorkerWithoutOrganizationOperationExample,
+    parameters: #{
+        body: #{
+            ...createWorkerWithoutOrganizationExample,
+            coordinates: existingCoordinatesExample,
+            person: existingPersonExample
+        }
+    }
+};
+
+const createWorkerWithExistingPersonLocationOperationExample = #{
+    ...createWorkerWithoutOrganizationOperationExample,
+    parameters: #{
+        body: #{
+            ...createWorkerWithoutOrganizationExample,
+            person: personWithExistingLocationExample
+        }
+    }
+};
+
 @post
 @route("")
 @useAuth(BearerAuth)
 @summary("Создать работника.")
 @doc("Создаёт работника и новые вложенные объекты в одной транзакции.")
+@opExample(locationNotFoundOperationExample)
+@opExample(coordinatesNotFoundOperationExample)
+@opExample(personNotFoundOperationExample)
+@opExample(personAlreadyAssignedOperationExample)
+@opExample(createWorkerWithExistingObjectsOperationExample)
+@opExample(createWorkerWithExistingPersonLocationOperationExample)
+@opExample(createWorkerReferenceValidationOperationExample)
 @opExample(createWorkerWithNewOrganizationOperationExample)
 @opExample(createWorkerWithExistingAddressesOperationExample)
 @opExample(createWorkerWithNewOfficialAddressOperationExample)
@@ -115,7 +147,9 @@ op createWorker(
     | BadRequestError
     | UnauthorizedError
     | ForbiddenError
-    | CreateWorkerOrganizationNotFoundError
-    | AddressNotFoundError
-    | CreateWorkerOrganizationNameConflictError
+    | NotFoundError<
+        OrganizationNotFoundDetails | AddressNotFoundDetails
+        | CoordinatesNotFoundDetails | LocationNotFoundDetails | PersonNotFoundDetails
+    >
+    | ConflictError<OrganizationNameConflictDetails | PersonAlreadyAssignedDetails>
     | CreateWorkerValidationError;

@@ -1,5 +1,8 @@
 import "@typespec/http";
 
+import "../../common/error/NotFoundError.tsp";
+import "../../common/error/ConflictError.tsp";
+
 import "../model/request/UpdateWorkerRequest.tsp";
 import "../model/error/InvalidWorkerIdError.tsp";
 import "../model/error/UpdateWorkerNotFoundError.tsp";
@@ -11,6 +14,7 @@ import "../../common/error/ForbiddenError.tsp";
 import "../../common/ok/NoContentResponse.tsp";
 
 using TypeSpec.Http;
+using WorkersApi.Domain;
 using WorkersApi.Errors;
 using WorkersApi.Workers.Errors;
 
@@ -78,11 +82,39 @@ const updateWorkerValidationOperationExample = #{
     returnType: updateWorkerValidationExample
 };
 
+const updateWorkerWithExistingObjectsOperationExample = #{
+    ...updateWorkerSuccessOperationExample,
+    parameters: #{
+        id: 42, body: #{
+            ...updateWorkerExample,
+            coordinates: existingCoordinatesExample,
+            person: existingPersonExample
+        }
+    }
+};
+
+const updateWorkerWithExistingPersonLocationOperationExample = #{
+    ...updateWorkerSuccessOperationExample,
+    parameters: #{
+        id: 42, body: #{
+            ...updateWorkerExample,
+            person: personWithExistingLocationExample
+        }
+    }
+};
+
 @put
 @route("/{id}")
 @useAuth(BearerAuth)
 @summary("Обновить работника.")
-@doc("Заменяет изменяемые поля работника и его вложенных объектов.")
+@doc("Заменяет поля и привязки работника в одной транзакции.")
+@opExample(locationNotFoundOperationExample)
+@opExample(coordinatesNotFoundOperationExample)
+@opExample(personNotFoundOperationExample)
+@opExample(personAlreadyAssignedOperationExample)
+@opExample(updateWorkerWithExistingObjectsOperationExample)
+@opExample(updateWorkerWithExistingPersonLocationOperationExample)
+@opExample(updateWorkerReferenceValidationOperationExample)
 @opExample(updateWorkerSuccessOperationExample)
 @opExample(updateWorkerWithoutOrganizationOperationExample)
 @opExample(updateWorkerInvalidIdOperationExample)
@@ -104,4 +136,5 @@ op updateWorker(
     | UnauthorizedError
     | ForbiddenError
     | UpdateWorkerNotFoundError
+    | ConflictError<PersonAlreadyAssignedDetails>
     | UpdateWorkerValidationError;

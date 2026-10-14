@@ -1,5 +1,7 @@
 import "@typespec/http";
 
+import "../../common/error/NotFoundError.tsp";
+
 import "../../common/model/OrganizationRequest.tsp";
 import "../../common/ok/NoContentResponse.tsp";
 import "../model/error/OrganizationErrors.tsp";
@@ -37,11 +39,18 @@ const updateOrganizationWithNewPostalAddressOperationExample = #{
     parameters: #{ id: 42, body: organizationWithNewPostalAddressExample }
 };
 
+const updateOrganizationWithExistingLocationOperationExample = #{
+    ...updateOrganizationSuccessOperationExample,
+    parameters: #{ id: 42, body: organizationWithExistingLocationsExample }
+};
+
 @put
 @route("/{id}")
 @summary("Обновить организацию.")
 @doc("Заменяет поля организации и привязки адресов в одной транзакции.")
 @returnsDoc("Организация обновлена.")
+@opExample(locationNotFoundOperationExample)
+@opExample(updateOrganizationWithExistingLocationOperationExample)
 @opExample(updateOrganizationSuccessOperationExample)
 @opExample(updateOrganizationWithNewAddressesOperationExample)
 @opExample(updateOrganizationWithNewOfficialAddressOperationExample)
@@ -67,7 +76,6 @@ op updateOrganization(
     | BadRequestError
     | UnauthorizedError
     | ForbiddenError
-    | OrganizationNotFoundError
-    | AddressNotFoundError
+    | NotFoundError<OrganizationNotFoundDetails | AddressNotFoundDetails | LocationNotFoundDetails>
     | OrganizationNameConflictError
     | OrganizationValidationError;

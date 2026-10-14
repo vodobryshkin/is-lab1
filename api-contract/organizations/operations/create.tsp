@@ -1,5 +1,7 @@
 import "@typespec/http";
 
+import "../../common/error/NotFoundError.tsp";
+
 import "../../common/model/OrganizationRequest.tsp";
 import "../../common/model/IdResponse.tsp";
 import "../../common/ok/CreatedResponse.tsp";
@@ -37,11 +39,18 @@ const createOrganizationWithNewPostalAddressOperationExample = #{
     parameters: #{ body: organizationWithNewPostalAddressExample }
 };
 
+const createOrganizationWithExistingLocationOperationExample = #{
+    ...createOrganizationSuccessOperationExample,
+    parameters: #{ body: organizationWithExistingLocationsExample }
+};
+
 @post
 @route("")
 @summary("Создать организацию.")
 @doc("Создаёт организацию, привязывает существующие адреса и создаёт новые в одной транзакции.")
 @returnsDoc("ID созданной организации.")
+@opExample(locationNotFoundOperationExample)
+@opExample(createOrganizationWithExistingLocationOperationExample)
 @opExample(createOrganizationSuccessOperationExample)
 @opExample(createOrganizationWithExistingAddressesOperationExample)
 @opExample(createOrganizationWithNewOfficialAddressOperationExample)
@@ -61,6 +70,6 @@ op createOrganization(
     | BadRequestError
     | UnauthorizedError
     | ForbiddenError
-    | AddressNotFoundError
+    | NotFoundError<AddressNotFoundDetails | LocationNotFoundDetails>
     | OrganizationNameConflictError
     | OrganizationValidationError;

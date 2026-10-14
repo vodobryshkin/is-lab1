@@ -1,4 +1,4 @@
-import "./LocationFields.tsp";
+import "./LocationRequest.tsp";
 import "../enum/Country.tsp";
 import "../enum/Color.tsp";
 
@@ -7,7 +7,7 @@ namespace WorkersApi.Domain;
 const personExample: PersonFields = #{
     eye_color: Color.BROWN,
     hair_color: Color.BROWN,
-    location: locationExample,
+    location: #{ ...locationExample },
     birthday: utcDateTime.fromISO("2026-10-02T17:16:48Z"),
     weight: 85,
     nationality: Country.RUSSIA
@@ -22,8 +22,8 @@ model PersonFields {
     @doc("Цвет волос человека.")
     hair_color: Color;
 
-    @doc("Локация человека.")
-    location: LocationFields;
+    @doc("Новая локация или ID существующей.")
+    location: LocationRequest;
 
     @doc("Дата рождения человека.")
     birthday: utcDateTime;

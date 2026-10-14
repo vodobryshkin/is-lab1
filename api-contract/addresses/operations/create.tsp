@@ -1,5 +1,7 @@
 import "@typespec/http";
 
+import "../../common/error/NotFoundError.tsp";
+
 import "../../common/model/AddressFields.tsp";
 import "../../common/model/IdResponse.tsp";
 import "../../common/ok/CreatedResponse.tsp";
@@ -28,11 +30,18 @@ const createAddressWithoutTownOperationExample = #{
     parameters: #{ body: #{ ...addressExample, town: null } }
 };
 
+const createAddressWithExistingLocationOperationExample = #{
+    ...createAddressSuccessOperationExample,
+    parameters: #{ body: addressWithExistingLocationExample }
+};
+
 @post
 @route("")
 @summary("Создать адрес.")
-@doc("Создаёт адрес вместе с вложенной локацией.")
+@doc("Создаёт адрес и привязывает новую или существующую локацию.")
 @returnsDoc("ID созданного адреса.")
+@opExample(locationNotFoundOperationExample)
+@opExample(createAddressWithExistingLocationOperationExample)
 @opExample(createAddressSuccessOperationExample)
 @opExample(createAddressWithoutTownOperationExample)
 @opExample(addressBadRequestOperationExample)
@@ -47,4 +56,5 @@ op createAddress(
     | BadRequestError
     | UnauthorizedError
     | ForbiddenError
+    | NotFoundError<LocationNotFoundDetails>
     | AddressValidationError;

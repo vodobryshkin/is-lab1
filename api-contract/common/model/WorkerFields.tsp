@@ -1,6 +1,6 @@
-import "./CoordinatesFields.tsp";
+import "./CoordinatesRequest.tsp";
 import "./OrganizationFields.tsp";
-import "./PersonFields.tsp";
+import "./PersonRequest.tsp";
 import "../enum/Position.tsp";
 import "../enum/Status.tsp";
 
@@ -8,13 +8,13 @@ namespace WorkersApi.Domain;
 
 const workerExample: WorkerFields = #{
     name: "Добрышкин Владимир Александрович",
-    coordinates: coordinatesExample,
+    coordinates: #{ ...coordinatesExample },
     salary: 100000,
     rating: 1000,
     start_date: utcDateTime.fromISO("2026-10-06T12:00:00Z"),
     position: Position.LEAD_DEVELOPER,
     status: Status.HIRED,
-    person: personExample
+    person: #{ ...personExample }
 };
 
 @doc("Поля работника без идентификатора, даты создания и организации.")
@@ -25,8 +25,8 @@ model WorkerFields {
     @pattern("^.+$")
     name: string;
 
-    @doc("Координаты работника.")
-    coordinates: CoordinatesFields;
+    @doc("Новые координаты или ID существующих.")
+    coordinates: CoordinatesRequest;
 
     @doc("Зарплата работника.")
     @minValueExclusive(0)
@@ -45,6 +45,6 @@ model WorkerFields {
     @doc("Статус работника.")
     status: Status | null;
 
-    @doc("Личные данные работника.")
-    person: PersonFields | null;
+    @doc("Новая персона, ID существующей или null.")
+    person: PersonRequest | null;
 }
