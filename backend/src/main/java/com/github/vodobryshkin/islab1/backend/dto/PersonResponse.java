@@ -19,12 +19,20 @@ import java.time.ZonedDateTime;
 @Data
 @AllArgsConstructor
 public class PersonResponse {
+    @NotNull
+    @Positive
+    private Long id;
+
     @JsonbProperty("eye_color")
     private Color eyeColor;
 
     @JsonbProperty("hair_color")
     @NotNull
     private Color hairColor;
+
+    @NotNull
+    @Valid
+    private LocationResponse location;
 
     @NotNull
     private ZonedDateTime birthday;
@@ -34,12 +42,4 @@ public class PersonResponse {
 
     @NotNull
     private Country nationality;
-
-    @NotNull
-    @Positive
-    private Long id;
-
-    @NotNull
-    @Valid
-    private LocationResponse location;
 }

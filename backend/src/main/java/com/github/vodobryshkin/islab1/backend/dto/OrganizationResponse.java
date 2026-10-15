@@ -22,10 +22,10 @@ public class OrganizationResponse {
     @Positive
     private Long id;
 
-    @JsonbProperty("postal_address")
+    @JsonbProperty("official_address")
     @NotNull
     @Valid
-    private AddressResponse postalAddress;
+    private AddressResponse officialAddress;
 
     @JsonbProperty("annual_turnover")
     @Positive
@@ -46,8 +46,8 @@ public class OrganizationResponse {
 
     private OrganizationType type;
 
-    @JsonbProperty("official_address")
+    @JsonbProperty("postal_address")
     @NotNull
     @Valid
-    private AddressResponse officialAddress;
+    private AddressResponse postalAddress;
 }

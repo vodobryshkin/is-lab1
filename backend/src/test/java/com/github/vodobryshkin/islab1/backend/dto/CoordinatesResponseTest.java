@@ -1,9 +1,16 @@
 package com.github.vodobryshkin.islab1.backend.dto;
 
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonReader;
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
+import jakarta.json.bind.JsonbConfig;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.Test;
+import java.io.StringReader;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -284,6 +291,32 @@ public class CoordinatesResponseTest {
                             .as("Field y less than -391 must not be validated.")
                             .isEqualTo("y")
             );
+        }
+    }
+
+    @Test
+    void serializes_organization_with_expected_property_names() throws Exception {
+        // Arrange
+        CoordinatesResponse sut = new CoordinatesResponse(1L, 1, 0L);
+
+        JsonbConfig config = new JsonbConfig().withNullValues(true);
+
+        try (Jsonb jsonb = JsonbBuilder.create(config)) {
+            // Act
+            String serialized = jsonb.toJson(sut);
+
+            try (JsonReader reader = Json.createReader(new StringReader(serialized))) {
+                JsonObject actual = reader.readObject();
+
+                // Assert
+                assertThat(actual.keySet())
+                        .as("The Сoordinates JSON must contain the field names from the API contract.")
+                        .containsExactlyInAnyOrder(
+                                "id",
+                                "x",
+                                "y"
+                        );
+            }
         }
     }
 }

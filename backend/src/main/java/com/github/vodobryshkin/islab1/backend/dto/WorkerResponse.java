@@ -4,8 +4,8 @@ import com.github.vodobryshkin.islab1.backend.domain.Position;
 import com.github.vodobryshkin.islab1.backend.domain.Status;
 import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -21,10 +21,24 @@ import java.time.ZonedDateTime;
 @Data
 @AllArgsConstructor
 public class WorkerResponse {
-    @Size(min = 1)
-    @Pattern(regexp = ".*\\S.*")
     @NotNull
+    @Positive
+    private Integer id;
+
+    @Size(min = 1)
+    @NotBlank
     private String name;
+
+    @NotNull
+    @Valid
+    private CoordinatesResponse coordinates;
+
+    @JsonbProperty("creation_date")
+    @NotNull
+    private ZonedDateTime creationDate;
+
+    @Valid
+    private OrganizationResponse organization;
 
     @Positive
     private double salary;
@@ -39,25 +53,11 @@ public class WorkerResponse {
     private Position position;
     private Status status;
 
-    @NotNull
-    @Positive
-    private Integer id;
+    @Valid
+    private PersonResponse person;
 
     @JsonbProperty("creator_id")
     @NotNull
     @Positive
     private Long creatorId;
-
-    @JsonbProperty("creation_date")
-    private ZonedDateTime creationDate;
-
-    @Valid
-    private OrganizationResponse organization;
-
-    @NotNull
-    @Valid
-    private CoordinatesResponse coordinates;
-
-    @Valid
-    private PersonResponse person;
 }
