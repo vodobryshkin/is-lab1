@@ -13,6 +13,7 @@ namespace WorkersApi.Workers;
 const getSingleWorkerExample: GetSingleWorkerResponse = #{
     ...workerExample,
     id: 42,
+    creator_id: 7,
     creation_date: utcDateTime.fromISO("2026-10-06T12:00:00Z"),
     coordinates: getSingleCoordinatesExample,
     person: getSinglePersonExample,
@@ -33,6 +34,10 @@ model GetSingleWorkerResponse {
     @doc("ID работника.")
     @minValueExclusive(0)
     id: int32;
+
+    @doc("ID создателя работника.")
+    @minValue(1)
+    creator_id: int64;
 
     @doc("Дата создания работника.")
     creation_date: utcDateTime;
