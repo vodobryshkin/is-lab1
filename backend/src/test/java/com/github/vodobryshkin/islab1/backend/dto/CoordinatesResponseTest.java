@@ -1,5 +1,8 @@
 package com.github.vodobryshkin.islab1.backend.dto;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
+
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
@@ -9,12 +12,9 @@ import jakarta.json.bind.JsonbConfig;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.ValidatorFactory;
-import org.junit.jupiter.api.Test;
 import java.io.StringReader;
 import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertAll;
+import org.junit.jupiter.api.Test;
 
 /**
  * Тестовый класс для тестирования класса CoordinatesResponse.
@@ -22,16 +22,20 @@ import static org.junit.jupiter.api.Assertions.assertAll;
  * @author vodobryshkin
  * @since 15.10.2026 19:18
  */
-public class CoordinatesResponseTest {
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
+class CoordinatesResponseTest {
     @Test
-    void passes_correct_DTO() {
+    void passes_correct_dto() {
         CoordinatesResponse sut = new CoordinatesResponse(1L, 1, 0L);
 
         try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            int actualSize  = factory.getValidator().validate(sut).size();
+            int actualSize = factory.getValidator().validate(sut).size();
 
             assertThat(actualSize)
-                    .as("If there are no errors in the DTO, then violations should not be thrown out.")
+                    .as(
+                            "If there are no errors in the DTO, then violations should not be thrown "
+                                    + "out."
+                    )
                     .isEqualTo(0);
         }
     }
@@ -54,7 +58,10 @@ public class CoordinatesResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If id is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If id is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
 
                     () -> assertThat(actualPropertyName)
@@ -83,7 +90,10 @@ public class CoordinatesResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If id is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If id is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
 
                     () -> assertThat(actualPropertyName)
@@ -112,7 +122,10 @@ public class CoordinatesResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If id is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If id is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
 
                     () -> assertThat(actualPropertyName)
@@ -123,7 +136,7 @@ public class CoordinatesResponseTest {
     }
 
     @Test
-    void rejects_x_which_is_null() {
+    void rejects_horizontal_coordinate_which_is_null() {
         // Arrange
         CoordinatesResponse sut = new CoordinatesResponse(1L, null, 0L);
 
@@ -140,7 +153,10 @@ public class CoordinatesResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If x is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If x is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
 
                     () -> assertThat(actualPropertyName)
@@ -151,7 +167,7 @@ public class CoordinatesResponseTest {
     }
 
     @Test
-    void rejects_x_below_minimum() {
+    void rejects_horizontal_coordinate_below_minimum() {
         // Arrange
         Integer forbiddenX = -954;
         CoordinatesResponse sut = new CoordinatesResponse(1L, forbiddenX, 0L);
@@ -169,7 +185,10 @@ public class CoordinatesResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If x is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If x is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
 
                     () -> assertThat(actualPropertyName)
@@ -180,7 +199,7 @@ public class CoordinatesResponseTest {
     }
 
     @Test
-    void rejects_x_which_equals_to_integer_minimum() {
+    void rejects_horizontal_coordinate_which_equals_to_integer_minimum() {
         // Arrange
         Integer forbiddenX = Integer.MIN_VALUE;
         CoordinatesResponse sut = new CoordinatesResponse(1L, forbiddenX, 0L);
@@ -198,7 +217,10 @@ public class CoordinatesResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If x is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If x is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
 
                     () -> assertThat(actualPropertyName)
@@ -209,7 +231,7 @@ public class CoordinatesResponseTest {
     }
 
     @Test
-    void rejects_y_which_is_null() {
+    void rejects_vertical_coordinate_which_is_null() {
         // Arrange
         CoordinatesResponse sut = new CoordinatesResponse(1L, 1, null);
 
@@ -226,7 +248,10 @@ public class CoordinatesResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If y is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If y is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
 
                     () -> assertThat(actualPropertyName)
@@ -237,7 +262,7 @@ public class CoordinatesResponseTest {
     }
 
     @Test
-    void rejects_y_below_minimum() {
+    void rejects_vertical_coordinate_below_minimum() {
         // Arrange
         Long forbiddenY = -392L;
         CoordinatesResponse sut = new CoordinatesResponse(1L, 1, forbiddenY);
@@ -255,7 +280,10 @@ public class CoordinatesResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If y is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If y is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
 
                     () -> assertThat(actualPropertyName)
@@ -266,7 +294,7 @@ public class CoordinatesResponseTest {
     }
 
     @Test
-    void rejects_y_which_equals_to_long_minimum() {
+    void rejects_vertical_coordinate_which_equals_to_long_minimum() {
         // Arrange
         Long forbiddenY = Long.MIN_VALUE;
         CoordinatesResponse sut = new CoordinatesResponse(1L, 1, forbiddenY);
@@ -284,7 +312,10 @@ public class CoordinatesResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If y is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If y is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
 
                     () -> assertThat(actualPropertyName)
@@ -310,7 +341,10 @@ public class CoordinatesResponseTest {
 
                 // Assert
                 assertThat(actual.keySet())
-                        .as("The Сoordinates JSON must contain the field names from the API contract.")
+                        .as(
+                                "The Сoordinates JSON must contain the field names from the API "
+                                        + "contract."
+                        )
                         .containsExactlyInAnyOrder(
                                 "id",
                                 "x",

@@ -1,5 +1,8 @@
 package com.github.vodobryshkin.islab1.backend.dto;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
+
 import com.github.vodobryshkin.islab1.backend.domain.OrganizationType;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
@@ -10,12 +13,12 @@ import jakarta.json.bind.JsonbConfig;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.ValidatorFactory;
-import org.junit.jupiter.api.Test;
 import java.io.StringReader;
 import java.util.Set;
+import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertAll;
+
+
 
 /**
  * Тестовый класс для тестирования класса OrganizationResponse.
@@ -23,9 +26,10 @@ import static org.junit.jupiter.api.Assertions.assertAll;
  * @author vodobryshkin
  * @since 15.10.2026 23:08
  */
-public class OrganizationResponseTest {
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
+class OrganizationResponseTest {
     @Test
-    void passes_correct_DTO() {
+    void passes_correct_dto() {
         OrganizationResponse sut = new OrganizationResponse(
                 1L,
                 new AddressResponse(1L, "postal", null),
@@ -38,16 +42,19 @@ public class OrganizationResponseTest {
         );
 
         try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            int actualSize  = factory.getValidator().validate(sut).size();
+            int actualSize = factory.getValidator().validate(sut).size();
 
             assertThat(actualSize)
-                    .as("If there are no errors in the DTO, then violations should not be thrown out.")
+                    .as(
+                            "If there are no errors in the DTO, then violations should not be thrown "
+                                    + "out."
+                    )
                     .isEqualTo(0);
         }
     }
 
     @Test
-    void passes_correct_DTO_with_atypical_annualTurnover() {
+    void passes_correct_dto_with_atypical_annualTurnover() {
         OrganizationResponse sut = new OrganizationResponse(
                 1L,
                 new AddressResponse(1L, "postal", null),
@@ -60,38 +67,44 @@ public class OrganizationResponseTest {
         );
 
         try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            int actualSize  = factory.getValidator().validate(sut).size();
+            int actualSize = factory.getValidator().validate(sut).size();
 
             assertThat(actualSize)
-                    .as("If there are no errors in the DTO, then violations should not be thrown out.")
+                    .as(
+                            "If there are no errors in the DTO, then violations should not be thrown "
+                                    + "out."
+                    )
                     .isEqualTo(0);
         }
     }
 
     @Test
-    void passes_correct_DTO_with_atypical_fullName() {
+    void passes_correct_dto_with_atypical_fullName() {
         OrganizationResponse sut = new OrganizationResponse(
                 1L,
                 new AddressResponse(1L, "postal", null),
                 1f,
                 1L,
-                "\uD835\uDD08\uD835\uDD2F\uD835\uDD2F\uD835\uDD2C\uD835\uDD2F ☣ ☠",
+                "𝔈𝕯𝕯𝕬𝕯 ☣ ☠",
                 100,
                 OrganizationType.GOVERNMENT,
                 new AddressResponse(1L, "official", null)
         );
 
         try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            int actualSize  = factory.getValidator().validate(sut).size();
+            int actualSize = factory.getValidator().validate(sut).size();
 
             assertThat(actualSize)
-                    .as("If there are no errors in the DTO, then violations should not be thrown out.")
+                    .as(
+                            "If there are no errors in the DTO, then violations should not be thrown "
+                                    + "out."
+                    )
                     .isEqualTo(0);
         }
     }
 
     @Test
-    void passes_correct_DTO_with_null_organizationType() {
+    void passes_correct_dto_with_null_organizationType() {
         OrganizationResponse sut = new OrganizationResponse(
                 1L,
                 new AddressResponse(1L, "postal", null),
@@ -104,10 +117,13 @@ public class OrganizationResponseTest {
         );
 
         try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            int actualSize  = factory.getValidator().validate(sut).size();
+            int actualSize = factory.getValidator().validate(sut).size();
 
             assertThat(actualSize)
-                    .as("If there are no errors in the DTO, then violations should not be thrown out.")
+                    .as(
+                            "If there are no errors in the DTO, then violations should not be thrown "
+                                    + "out."
+                    )
                     .isEqualTo(0);
         }
     }
@@ -139,7 +155,10 @@ public class OrganizationResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If id is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If id is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
                     () -> assertThat(actualPropertyName)
                             .as("Field id which is null must not be validated.")
@@ -175,7 +194,10 @@ public class OrganizationResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If id is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If id is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
                     () -> assertThat(actualPropertyName)
                             .as("Field id less than 1 must not be validated.")
@@ -211,7 +233,10 @@ public class OrganizationResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If id is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If id is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
                     () -> assertThat(actualPropertyName)
                             .as("Field id equal to Long.MIN_VALUE must not be validated.")
@@ -247,7 +272,10 @@ public class OrganizationResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If officialAddress is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If officialAddress is invalid and all other fields are valid, one "
+                                            + "violation is expected."
+                            )
                             .isEqualTo(1),
 
                     () -> assertThat(actualPropertyName)
@@ -284,18 +312,24 @@ public class OrganizationResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If officialAddress is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If officialAddress is invalid and all other fields are valid, one "
+                                            + "violation is expected."
+                            )
                             .isEqualTo(1),
 
                     () -> assertThat(actualPropertyName)
-                            .as("Invalid officialAddress must be validated with cascading validation.")
+                            .as(
+                                    "Invalid officialAddress must be validated with cascading "
+                                            + "validation."
+                            )
                             .isEqualTo("officialAddress.street")
             );
         }
     }
 
     @Test
-    void rejects_annualTurnover_which_is_NaN() {
+    void rejects_annualTurnover_which_is_nan() {
         // Arrange
         OrganizationResponse sut = new OrganizationResponse(
                 1L,
@@ -321,7 +355,10 @@ public class OrganizationResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If annualTurnover is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If annualTurnover is invalid and all other fields are valid, one violation "
+                                            + "is expected."
+                            )
                             .isEqualTo(1),
 
                     () -> assertThat(actualPropertyName)
@@ -358,7 +395,10 @@ public class OrganizationResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If annualTurnover is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If annualTurnover is invalid and all other fields are valid, one violation "
+                                            + "is expected."
+                            )
                             .isEqualTo(1),
 
                     () -> assertThat(actualPropertyName)
@@ -395,7 +435,10 @@ public class OrganizationResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If annualTurnover is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If annualTurnover is invalid and all other fields are valid, one violation "
+                                            + "is expected."
+                            )
                             .isEqualTo(1),
 
                     () -> assertThat(actualPropertyName)
@@ -432,7 +475,10 @@ public class OrganizationResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If employeesCount is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If employeesCount is invalid and all other fields are valid, one violation "
+                                            + "is expected."
+                            )
                             .isEqualTo(1),
 
                     () -> assertThat(actualPropertyName)
@@ -469,7 +515,10 @@ public class OrganizationResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If employeesCount is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If employeesCount is invalid and all other fields are valid, one violation "
+                                            + "is expected."
+                            )
                             .isEqualTo(1),
 
                     () -> assertThat(actualPropertyName)
@@ -506,11 +555,17 @@ public class OrganizationResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If employeesCount is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If employeesCount is invalid and all other fields are valid, one violation "
+                                            + "is expected."
+                            )
                             .isEqualTo(1),
 
                     () -> assertThat(actualPropertyName)
-                            .as("Field employeesCount equal to Long.MIN_VALUE must not be validated.")
+                            .as(
+                                    "Field employeesCount equal to Long.MIN_VALUE must not be "
+                                            + "validated."
+                            )
                             .isEqualTo("employeesCount")
             );
         }
@@ -543,7 +598,10 @@ public class OrganizationResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If fullName is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If fullName is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
 
                     () -> assertThat(actualPropertyName)
@@ -580,7 +638,10 @@ public class OrganizationResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If fullName is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If fullName is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
 
                     () -> assertThat(actualPropertyName)
@@ -617,7 +678,10 @@ public class OrganizationResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If rating is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If rating is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
 
                     () -> assertThat(actualPropertyName)
@@ -654,7 +718,10 @@ public class OrganizationResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If rating is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If rating is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
 
                     () -> assertThat(actualPropertyName)
@@ -691,7 +758,10 @@ public class OrganizationResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If rating is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If rating is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
 
                     () -> assertThat(actualPropertyName)
@@ -728,7 +798,10 @@ public class OrganizationResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If postalAddress is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If postalAddress is invalid and all other fields are valid, one violation "
+                                            + "is expected."
+                            )
                             .isEqualTo(1),
 
                     () -> assertThat(actualPropertyName)
@@ -765,11 +838,17 @@ public class OrganizationResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If postalAddress is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If postalAddress is invalid and all other fields are valid, one violation "
+                                            + "is expected."
+                            )
                             .isEqualTo(1),
 
                     () -> assertThat(actualPropertyName)
-                            .as("Invalid postalAddress must be validated with cascading validation.")
+                            .as(
+                                    "Invalid postalAddress must be validated with cascading "
+                                            + "validation."
+                            )
                             .isEqualTo("postalAddress.street")
             );
         }
@@ -800,7 +879,10 @@ public class OrganizationResponseTest {
 
                 // Assert
                 assertThat(actual.keySet())
-                        .as("The Organization JSON must contain the field names from the API contract.")
+                        .as(
+                                "The Organization JSON must contain the field names from the API "
+                                        + "contract."
+                        )
                         .containsExactlyInAnyOrder(
                                 "id",
                                 "official_address",

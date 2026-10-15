@@ -1,17 +1,19 @@
 package com.github.vodobryshkin.islab1.backend.dto;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
+
 import com.github.vodobryshkin.islab1.backend.domain.Color;
 import com.github.vodobryshkin.islab1.backend.domain.Country;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.ValidatorFactory;
-import org.junit.jupiter.api.Test;
-
 import java.time.ZonedDateTime;
 import java.util.Set;
+import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertAll;
+
+
 
 /**
  * Тестовый класс для тестирования класса PersonResponse.
@@ -19,9 +21,10 @@ import static org.junit.jupiter.api.Assertions.assertAll;
  * @author vodobryshkin
  * @since 16.10.2026 00:31
  */
-public class PersonResponseTest {
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
+class PersonResponseTest {
     @Test
-    void passes_correct_DTO() {
+    void passes_correct_dto() {
         PersonResponse sut = new PersonResponse(
                 1L,
                 Color.BLUE,
@@ -36,7 +39,10 @@ public class PersonResponseTest {
             int actualSize = factory.getValidator().validate(sut).size();
 
             assertThat(actualSize)
-                    .as("If there are no errors in the DTO, then violations should not be thrown out.")
+                    .as(
+                            "If there are no errors in the DTO, then violations should not be thrown "
+                                    + "out."
+                    )
                     .isEqualTo(0);
         }
     }
@@ -67,7 +73,10 @@ public class PersonResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If id is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If id is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
                     () -> assertThat(actualPropertyName)
                             .as("Field id which is null must not be validated.")
@@ -102,7 +111,10 @@ public class PersonResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If id is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If id is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
                     () -> assertThat(actualPropertyName)
                             .as("Field id less than 1 must not be validated.")
@@ -137,7 +149,10 @@ public class PersonResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If id is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If id is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
                     () -> assertThat(actualPropertyName)
                             .as("Field id equal to Long.MIN_VALUE must not be validated.")
@@ -172,7 +187,10 @@ public class PersonResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If hairColor is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If hairColor is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
                     () -> assertThat(actualPropertyName)
                             .as("Field hairColor which is null must not be validated.")
@@ -207,7 +225,10 @@ public class PersonResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If location is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If location is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
                     () -> assertThat(actualPropertyName)
                             .as("Field location which is null must not be validated.")
@@ -242,7 +263,10 @@ public class PersonResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If location.id is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If location.id is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
                     () -> assertThat(actualPropertyName)
                             .as("Field location.id which is null must not be validated.")
@@ -277,7 +301,10 @@ public class PersonResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If birthday is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If birthday is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
                     () -> assertThat(actualPropertyName)
                             .as("Field birthday which is null must not be validated.")
@@ -287,7 +314,7 @@ public class PersonResponseTest {
     }
 
     @Test
-    void rejects_weight_which_is_NaN() {
+    void rejects_weight_which_is_nan() {
         // Arrange
         PersonResponse sut = new PersonResponse(
                 1L,
@@ -312,7 +339,10 @@ public class PersonResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If weight is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If weight is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
                     () -> assertThat(actualPropertyName)
                             .as("Field weight which is NaN must not be validated.")
@@ -347,7 +377,10 @@ public class PersonResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If weight is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If weight is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
                     () -> assertThat(actualPropertyName)
                             .as("Field weight which is not positive must not be validated.")
@@ -382,7 +415,10 @@ public class PersonResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If weight is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If weight is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
                     () -> assertThat(actualPropertyName)
                             .as("Field weight which is not positive must not be validated.")
@@ -417,7 +453,10 @@ public class PersonResponseTest {
             // Assert
             assertAll(
                     () -> assertThat(actualSize)
-                            .as("If nationality is invalid and all other fields are valid, one violation is expected.")
+                            .as(
+                                    "If nationality is invalid and all other fields are valid, one violation is "
+                                            + "expected."
+                            )
                             .isEqualTo(1),
                     () -> assertThat(actualPropertyName)
                             .as("Field nationality which is null must not be validated.")

@@ -6,9 +6,9 @@ import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import java.time.ZonedDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import java.time.ZonedDateTime;
 
 /**
  * DTO с данными сущности Person, полученными с сервера.
