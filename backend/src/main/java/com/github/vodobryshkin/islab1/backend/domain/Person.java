@@ -14,6 +14,9 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
 import java.time.ZonedDateTime;
 
 /**
@@ -24,6 +27,8 @@ import java.time.ZonedDateTime;
  */
 @Entity
 @Table(name = "persons")
+@AllArgsConstructor
+@NoArgsConstructor
 public class Person {
     @Id
     @SequenceGenerator(

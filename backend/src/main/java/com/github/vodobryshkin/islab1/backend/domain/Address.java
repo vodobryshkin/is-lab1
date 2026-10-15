@@ -10,6 +10,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 /**
  * Класс, который отвечает за представление географического адреса. Является JPA-сущностью.
@@ -19,6 +21,8 @@ import jakarta.validation.constraints.NotBlank;
  */
 @Entity
 @Table(name = "addresses")
+@AllArgsConstructor
+@NoArgsConstructor
 public class Address {
     @Id
     @SequenceGenerator(

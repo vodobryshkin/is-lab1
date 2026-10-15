@@ -10,6 +10,9 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
 /**
@@ -20,6 +23,8 @@ import java.util.List;
  */
 @Entity
 @Table(name = "users")
+@AllArgsConstructor
+@NoArgsConstructor
 public class User {
     @Id
     @SequenceGenerator(name = "users_seq", sequenceName = "users_user_id_seq", allocationSize = 1)

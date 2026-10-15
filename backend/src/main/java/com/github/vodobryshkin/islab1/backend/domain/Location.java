@@ -8,6 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 /**
  * Класс, который отвечает за представление локации. Встраивается в JPA-сущности.
@@ -17,6 +19,8 @@ import jakarta.validation.constraints.NotNull;
  */
 @Entity
 @Table(name = "locations")
+@AllArgsConstructor
+@NoArgsConstructor
 public class Location {
     @Id
     @SequenceGenerator(

@@ -9,6 +9,8 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 /**
  * Класс, который отвечает за представление координат. Встраивается в JPA-сущности.
@@ -18,6 +20,8 @@ import jakarta.validation.constraints.NotNull;
  */
 @Entity
 @Table(name = "coordinates")
+@AllArgsConstructor
+@NoArgsConstructor
 public class Coordinates {
     @Id
     @SequenceGenerator(
