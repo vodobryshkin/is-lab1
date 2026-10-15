@@ -1,71 +1,82 @@
 plugins {
-  id 'java'
-  id 'war'
-  id 'checkstyle'
-  id 'pmd'
-  id 'jacoco'
-  id 'org.jetbrains.kotlin.jvm' version '2.4.20'
-  id 'org.jetbrains.kotlin.plugin.jpa' version '2.4.20'
+    id 'java'
+    id 'war'
+    id 'checkstyle'
+    id 'pmd'
+    id 'jacoco'
+    id 'org.jetbrains.kotlin.jvm' version '2.4.20'
+    id 'org.jetbrains.kotlin.plugin.jpa' version '2.4.20'
 }
 
 group = 'com.github.vodobryshkin.is-lab1'
 version = '1.0-SNAPSHOT'
 
 repositories {
-  mavenCentral()
+    mavenCentral()
 }
 
 ext {
-  junitVersion = '5.14.4'
+    jakartaWebProfileVersion = '10.0.0'
+    junitVersion = '5.14.4'
+    assertJVersion = '3.27.7'
+    lombokVersion = '1.18.48'
+    hibernateValidatorVersion = '8.0.6.Final'
+    expresslyVersion = '5.0.0'
 }
 
 java {
-  toolchain {
-    languageVersion = JavaLanguageVersion.of(21)
-  }
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {
-  options.encoding = 'UTF-8'
+    options.encoding = 'UTF-8'
 }
 
 checkstyle {
-  toolVersion = '14.1.0'
-  configFile = file('config/checkstyle/checkstyle.xml')
+    toolVersion = '14.1.0'
+    configFile = file('config/checkstyle/checkstyle.xml')
 
-  ignoreFailures = false
-  showViolations = true
+    ignoreFailures = false
+    showViolations = true
 }
 
 pmd {
-  consoleOutput = true
-  toolVersion = '7.16.0'
-  rulesMinimumPriority = 5
+    consoleOutput = true
+    toolVersion = '7.16.0'
+    rulesMinimumPriority = 5
 
-  ruleSetFiles = files('config/pmd/pmd.xml')
-  ruleSets = []
+    ruleSetFiles = files('config/pmd/pmd.xml')
+    ruleSets = []
 }
 
 jacocoTestReport {
-  reports {
-    xml.required = true
-    html.required = true
-  }
+    reports {
+        xml.required = true
+        html.required = true
+    }
 }
 
 tasks.withType(Pmd).configureEach {
-  reports {
-    html.required = true
-    xml.required = true
-  }
+    reports {
+        html.required = true
+        xml.required = true
+    }
 }
 
 dependencies {
-  compileOnly 'jakarta.platform:jakarta.jakartaee-web-api:10.0.0'
+    compileOnly "jakarta.platform:jakarta.jakartaee-web-api:${jakartaWebProfileVersion}"
 
-  testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
-  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
-  testImplementation 'org.jetbrains.kotlin:kotlin-test'
+    implementation "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+    testImplementation "org.assertj:assertj-core:${assertJVersion}"
+    testImplementation "org.hibernate.validator:hibernate-validator:${hibernateValidatorVersion}"
+    testRuntimeOnly "org.glassfish.expressly:expressly:${expresslyVersion}"
+    testImplementation 'org.jetbrains.kotlin:kotlin-test'
 }
 
 test {

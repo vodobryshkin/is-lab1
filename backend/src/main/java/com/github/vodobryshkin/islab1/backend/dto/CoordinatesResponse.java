@@ -1,0 +1,29 @@
+package com.github.vodobryshkin.islab1.backend.dto;
+
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+/**
+ * DTO с данными сущности Coordinates, полученными с сервера.
+ *
+ * @author vodobryshkin
+ * @since 15.10.2026 18:16
+ */
+@Data
+@AllArgsConstructor
+public class CoordinatesResponse {
+    @NotNull
+    @Positive
+    private Long id;
+
+    @NotNull
+    @Min(value = -953)
+    private Integer x;
+
+    @NotNull
+    @Min(value = -391)
+    private Long y;
+}
