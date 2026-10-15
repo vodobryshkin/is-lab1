@@ -1,6 +1,5 @@
-package dto;
+package com.github.vodobryshkin.islab1.backend.dto;
 
-import com.github.vodobryshkin.islab1.backend.dto.CoordinatesResponse;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.ValidatorFactory;
@@ -24,11 +23,9 @@ public class CoordinatesResponseTest {
         try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
             int actualSize  = factory.getValidator().validate(sut).size();
 
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("If there are no errors in the DTO, then violations should not be thrown out.")
-                            .isEqualTo(0)
-            );
+            assertThat(actualSize)
+                    .as("If there are no errors in the DTO, then violations should not be thrown out.")
+                    .isEqualTo(0);
         }
     }
 
@@ -90,7 +87,7 @@ public class CoordinatesResponseTest {
     }
 
     @Test
-    void rejects_id_which_equals_to_integer_minimum() {
+    void rejects_id_which_equals_to_long_minimum() {
         // Arrange
         Long forbiddenId = Long.MIN_VALUE;
         CoordinatesResponse sut = new CoordinatesResponse(forbiddenId, 1, 0L);
@@ -262,7 +259,7 @@ public class CoordinatesResponseTest {
     }
 
     @Test
-    void rejects_y_which_equals_to_integer_minimum() {
+    void rejects_y_which_equals_to_long_minimum() {
         // Arrange
         Long forbiddenY = Long.MIN_VALUE;
         CoordinatesResponse sut = new CoordinatesResponse(1L, 1, forbiddenY);

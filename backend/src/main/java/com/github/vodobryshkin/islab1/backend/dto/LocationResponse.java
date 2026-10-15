@@ -15,6 +15,10 @@ import lombok.Data;
 @AllArgsConstructor
 public class LocationResponse {
     @NotNull
+    @Positive
+    private Long id;
+
+    @NotNull
     private Integer x;
 
     @NotNull
@@ -22,8 +26,4 @@ public class LocationResponse {
 
     @NotNull
     private Long z;
-
-    @NotNull
-    @Positive
-    private Long id;
 }

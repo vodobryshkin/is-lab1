@@ -16,12 +16,12 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class AddressResponse {
-    @NotBlank
-    private String street;
-
     @NotNull
     @Positive
     private Long id;
+
+    @NotBlank
+    private String street;
 
     @Valid
     private LocationResponse town;

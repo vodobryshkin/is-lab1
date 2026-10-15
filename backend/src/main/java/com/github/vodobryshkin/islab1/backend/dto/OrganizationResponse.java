@@ -18,6 +18,15 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class OrganizationResponse {
+    @NotNull
+    @Positive
+    private Long id;
+
+    @JsonbProperty("postal_address")
+    @NotNull
+    @Valid
+    private AddressResponse postalAddress;
+
     @JsonbProperty("annual_turnover")
     @Positive
     private float annualTurnover;
@@ -36,15 +45,6 @@ public class OrganizationResponse {
     private Integer rating;
 
     private OrganizationType type;
-
-    @NotNull
-    @Positive
-    private Long id;
-
-    @JsonbProperty("postal_address")
-    @NotNull
-    @Valid
-    private AddressResponse postalAddress;
 
     @JsonbProperty("official_address")
     @NotNull
