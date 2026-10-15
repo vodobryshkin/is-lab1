@@ -19,9 +19,6 @@ import java.time.ZonedDateTime;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-
-
-
 /**
  * Тестовый класс для тестирования класса WorkerResponse.
  *
