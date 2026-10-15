@@ -3,9 +3,16 @@ package com.github.vodobryshkin.islab1.backend.dto;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonReader;
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
+import jakarta.json.bind.JsonbConfig;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.ValidatorFactory;
+import java.io.StringReader;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
@@ -218,6 +225,35 @@ class LocationResponseTest {
                             .as("Field id which is null must not be validated.")
                             .isEqualTo("z")
             );
+        }
+    }
+
+    @Test
+    void serializes_location_with_expected_property_names() throws Exception {
+        // Arrange
+        LocationResponse sut = new LocationResponse(1L, 1, 1, 1L);
+        JsonbConfig config = new JsonbConfig().withNullValues(true);
+
+        try (Jsonb jsonb = JsonbBuilder.create(config)) {
+            // Act
+            String serialized = jsonb.toJson(sut);
+
+            try (JsonReader reader = Json.createReader(new StringReader(serialized))) {
+                JsonObject actual = reader.readObject();
+
+                // Assert
+                assertThat(actual.keySet())
+                        .as(
+                                "The Location JSON must contain the field names from the API "
+                                        + "contract."
+                        )
+                        .containsExactlyInAnyOrder(
+                                "id",
+                                "x",
+                                "y",
+                                "z"
+                        );
+            }
         }
     }
 }

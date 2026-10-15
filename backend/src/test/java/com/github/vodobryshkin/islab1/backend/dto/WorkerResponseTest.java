@@ -885,56 +885,52 @@ class WorkerResponseTest {
     }
 
     @Test
-    void serializes_worker_with_expected_property_names() {
+    void serializes_worker_with_expected_property_names() throws Exception {
         // Arrange
-        try {
-            WorkerResponse sut = new WorkerResponse(
-                    1,
-                    "Иван Иванов",
-                    new CoordinatesResponse(1L, 0, 0L),
-                    ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                    null,
-                    1d,
-                    1,
-                    ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                    Position.DIRECTOR,
-                    Status.HIRED,
-                    null,
-                    1L
-            );
-            JsonbConfig config = new JsonbConfig().withNullValues(true);
+        WorkerResponse sut = new WorkerResponse(
+                1,
+                "Иван Иванов",
+                new CoordinatesResponse(1L, 0, 0L),
+                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
+                null,
+                1d,
+                1,
+                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
+                Position.DIRECTOR,
+                Status.HIRED,
+                null,
+                1L
+        );
+        JsonbConfig config = new JsonbConfig().withNullValues(true);
 
-            try (Jsonb jsonb = JsonbBuilder.create(config)) {
-                // Act
-                String serialized = jsonb.toJson(sut);
+        try (Jsonb jsonb = JsonbBuilder.create(config)) {
+            // Act
+            String serialized = jsonb.toJson(sut);
 
-                try (JsonReader reader = Json.createReader(new StringReader(serialized))) {
-                    JsonObject actual = reader.readObject();
+            try (JsonReader reader = Json.createReader(new StringReader(serialized))) {
+                JsonObject actual = reader.readObject();
 
-                    // Assert
-                    assertThat(actual.keySet())
-                            .as(
-                                    "The Worker JSON must contain the field names from the API "
-                                            + "contract."
-                            )
-                            .containsExactlyInAnyOrder(
-                                    "id",
-                                    "name",
-                                    "coordinates",
-                                    "creation_date",
-                                    "organization",
-                                    "salary",
-                                    "rating",
-                                    "start_date",
-                                    "position",
-                                    "status",
-                                    "person",
-                                    "creator_id"
-                            );
-                }
+                // Assert
+                assertThat(actual.keySet())
+                        .as(
+                                "The Worker JSON must contain the field names from the API "
+                                        + "contract."
+                        )
+                        .containsExactlyInAnyOrder(
+                                "id",
+                                "name",
+                                "coordinates",
+                                "creation_date",
+                                "organization",
+                                "salary",
+                                "rating",
+                                "start_date",
+                                "position",
+                                "status",
+                                "person",
+                                "creator_id"
+                        );
             }
-        } catch (Exception exception) {
-            throw new AssertionError("Worker JSON serialization failed.", exception);
         }
     }
 }

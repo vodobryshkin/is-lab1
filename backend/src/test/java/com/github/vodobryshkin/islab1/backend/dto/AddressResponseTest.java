@@ -3,9 +3,16 @@ package com.github.vodobryshkin.islab1.backend.dto;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonReader;
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
+import jakarta.json.bind.JsonbConfig;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.ValidatorFactory;
+import java.io.StringReader;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
@@ -314,6 +321,38 @@ class AddressResponseTest {
                                     + "town."
                     )
                     .isEqualTo(2);
+        }
+    }
+
+    @Test
+    void serializes_address_with_expected_property_names() throws Exception {
+        // Arrange
+        AddressResponse sut = new AddressResponse(
+                1L,
+                "Улица Пушкина, дом Колотушкина 1",
+                new LocationResponse(1L, 1, 1, 0L)
+        );
+        JsonbConfig config = new JsonbConfig().withNullValues(true);
+
+        try (Jsonb jsonb = JsonbBuilder.create(config)) {
+            // Act
+            String serialized = jsonb.toJson(sut);
+
+            try (JsonReader reader = Json.createReader(new StringReader(serialized))) {
+                JsonObject actual = reader.readObject();
+
+                // Assert
+                assertThat(actual.keySet())
+                        .as(
+                                "The Address JSON must contain the field names from the API "
+                                        + "contract."
+                        )
+                        .containsExactlyInAnyOrder(
+                                "id",
+                                "street",
+                                "town"
+                        );
+            }
         }
     }
 }

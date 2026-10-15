@@ -5,9 +5,16 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.github.vodobryshkin.islab1.backend.domain.Color;
 import com.github.vodobryshkin.islab1.backend.domain.Country;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonReader;
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
+import jakarta.json.bind.JsonbConfig;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.ValidatorFactory;
+import java.io.StringReader;
 import java.time.ZonedDateTime;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -459,6 +466,45 @@ class PersonResponseTest {
                             .as("Field nationality which is null must not be validated.")
                             .isEqualTo("nationality")
             );
+        }
+    }
+
+    @Test
+    void serializes_person_with_expected_property_names() throws Exception {
+        // Arrange
+        PersonResponse sut = new PersonResponse(
+                1L,
+                Color.BLUE,
+                Color.BROWN,
+                new LocationResponse(1L, 1, 1, 1L),
+                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
+                1f,
+                Country.RUSSIA
+        );
+        JsonbConfig config = new JsonbConfig().withNullValues(true);
+
+        try (Jsonb jsonb = JsonbBuilder.create(config)) {
+            // Act
+            String serialized = jsonb.toJson(sut);
+
+            try (JsonReader reader = Json.createReader(new StringReader(serialized))) {
+                JsonObject actual = reader.readObject();
+
+                // Assert
+                assertThat(actual.keySet())
+                        .as(
+                                "The Person JSON must contain the field names from the API contract."
+                        )
+                        .containsExactlyInAnyOrder(
+                                "id",
+                                "eye_color",
+                                "hair_color",
+                                "location",
+                                "birthday",
+                                "weight",
+                                "nationality"
+                        );
+            }
         }
     }
 }
