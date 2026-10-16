@@ -13,13 +13,14 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-
 import java.time.ZonedDateTime;
 
 /**
@@ -49,6 +50,7 @@ public class Worker {
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     @NotNull
+    @Valid
     private User user;
 
     @Column(name = "name", nullable = false)
@@ -59,6 +61,7 @@ public class Worker {
     @ManyToOne(optional = false)
     @JoinColumn(name = "coordinates_id", nullable = false)
     @NotNull
+    @Valid
     private Coordinates coordinates; // Поле не может быть null
 
     @Column(name = "creation_date", nullable = false, columnDefinition = "TIMESTAMPTZ")
@@ -68,6 +71,7 @@ public class Worker {
 
     @ManyToOne
     @JoinColumn(name = "organization_id")
+    @Valid
     private Organization organization; // Поле может быть null
 
     @Column(name = "salary", nullable = false)
@@ -92,6 +96,7 @@ public class Worker {
     private Status status; // Поле может быть null
 
     @OneToOne(mappedBy = "worker")
+    @Valid
     private Person person; // Поле может быть null
 
     /**
@@ -102,5 +107,15 @@ public class Worker {
         if (creationDate == null) {
             creationDate = ZonedDateTime.now();
         }
+    }
+
+    /**
+     * Проверяет, что salary не является положительной бесконечностью.
+     *
+     * @return true, если salary является бесконечностью, иначе false
+     */
+    @AssertTrue
+    public boolean isSalary() {
+        return salary != Float.POSITIVE_INFINITY;
     }
 }

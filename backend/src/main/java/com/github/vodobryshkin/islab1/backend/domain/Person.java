@@ -12,11 +12,12 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-
 import java.time.ZonedDateTime;
 
 /**
@@ -38,6 +39,7 @@ public class Person {
     )
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "persons_seq")
     @Column(name = "person_id")
+    @Positive
     private Long id;
 
     @Column(name = "eye_color")
@@ -52,6 +54,7 @@ public class Person {
     @ManyToOne(optional = false)
     @JoinColumn(name = "location_id", nullable = false)
     @NotNull
+    @Valid
     private Location location;                // Поле не может быть null
 
     @Column(name = "birthday", columnDefinition = "TIMESTAMPTZ")
@@ -71,5 +74,16 @@ public class Person {
 
     @OneToOne
     @JoinColumn(name = "worker_id", unique = true)
+    @Valid
     private Worker worker;
+
+    /**
+     * Проверяет, что weight не является положительной бесконечностью.
+     *
+     * @return true, если weight является бесконечностью, иначе false
+     */
+    @AssertTrue
+    public boolean isWeight() {
+        return weight == null || weight != Float.POSITIVE_INFINITY;
+    }
 }

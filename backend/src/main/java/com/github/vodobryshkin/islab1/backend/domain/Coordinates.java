@@ -9,6 +9,7 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
@@ -31,6 +32,7 @@ public class Coordinates {
     )
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "coordinates_seq")
     @Column(name = "coordinates_id")
+    @Positive
     private Long id;
 
     @Column(name = "x", nullable = false)

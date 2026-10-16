@@ -9,7 +9,10 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
@@ -32,6 +35,7 @@ public class Address {
     )
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "addresses_seq")
     @Column(name = "address_id")
+    @Positive
     private Long id;
 
     @Column(name = "street", nullable = false, columnDefinition = "TEXT")
@@ -40,5 +44,6 @@ public class Address {
 
     @ManyToOne
     @JoinColumn(name = "town_id")
+    @Valid
     private Location town; // Поле может быть null
 }

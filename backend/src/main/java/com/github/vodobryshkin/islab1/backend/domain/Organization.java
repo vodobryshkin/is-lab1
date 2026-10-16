@@ -11,6 +11,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -36,11 +39,13 @@ public class Organization {
     )
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "organizations_seq")
     @Column(name = "organization_id")
+    @Positive
     private Long id;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "official_address_id", nullable = false)
     @NotNull
+    @Valid
     private Address officialAddress; // Поле не может быть null
 
     @Column(name = "annual_turnover", nullable = false)
@@ -69,5 +74,16 @@ public class Organization {
     @ManyToOne(optional = false)
     @JoinColumn(name = "postal_address_id", nullable = false)
     @NotNull
+    @Valid
     private Address postalAddress;   // Поле не может быть null
+
+    /**
+     * Проверяет, что annualTurnover не является положительной бесконечностью.
+     *
+     * @return true, если annualTurnover является бесконечностью, иначе false
+     */
+    @AssertTrue
+    public boolean isAnnualTurnover() {
+        return annualTurnover != Float.POSITIVE_INFINITY;
+    }
 }

@@ -9,6 +9,8 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -30,6 +32,7 @@ public class User {
     @SequenceGenerator(name = "users_seq", sequenceName = "users_user_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_seq")
     @Column(name = "user_id")
+    @Positive
     private Long id;
 
     @Column(name = "username", nullable = false, unique = true, length = 64)

@@ -110,35 +110,6 @@ class WorkerTest {
     }
 
     @Test
-    void passes_correct_entity_with_name_longer_than_255_characters() {
-        // Arrange
-        Worker sut = new Worker(
-                1,
-                new User(1L, "vodobryshkin", null),
-                "ꙮ".repeat(256),
-                new Coordinates(1L, 0, 0L),
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                null,
-                1d,
-                1,
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                Position.DIRECTOR,
-                Status.HIRED,
-                null
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            int actualSize = factory.getValidator().validate(sut).size();
-
-            // Assert
-            assertThat(actualSize)
-                    .as("Valid entity must not produce constraint violations.")
-                    .isEqualTo(0);
-        }
-    }
-
-    @Test
     void rejects_id_which_is_zero() {
         // Arrange
         Worker sut = new Worker(

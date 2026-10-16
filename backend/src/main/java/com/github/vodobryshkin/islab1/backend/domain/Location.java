@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
@@ -30,6 +31,7 @@ public class Location {
     )
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "locations_seq")
     @Column(name = "location_id")
+    @Positive
     private Long id;
 
     @Column(name = "x", nullable = false)
