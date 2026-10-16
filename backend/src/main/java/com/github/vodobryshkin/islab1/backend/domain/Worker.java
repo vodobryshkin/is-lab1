@@ -19,9 +19,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import java.time.ZonedDateTime;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import java.time.ZonedDateTime;
 
 /**
  * Класс, который отвечает за представление работника. Является JPA-сущностью.

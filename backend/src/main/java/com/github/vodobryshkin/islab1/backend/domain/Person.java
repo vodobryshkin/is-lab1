@@ -16,9 +16,9 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import java.time.ZonedDateTime;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import java.time.ZonedDateTime;
 
 /**
  * Класс, который отвечает за представление человека. Является JPA-сущностью.
