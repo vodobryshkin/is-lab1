@@ -112,7 +112,7 @@ class WorkerResponseTest {
 
             // Assert
             assertThat(actualSize)
-                    .as(                    "Maximum values of numeric fields must satisfy positive-value constraints.")
+                    .as("Maximum values of numeric fields must satisfy positive-value constraints.")
                     .isEqualTo(0);
         }
     }

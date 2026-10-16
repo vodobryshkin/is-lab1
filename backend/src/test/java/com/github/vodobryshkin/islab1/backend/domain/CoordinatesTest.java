@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
  * @author vodobryshkin
  * @since 16.10.2026 8:28
  */
-@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class CoordinatesTest {
     @Test
     void passes_correct_entity() {
