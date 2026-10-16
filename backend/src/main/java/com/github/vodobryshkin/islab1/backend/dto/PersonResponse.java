@@ -4,6 +4,7 @@ import com.github.vodobryshkin.islab1.backend.domain.Color;
 import com.github.vodobryshkin.islab1.backend.domain.Country;
 import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.time.ZonedDateTime;
@@ -38,8 +39,18 @@ public class PersonResponse {
     private ZonedDateTime birthday;
 
     @Positive
-    private float weight;
+    private Float weight;
 
     @NotNull
     private Country nationality;
+
+    /**
+     * Проверяет, что weight не является положительной бесконечностью.
+     *
+     * @return true, если weight является бесконечностью, иначе false
+     */
+    @AssertTrue
+    public boolean isWeight() {
+        return weight == null || weight != Float.POSITIVE_INFINITY;
+    }
 }

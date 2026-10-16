@@ -3,6 +3,7 @@ package com.github.vodobryshkin.islab1.backend.dto;
 import com.github.vodobryshkin.islab1.backend.domain.OrganizationType;
 import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -50,4 +51,14 @@ public class OrganizationResponse {
     @NotNull
     @Valid
     private AddressResponse postalAddress;
+
+    /**
+     * Проверяет, что annualTurnover не является положительной бесконечностью.
+     *
+     * @return true, если annualTurnover является бесконечностью, иначе false
+     */
+    @AssertTrue
+    public boolean isAnnualTurnover() {
+        return annualTurnover != Float.POSITIVE_INFINITY;
+    }
 }

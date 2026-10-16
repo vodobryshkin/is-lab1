@@ -4,6 +4,7 @@ import com.github.vodobryshkin.islab1.backend.domain.Position;
 import com.github.vodobryshkin.islab1.backend.domain.Status;
 import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -60,4 +61,14 @@ public class WorkerResponse {
     @NotNull
     @Positive
     private Long creatorId;
+
+    /**
+     * Проверяет, что salary не является положительной бесконечностью.
+     *
+     * @return true, если salary является бесконечностью, иначе false
+     */
+    @AssertTrue
+    public boolean isSalary() {
+        return salary != Float.POSITIVE_INFINITY;
+    }
 }

@@ -893,4 +893,80 @@ class OrganizationResponseTest {
             }
         }
     }
+
+    @Test
+    void rejects_annualTurnover_which_is_positive_infinity() {
+        // Arrange
+        OrganizationResponse sut = new OrganizationResponse(
+                1L,
+                new AddressResponse(1L, "official", null),
+                Float.POSITIVE_INFINITY,
+                1L,
+                "ООО Магистраль",
+                100,
+                null,
+                new AddressResponse(2L, "postal", null)
+        );
+
+        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+            // Act
+            Set<ConstraintViolation<OrganizationResponse>> violations =
+                    factory.getValidator().validate(sut);
+
+            int actualSize = violations.size();
+            String actualPropertyName = violations.stream()
+                    .map(violation -> violation.getPropertyPath().toString())
+                    .findFirst()
+                    .orElse(null);
+
+            // Assert
+            assertAll(
+                    () -> assertThat(actualSize)
+                            .as("Exactly one violation is expected for field annualTurnover.")
+                            .isEqualTo(1),
+
+                    () -> assertThat(actualPropertyName)
+                            .as("The violation must refer to field annualTurnover.")
+                            .isEqualTo("annualTurnover")
+            );
+        }
+    }
+
+    @Test
+    void rejects_annualTurnover_which_is_negative_infinity() {
+        // Arrange
+        OrganizationResponse sut = new OrganizationResponse(
+                1L,
+                new AddressResponse(1L, "official", null),
+                Float.NEGATIVE_INFINITY,
+                1L,
+                "ООО Магистраль",
+                100,
+                null,
+                new AddressResponse(2L, "postal", null)
+        );
+
+        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+            // Act
+            Set<ConstraintViolation<OrganizationResponse>> violations =
+                    factory.getValidator().validate(sut);
+
+            int actualSize = violations.size();
+            String actualPropertyName = violations.stream()
+                    .map(violation -> violation.getPropertyPath().toString())
+                    .findFirst()
+                    .orElse(null);
+
+            // Assert
+            assertAll(
+                    () -> assertThat(actualSize)
+                            .as("Exactly one violation is expected for field annualTurnover.")
+                            .isEqualTo(1),
+
+                    () -> assertThat(actualPropertyName)
+                            .as("The violation must refer to field annualTurnover.")
+                            .isEqualTo("annualTurnover")
+            );
+        }
+    }
 }

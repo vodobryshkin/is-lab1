@@ -507,4 +507,78 @@ class PersonResponseTest {
             }
         }
     }
+
+    @Test
+    void rejects_weight_which_is_positive_infinity() {
+        // Arrange
+        PersonResponse sut = new PersonResponse(
+                1L,
+                Color.BLUE,
+                Color.BROWN,
+                new LocationResponse(1L, 1, 1, 1L),
+                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
+                Float.POSITIVE_INFINITY,
+                Country.RUSSIA
+        );
+
+        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+            // Act
+            Set<ConstraintViolation<PersonResponse>> violations =
+                    factory.getValidator().validate(sut);
+
+            int actualSize = violations.size();
+            String actualPropertyName = violations.stream()
+                    .map(violation -> violation.getPropertyPath().toString())
+                    .findFirst()
+                    .orElse(null);
+
+            // Assert
+            assertAll(
+                    () -> assertThat(actualSize)
+                            .as("Exactly one violation is expected for field weight.")
+                            .isEqualTo(1),
+
+                    () -> assertThat(actualPropertyName)
+                            .as("The violation must refer to field weight.")
+                            .isEqualTo("weight")
+            );
+        }
+    }
+
+    @Test
+    void rejects_weight_which_is_negative_infinity() {
+        // Arrange
+        PersonResponse sut = new PersonResponse(
+                1L,
+                Color.BLUE,
+                Color.BROWN,
+                new LocationResponse(1L, 1, 1, 1L),
+                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
+                Float.NEGATIVE_INFINITY,
+                Country.RUSSIA
+        );
+
+        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+            // Act
+            Set<ConstraintViolation<PersonResponse>> violations =
+                    factory.getValidator().validate(sut);
+
+            int actualSize = violations.size();
+            String actualPropertyName = violations.stream()
+                    .map(violation -> violation.getPropertyPath().toString())
+                    .findFirst()
+                    .orElse(null);
+
+            // Assert
+            assertAll(
+                    () -> assertThat(actualSize)
+                            .as("Exactly one violation is expected for field weight.")
+                            .isEqualTo(1),
+
+                    () -> assertThat(actualPropertyName)
+                            .as("The violation must refer to field weight.")
+                            .isEqualTo("weight")
+            );
+        }
+    }
 }

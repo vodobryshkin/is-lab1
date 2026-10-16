@@ -933,4 +933,88 @@ class WorkerResponseTest {
             }
         }
     }
+
+    @Test
+    void rejects_salary_which_is_positive_infinity() {
+        // Arrange
+        WorkerResponse sut = new WorkerResponse(
+                1,
+                "Иван Иванов",
+                new CoordinatesResponse(1L, 0, 0L),
+                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
+                null,
+                Double.POSITIVE_INFINITY,
+                1,
+                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
+                null,
+                null,
+                null,
+                1L
+        );
+
+        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+            // Act
+            Set<ConstraintViolation<WorkerResponse>> violations =
+                    factory.getValidator().validate(sut);
+
+            int actualSize = violations.size();
+            String actualPropertyName = violations.stream()
+                    .map(violation -> violation.getPropertyPath().toString())
+                    .findFirst()
+                    .orElse(null);
+
+            // Assert
+            assertAll(
+                    () -> assertThat(actualSize)
+                            .as("Exactly one violation is expected for field salary.")
+                            .isEqualTo(1),
+
+                    () -> assertThat(actualPropertyName)
+                            .as("The violation must refer to field salary.")
+                            .isEqualTo("salary")
+            );
+        }
+    }
+
+    @Test
+    void rejects_salary_which_is_negative_infinity() {
+        // Arrange
+        WorkerResponse sut = new WorkerResponse(
+                1,
+                "Иван Иванов",
+                new CoordinatesResponse(1L, 0, 0L),
+                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
+                null,
+                Double.NEGATIVE_INFINITY,
+                1,
+                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
+                null,
+                null,
+                null,
+                1L
+        );
+
+        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+            // Act
+            Set<ConstraintViolation<WorkerResponse>> violations =
+                    factory.getValidator().validate(sut);
+
+            int actualSize = violations.size();
+            String actualPropertyName = violations.stream()
+                    .map(violation -> violation.getPropertyPath().toString())
+                    .findFirst()
+                    .orElse(null);
+
+            // Assert
+            assertAll(
+                    () -> assertThat(actualSize)
+                            .as("Exactly one violation is expected for field salary.")
+                            .isEqualTo(1),
+
+                    () -> assertThat(actualPropertyName)
+                            .as("The violation must refer to field salary.")
+                            .isEqualTo("salary")
+            );
+        }
+    }
 }
