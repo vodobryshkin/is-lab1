@@ -13,6 +13,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
@@ -23,6 +24,7 @@ import lombok.NoArgsConstructor;
  */
 @Entity
 @Table(name = "users")
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class User {
@@ -37,6 +39,12 @@ public class User {
     @NotBlank
     @Size(max = 64)
     private String username;
+
+    /** Хеш PBKDF2 вместе с алгоритмом, числом итераций и солью; пароль не хранится. */
+    @Column(name = "password_hash", nullable = false)
+    @NotBlank
+    @Size(max = 255)
+    private String passwordHash;
 
     @OneToMany(mappedBy = "user")
     private List<Worker> workers;

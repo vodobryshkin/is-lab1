@@ -24,7 +24,7 @@ class WorkerTest {
         // Arrange
         Worker sut = new Worker(
                 1,
-                new User(1L, "vodobryshkin", null),
+                new User(1L, "vodobryshkin", "hash", null),
                 "Иван Иванов",
                 new Coordinates(1L, 0, 0L),
                 ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
@@ -56,7 +56,7 @@ class WorkerTest {
         // Arrange
         Worker sut = new Worker(
                 1,
-                new User(1L, "vodobryshkin", null),
+                new User(1L, "vodobryshkin", "hash", null),
                 "𐄐 ꙮ𝔜̷̵𝔒̶̰ ☲☴ ﷽",
                 new Coordinates(1L, -953, -391L),
                 ZonedDateTime.parse("2999-01-01T00:00:00+14:00"),
@@ -85,7 +85,7 @@ class WorkerTest {
         // Arrange
         Worker sut = new Worker(
                 Integer.MAX_VALUE,
-                new User(1L, "vodobryshkin", null),
+                new User(1L, "vodobryshkin", "hash", null),
                 "Иван Иванов",
                 new Coordinates(1L, Integer.MAX_VALUE, Long.MAX_VALUE),
                 ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
@@ -114,7 +114,7 @@ class WorkerTest {
         // Arrange
         Worker sut = new Worker(
                 0,
-                new User(1L, "vodobryshkin", null),
+                new User(1L, "vodobryshkin", "hash", null),
                 "Иван Иванов",
                 new Coordinates(1L, 0, 0L),
                 ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
@@ -156,7 +156,7 @@ class WorkerTest {
         // Arrange
         Worker sut = new Worker(
                 Integer.MIN_VALUE,
-                new User(1L, "vodobryshkin", null),
+                new User(1L, "vodobryshkin", "hash", null),
                 "Иван Иванов",
                 new Coordinates(1L, 0, 0L),
                 ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
@@ -198,7 +198,7 @@ class WorkerTest {
         // Arrange
         Worker sut = new Worker(
                 1,
-                new User(1L, "vodobryshkin", null),
+                new User(1L, "vodobryshkin", "hash", null),
                 null,
                 new Coordinates(1L, 0, 0L),
                 ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
@@ -240,7 +240,7 @@ class WorkerTest {
         // Arrange
         Worker sut = new Worker(
                 1,
-                new User(1L, "vodobryshkin", null),
+                new User(1L, "vodobryshkin", "hash", null),
                 "",
                 new Coordinates(1L, 0, 0L),
                 ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
@@ -282,7 +282,7 @@ class WorkerTest {
         // Arrange
         Worker sut = new Worker(
                 1,
-                new User(1L, "vodobryshkin", null),
+                new User(1L, "vodobryshkin", "hash", null),
                 "Иван Иванов",
                 null,
                 ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
@@ -324,7 +324,7 @@ class WorkerTest {
         // Arrange
         Worker sut = new Worker(
                 1,
-                new User(1L, "vodobryshkin", null),
+                new User(1L, "vodobryshkin", "hash", null),
                 "Иван Иванов",
                 new Coordinates(1L, 0, 0L),
                 null,
@@ -366,7 +366,7 @@ class WorkerTest {
         // Arrange
         Worker sut = new Worker(
                 1,
-                new User(1L, "vodobryshkin", null),
+                new User(1L, "vodobryshkin", "hash", null),
                 "Иван Иванов",
                 new Coordinates(1L, 0, 0L),
                 ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
@@ -408,7 +408,7 @@ class WorkerTest {
         // Arrange
         Worker sut = new Worker(
                 1,
-                new User(1L, "vodobryshkin", null),
+                new User(1L, "vodobryshkin", "hash", null),
                 "Иван Иванов",
                 new Coordinates(1L, 0, 0L),
                 ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
@@ -450,7 +450,7 @@ class WorkerTest {
         // Arrange
         Worker sut = new Worker(
                 1,
-                new User(1L, "vodobryshkin", null),
+                new User(1L, "vodobryshkin", "hash", null),
                 "Иван Иванов",
                 new Coordinates(1L, 0, 0L),
                 ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
@@ -492,7 +492,7 @@ class WorkerTest {
         // Arrange
         Worker sut = new Worker(
                 1,
-                new User(1L, "vodobryshkin", null),
+                new User(1L, "vodobryshkin", "hash", null),
                 "Иван Иванов",
                 new Coordinates(1L, 0, 0L),
                 ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
@@ -534,7 +534,7 @@ class WorkerTest {
         // Arrange
         Worker sut = new Worker(
                 1,
-                new User(1L, "vodobryshkin", null),
+                new User(1L, "vodobryshkin", "hash", null),
                 "Иван Иванов",
                 new Coordinates(1L, 0, 0L),
                 ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
@@ -576,7 +576,7 @@ class WorkerTest {
         // Arrange
         Worker sut = new Worker(
                 1,
-                new User(1L, "vodobryshkin", null),
+                new User(1L, "vodobryshkin", "hash", null),
                 "Иван Иванов",
                 new Coordinates(1L, 0, 0L),
                 ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
@@ -618,7 +618,7 @@ class WorkerTest {
         // Arrange
         Worker sut = new Worker(
                 1,
-                new User(1L, "vodobryshkin", null),
+                new User(1L, "vodobryshkin", "hash", null),
                 "Иван Иванов",
                 new Coordinates(1L, 0, 0L),
                 ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
@@ -660,7 +660,7 @@ class WorkerTest {
         // Arrange
         Worker sut = new Worker(
                 1,
-                new User(1L, "vodobryshkin", null),
+                new User(1L, "vodobryshkin", "hash", null),
                 "Иван Иванов",
                 new Coordinates(1L, 0, 0L),
                 ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
@@ -702,7 +702,7 @@ class WorkerTest {
         // Arrange
         Worker sut = new Worker(
                 1,
-                new User(1L, null, null),
+                new User(1L, null, "hash", null),
                 "Иван Иванов",
                 new Coordinates(1L, 0, 0L),
                 ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
@@ -744,7 +744,7 @@ class WorkerTest {
         // Arrange
         Worker sut = new Worker(
                 1,
-                new User(1L, "vodobryshkin", null),
+                new User(1L, "vodobryshkin", "hash", null),
                 "Иван Иванов",
                 new Coordinates(1L, null, 0L),
                 ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
@@ -797,7 +797,7 @@ class WorkerTest {
 
         Worker sut = new Worker(
                 1,
-                new User(1L, "vodobryshkin", null),
+                new User(1L, "vodobryshkin", "hash", null),
                 "Иван Иванов",
                 new Coordinates(1L, 0, 0L),
                 ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
@@ -850,7 +850,7 @@ class WorkerTest {
 
         Worker sut = new Worker(
                 1,
-                new User(1L, "vodobryshkin", null),
+                new User(1L, "vodobryshkin", "hash", null),
                 "Иван Иванов",
                 new Coordinates(1L, 0, 0L),
                 ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),

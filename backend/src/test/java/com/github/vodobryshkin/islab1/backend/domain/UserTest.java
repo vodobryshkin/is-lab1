@@ -24,6 +24,7 @@ class UserTest {
         User sut = new User(
                 1L,
                 "vodobryshkin",
+                "hash",
                 null
         );
 
@@ -44,6 +45,7 @@ class UserTest {
         User sut = new User(
                 1L,
                 "vodobryshkin",
+                "hash",
                 List.of()
         );
 
@@ -64,6 +66,7 @@ class UserTest {
         User sut = new User(
                 1L,
                 "я",
+                "hash",
                 null
         );
 
@@ -84,6 +87,7 @@ class UserTest {
         User sut = new User(
                 1L,
                 "я".repeat(64),
+                "hash",
                 null
         );
 
@@ -104,6 +108,7 @@ class UserTest {
         User sut = new User(
                 1L,
                 "𐄐 ꙮ𝔜̷̵𝔒̶̰ ☲☴ ﷽",
+                "hash",
                 null
         );
 
@@ -124,6 +129,7 @@ class UserTest {
         User sut = new User(
                 0L,
                 "vodobryshkin",
+                "hash",
                 null
         );
 
@@ -157,6 +163,7 @@ class UserTest {
         User sut = new User(
                 Long.MIN_VALUE,
                 "vodobryshkin",
+                "hash",
                 null
         );
 
@@ -190,6 +197,7 @@ class UserTest {
         User sut = new User(
                 1L,
                 null,
+                "hash",
                 null
         );
 
@@ -223,6 +231,7 @@ class UserTest {
         User sut = new User(
                 1L,
                 "",
+                "hash",
                 null
         );
 
@@ -256,6 +265,7 @@ class UserTest {
         User sut = new User(
                 1L,
                 " \t\n\r ",
+                "hash",
                 null
         );
 
@@ -289,6 +299,7 @@ class UserTest {
         User sut = new User(
                 1L,
                 "я".repeat(65),
+                "hash",
                 null
         );
 
@@ -313,6 +324,29 @@ class UserTest {
                             .as("The violation must refer to field username.")
                             .isEqualTo("username")
             );
+        }
+    }
+
+    @Test
+    void rejects_password_hash_which_is_blank() {
+        // Arrange
+        User sut = new User(
+                1L,
+                "vodobryshkin",
+                " ",
+                null
+        );
+
+        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+            // Act
+            Set<ConstraintViolation<User>> violations =
+                    factory.getValidator().validate(sut);
+
+            // Assert
+            assertThat(violations)
+                    .extracting(violation -> violation.getPropertyPath().toString())
+                    .as("The violation must refer to field passwordHash.")
+                    .containsExactly("passwordHash");
         }
     }
 }

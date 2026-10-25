@@ -554,7 +554,7 @@ class PersonTest {
         // Arrange
         Worker worker = new Worker(
                 1,
-                new User(1L, "vodobryshkin", null),
+                new User(1L, "vodobryshkin", "hash", null),
                 null,
                 new Coordinates(1L, 0, 0L),
                 ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),

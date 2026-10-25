@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS users (
     user_id BIGSERIAL PRIMARY KEY,
     username VARCHAR(64) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
     creation_date TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT users_username_key UNIQUE (username),
     CONSTRAINT users_username_check CHECK (username ~ '^[a-zA-Z0-9_]{3,64}$')

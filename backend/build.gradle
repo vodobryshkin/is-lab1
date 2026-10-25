@@ -27,7 +27,6 @@ ext {
     eclipseLinkVersion = '4.0.9'
     postgresqlVersion = '42.7.14'
     jakartaPersistenceVersion = '3.1.0'
-    h2Version = '2.5.252'
 }
 
 configurations {
@@ -87,7 +86,6 @@ dependencies {
 
     implementation "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
@@ -98,13 +96,10 @@ dependencies {
     testImplementation "org.eclipse:yasson:${yassonVersion}"
     testImplementation "org.eclipse.parsson:parsson:${parssonVersion}"
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
-    testRuntimeOnly "com.h2database:h2:${h2Version}"
-    testRuntimeOnly "org.postgresql:postgresql:${postgresqlVersion}"
 }
 
 test {
     useJUnitPlatform()
-    systemProperty 'islab1.schema', file('db/schema.sql').absolutePath
 }
 
 tasks.register('preparePostgresDriver', Copy) {
