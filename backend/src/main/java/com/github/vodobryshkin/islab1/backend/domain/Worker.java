@@ -41,7 +41,7 @@ public class Worker {
             allocationSize = 1
     )
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "workers_seq")
-    @Column(name = "id")
+    @Column(name = "worker_id")
     @Positive
     private Integer id; // Поле не может быть null, Значение поля должно быть больше 0,
     // Значение этого поля должно быть уникальным,

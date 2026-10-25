@@ -3,7 +3,30 @@
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
              version="3.0">
-  <persistence-unit name="default">
+    <persistence-unit name="is-lab1" transaction-type="JTA">
+        <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+        <jta-data-source>java:jboss/datasources/IsLab1DS</jta-data-source>
 
-  </persistence-unit>
+        <class>com.github.vodobryshkin.islab1.backend.domain.Address</class>
+        <class>com.github.vodobryshkin.islab1.backend.domain.Coordinates</class>
+        <class>com.github.vodobryshkin.islab1.backend.domain.Location</class>
+        <class>com.github.vodobryshkin.islab1.backend.domain.Organization</class>
+        <class>com.github.vodobryshkin.islab1.backend.domain.Person</class>
+        <class>com.github.vodobryshkin.islab1.backend.domain.User</class>
+        <class>com.github.vodobryshkin.islab1.backend.domain.Worker</class>
+        <class>com.github.vodobryshkin.islab1.backend.domain.ZonedDateTimeConverter</class>
+        <exclude-unlisted-classes>true</exclude-unlisted-classes>
+
+        <properties>
+            <!-- EclipseLink упакован в WAR: WildFly не должен подставлять встроенный Hibernate. -->
+            <property name="jboss.as.jpa.providerModule" value="application"/>
+            <property name="eclipselink.target-server" value="JBoss"/>
+            <property name="eclipselink.target-database" value="PostgreSQL"/>
+            <!-- Схема создаётся только скриптом db/schema.sql, рабочие таблицы не пересоздаются. -->
+            <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
+            <!-- Без агента загрузки классов поведение одинаково в WildFly и в JUnit. -->
+            <property name="eclipselink.weaving" value="false"/>
+            <property name="eclipselink.logging.level" value="INFO"/>
+        </properties>
+    </persistence-unit>
 </persistence>

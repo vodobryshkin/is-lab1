@@ -24,6 +24,15 @@ ext {
     expresslyVersion = '5.0.0'
     yassonVersion = '3.0.4'
     parssonVersion = '1.1.9'
+    eclipseLinkVersion = '4.0.9'
+    postgresqlVersion = '42.7.14'
+    jakartaPersistenceVersion = '3.1.0'
+}
+
+configurations {
+    postgresDriver {
+        transitive = false
+    }
 }
 
 java {
@@ -70,12 +79,18 @@ tasks.withType(Pmd).configureEach {
 dependencies {
     compileOnly "jakarta.platform:jakarta.jakartaee-web-api:${jakartaWebProfileVersion}"
 
+    implementation("org.eclipse.persistence:org.eclipse.persistence.jpa:${eclipseLinkVersion}") {
+        exclude group: 'jakarta.persistence', module: 'jakarta.persistence-api'
+    }
+    postgresDriver "org.postgresql:postgresql:${postgresqlVersion}"
+
     implementation "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
     testImplementation "org.assertj:assertj-core:${assertJVersion}"
+    testImplementation "jakarta.persistence:jakarta.persistence-api:${jakartaPersistenceVersion}"
     testImplementation "org.hibernate.validator:hibernate-validator:${hibernateValidatorVersion}"
     testRuntimeOnly "org.glassfish.expressly:expressly:${expresslyVersion}"
     testImplementation "org.eclipse:yasson:${yassonVersion}"
@@ -85,4 +100,11 @@ dependencies {
 
 test {
   useJUnitPlatform()
+}
+
+tasks.register('preparePostgresDriver', Copy) {
+    description = 'Копирует JDBC-драйвер PostgreSQL для развёртывания на сервере.'
+    from configurations.postgresDriver
+    into layout.buildDirectory.dir('server')
+    rename { 'postgresql.jar' }
 }

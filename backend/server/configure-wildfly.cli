@@ -1,0 +1,19 @@
+embed-server --std-out=echo --server-config=standalone.xml
+
+deploy ${postgres.driver.path} --name=postgresql.jar
+
+data-source add \
+    --name=IsLab1DS \
+    --jndi-name=java:jboss/datasources/IsLab1DS \
+    --driver-name=postgresql.jar \
+    --connection-url=${env.IS_LAB1_DB_URL} \
+    --user-name=${env.IS_LAB1_DB_USER} \
+    --password=${env.IS_LAB1_DB_PASSWORD} \
+    --jta=true \
+    --use-ccm=true \
+    --validate-on-match=true \
+    --background-validation=false \
+    --valid-connection-checker-class-name=org.jboss.jca.adapters.jdbc.extensions.postgres.PostgreSQLValidConnectionChecker \
+    --exception-sorter-class-name=org.jboss.jca.adapters.jdbc.extensions.postgres.PostgreSQLExceptionSorter
+
+stop-embedded-server
