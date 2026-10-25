@@ -1,8 +1,9 @@
 import "@typespec/http";
 
+import "./operations/csrf.tsp";
 import "./operations/register.tsp";
 import "./operations/login.tsp";
-import "./operations/refresh.tsp";
+import "./operations/session.tsp";
 import "./operations/logout.tsp";
 
 using TypeSpec.Http;

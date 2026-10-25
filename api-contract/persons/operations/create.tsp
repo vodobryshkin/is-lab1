@@ -15,7 +15,7 @@ using WorkersApi.Persons.Errors;
 namespace WorkersApi.Persons;
 
 const createPersonSuccessOperationExample = #{
-    parameters: #{ body: personWriteExample },
+    parameters: #{ csrf_token: WorkersApi.Security.csrfTokenExample, body: personWriteExample },
     returnType: #{
         statusCode: 201,
         contentType: "application/json",
@@ -26,7 +26,10 @@ const createPersonSuccessOperationExample = #{
 
 const createPersonWithExistingLocationOperationExample = #{
     ...createPersonSuccessOperationExample,
-    parameters: #{ body: personWithExistingLocationExample }
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        body: personWithExistingLocationExample
+    }
 };
 
 @post
@@ -38,11 +41,11 @@ const createPersonWithExistingLocationOperationExample = #{
 @opExample(createPersonWithExistingLocationOperationExample)
 @opExample(locationNotFoundOperationExample)
 @opExample(badRequestOperationExample)
-@opExample(missingTokenOperationExample)
-@opExample(invalidTokenOperationExample)
+@opExample(unauthorizedOperationExample)
 @opExample(forbiddenOperationExample)
 @opExample(personValidationOperationExample)
 op createPerson(
+    ...WorkersApi.Security.CsrfTokenHeader,
     @body body: PersonWriteRequest
 ):
     WorkersApi.Ok.CreatedResponse<IdResponse>

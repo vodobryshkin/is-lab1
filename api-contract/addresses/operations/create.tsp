@@ -16,7 +16,7 @@ using WorkersApi.Addresses.Errors;
 namespace WorkersApi.Addresses;
 
 const createAddressSuccessOperationExample = #{
-    parameters: #{ body: addressExample },
+    parameters: #{ csrf_token: WorkersApi.Security.csrfTokenExample, body: addressExample },
     returnType: #{
         statusCode: 201,
         contentType: "application/json",
@@ -27,12 +27,18 @@ const createAddressSuccessOperationExample = #{
 
 const createAddressWithoutTownOperationExample = #{
     ...createAddressSuccessOperationExample,
-    parameters: #{ body: #{ ...addressExample, town: null } }
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        body: #{ ...addressExample, town: null }
+    }
 };
 
 const createAddressWithExistingLocationOperationExample = #{
     ...createAddressSuccessOperationExample,
-    parameters: #{ body: addressWithExistingLocationExample }
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        body: addressWithExistingLocationExample
+    }
 };
 
 @post
@@ -45,11 +51,11 @@ const createAddressWithExistingLocationOperationExample = #{
 @opExample(createAddressSuccessOperationExample)
 @opExample(createAddressWithoutTownOperationExample)
 @opExample(addressBadRequestOperationExample)
-@opExample(addressMissingTokenOperationExample)
-@opExample(addressInvalidTokenOperationExample)
-@opExample(addressForbiddenOperationExample)
+@opExample(unauthorizedOperationExample)
+@opExample(forbiddenOperationExample)
 @opExample(addressValidationOperationExample)
 op createAddress(
+    ...WorkersApi.Security.CsrfTokenHeader,
     @body body: AddressFields
 ):
     WorkersApi.Ok.CreatedResponse<IdResponse>

@@ -12,7 +12,7 @@ using WorkersApi.Domain;
 
 @route("/locations")
 @tag("Locations")
-@useAuth(BearerAuth)
+@useAuth(WorkersApi.Security.SessionCookieAuth)
 namespace WorkersApi.Locations;
 
 const locationWriteExample: LocationWriteRequest = #{

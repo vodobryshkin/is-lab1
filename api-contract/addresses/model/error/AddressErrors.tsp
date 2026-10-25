@@ -41,47 +41,6 @@ const addressInvalidIdOperationExample = #{
     }
 };
 
-const addressMissingTokenOperationExample = #{
-    returnType: #{
-        statusCode: 401,
-        wwwAuthenticate: "Bearer realm=\"Workers API\"",
-        contentType: "application/problem+json",
-        body: #{
-            type: "/problems/missing-token",
-            title: "Authentication required",
-            status: 401,
-            detail: "A bearer token is required."
-        }
-    }
-};
-
-const addressInvalidTokenOperationExample = #{
-    returnType: #{
-        statusCode: 401,
-        wwwAuthenticate: "Bearer realm=\"Workers API\", error=\"invalid_token\"",
-        contentType: "application/problem+json",
-        body: #{
-            type: "/problems/invalid-token",
-            title: "Invalid token",
-            status: 401,
-            detail: "The bearer token is invalid or expired."
-        }
-    }
-};
-
-const addressForbiddenOperationExample = #{
-    returnType: #{
-        statusCode: 403,
-        contentType: "application/json",
-        body: #{
-            type: "/problems/insufficient-permissions",
-            title: "Insufficient permissions",
-            status: 403,
-            detail: "Modifying addresses is not allowed."
-        }
-    }
-};
-
 const addressNotFoundOperationExample = #{
     returnType: addressNotFoundErrorExample
 };

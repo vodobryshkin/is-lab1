@@ -14,7 +14,7 @@ using WorkersApi.Locations.Errors;
 namespace WorkersApi.Locations;
 
 const createLocationSuccessOperationExample = #{
-    parameters: #{ body: locationWriteExample },
+    parameters: #{ csrf_token: WorkersApi.Security.csrfTokenExample, body: locationWriteExample },
     returnType: #{
         statusCode: 201,
         contentType: "application/json",
@@ -30,11 +30,11 @@ const createLocationSuccessOperationExample = #{
 @returnsDoc("ID созданного объекта.")
 @opExample(createLocationSuccessOperationExample)
 @opExample(badRequestOperationExample)
-@opExample(missingTokenOperationExample)
-@opExample(invalidTokenOperationExample)
+@opExample(unauthorizedOperationExample)
 @opExample(forbiddenOperationExample)
 @opExample(locationValidationOperationExample)
 op createLocation(
+    ...WorkersApi.Security.CsrfTokenHeader,
     @body body: LocationWriteRequest
 ):
     WorkersApi.Ok.CreatedResponse<IdResponse>

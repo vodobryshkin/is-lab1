@@ -11,7 +11,7 @@ using WorkersApi.Locations.Errors;
 namespace WorkersApi.Locations;
 
 const deleteLocationSuccessOperationExample = #{
-    parameters: #{ id: 7 },
+    parameters: #{ csrf_token: WorkersApi.Security.csrfTokenExample, id: 7 },
     returnType: #{ statusCode: 204 }
 };
 
@@ -22,12 +22,12 @@ const deleteLocationSuccessOperationExample = #{
 @returnsDoc("Локация удалена.")
 @opExample(deleteLocationSuccessOperationExample)
 @opExample(invalidIdOperationExample)
-@opExample(missingTokenOperationExample)
-@opExample(invalidTokenOperationExample)
+@opExample(unauthorizedOperationExample)
 @opExample(forbiddenOperationExample)
 @opExample(locationNotFoundOperationExample)
 @opExample(deleteLocationConflictOperationExample)
 op deleteLocation(
+    ...WorkersApi.Security.CsrfTokenHeader,
     @path
     @minValue(1)
     id: int64

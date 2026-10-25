@@ -13,7 +13,11 @@ using WorkersApi.Locations.Errors;
 namespace WorkersApi.Locations;
 
 const updateLocationSuccessOperationExample = #{
-    parameters: #{ id: 7, body: locationWriteExample },
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        id: 7,
+        body: locationWriteExample
+    },
     returnType: #{ statusCode: 204 }
 };
 
@@ -25,12 +29,12 @@ const updateLocationSuccessOperationExample = #{
 @opExample(updateLocationSuccessOperationExample)
 @opExample(invalidIdOperationExample)
 @opExample(badRequestOperationExample)
-@opExample(missingTokenOperationExample)
-@opExample(invalidTokenOperationExample)
+@opExample(unauthorizedOperationExample)
 @opExample(forbiddenOperationExample)
 @opExample(locationNotFoundOperationExample)
 @opExample(locationValidationOperationExample)
 op updateLocation(
+    ...WorkersApi.Security.CsrfTokenHeader,
     @path
     @minValue(1)
     id: int64,

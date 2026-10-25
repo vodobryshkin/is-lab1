@@ -32,8 +32,7 @@ const getOrganizationSuccessOperationExample = #{
 @returnsDoc("Данные организации.")
 @opExample(getOrganizationSuccessOperationExample)
 @opExample(organizationInvalidIdOperationExample)
-@opExample(organizationMissingTokenOperationExample)
-@opExample(organizationInvalidTokenOperationExample)
+@opExample(unauthorizedOperationExample)
 @opExample(organizationNotFoundOperationExample)
 op getOrganization(
     @path
@@ -98,8 +97,7 @@ const listOrganizationsFilteredOperationExample = #{
 @opExample(listOrganizationsPastEndOperationExample)
 @opExample(listOrganizationsFilteredOperationExample)
 @opExample(listParameterValidationOperationExample)
-@opExample(missingTokenOperationExample)
-@opExample(invalidTokenOperationExample)
+@opExample(unauthorizedOperationExample)
 op listOrganizations(
     ...ListParameters,
 

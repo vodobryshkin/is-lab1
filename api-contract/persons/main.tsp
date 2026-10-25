@@ -12,7 +12,7 @@ using WorkersApi.Domain;
 
 @route("/persons")
 @tag("Persons")
-@useAuth(BearerAuth)
+@useAuth(WorkersApi.Security.SessionCookieAuth)
 namespace WorkersApi.Persons;
 
 const personWriteExample: PersonWriteRequest = #{

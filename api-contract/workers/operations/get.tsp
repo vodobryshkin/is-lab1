@@ -46,40 +46,8 @@ const getWorkerMaxIdOperationExample = #{
     }
 };
 
-const getWorkerMissingTokenExample: UnauthorizedError = #{
-    statusCode: 401,
-    wwwAuthenticate: "Bearer realm=\"Workers API\"",
-    contentType: "application/problem+json",
-    body: #{
-        type: "/problems/missing-token",
-        title: "Authentication required",
-        status: 401,
-        detail: "A bearer token is required."
-    }
-};
-
-const getWorkerInvalidTokenExample: UnauthorizedError = #{
-    statusCode: 401,
-    wwwAuthenticate: "Bearer realm=\"Workers API\", error=\"invalid_token\"",
-    contentType: "application/problem+json",
-    body: #{
-        type: "/problems/invalid-token",
-        title: "Invalid token",
-        status: 401,
-        detail: "The bearer token is invalid or expired."
-    }
-};
-
 const getWorkerInvalidIdOperationExample = #{
     returnType: invalidWorkerIdErrorExample
-};
-
-const getWorkerMissingTokenOperationExample = #{
-    returnType: getWorkerMissingTokenExample
-};
-
-const getWorkerInvalidTokenOperationExample = #{
-    returnType: getWorkerInvalidTokenExample
 };
 
 const getWorkerNotFoundOperationExample = #{
@@ -89,15 +57,14 @@ const getWorkerNotFoundOperationExample = #{
 
 @get
 @route("/{id}")
-@useAuth(BearerAuth)
+@useAuth(WorkersApi.Security.SessionCookieAuth)
 @summary("Получить работника.")
 @doc("Возвращает работника и его вложенные объекты.")
 @opExample(getWorkerSuccessOperationExample)
 @opExample(getWorkerMaxIdOperationExample)
 @opExample(getWorkerWithoutOrganizationOperationExample)
 @opExample(getWorkerInvalidIdOperationExample)
-@opExample(getWorkerMissingTokenOperationExample)
-@opExample(getWorkerInvalidTokenOperationExample)
+@opExample(unauthorizedOperationExample)
 @opExample(getWorkerNotFoundOperationExample)
 op getWorker(
     @path
@@ -163,8 +130,7 @@ const listWorkersFilteredOperationExample = #{
 @opExample(listWorkersPastEndOperationExample)
 @opExample(listWorkersFilteredOperationExample)
 @opExample(listParameterValidationOperationExample)
-@opExample(missingTokenOperationExample)
-@opExample(invalidTokenOperationExample)
+@opExample(unauthorizedOperationExample)
 op listWorkers(
     ...ListParameters,
 

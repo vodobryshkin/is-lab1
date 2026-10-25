@@ -1,30 +1,23 @@
 import "@typespec/http";
 
+import "../../common/error/ForbiddenError.tsp";
 import "../../common/ok/NoContentResponse.tsp";
+import "../../common/security/CsrfTokenHeader.tsp";
 
 using TypeSpec.Http;
+using WorkersApi.Errors;
+using WorkersApi.Security;
 
 namespace WorkersApi.Auth;
 
-const logoutCookieValueExample = "e134aff8-7826-45b0-9b72-a5daa36b56c5";
-
-const clearedRefreshCookieExample =
-    "refresh_token=; Path=/api/v1/auth; Max-Age=0; HttpOnly; Secure; SameSite=Strict";
+const clearedSessionCookieExample =
+    "JSESSIONID=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax";
 
 const logoutSuccessOperationExample = #{
-    parameters: #{ refresh_token: logoutCookieValueExample },
+    parameters: #{ csrf_token: csrfTokenExample },
     returnType: #{
         statusCode: 204,
-        set_cookie: clearedRefreshCookieExample,
-        cache_control: "no-store"
-    }
-};
-
-const logoutWithoutCookieOperationExample = #{
-    parameters: #{},
-    returnType: #{
-        statusCode: 204,
-        set_cookie: clearedRefreshCookieExample,
+        set_cookie: clearedSessionCookieExample,
         cache_control: "no-store"
     }
 };
@@ -32,25 +25,27 @@ const logoutWithoutCookieOperationExample = #{
 @post
 @route("/logout")
 @summary("Выйти из системы.")
-@doc("Отзывает refresh-токен и удаляет cookie. Отсутствующий или недействительный токен также возвращает 204.")
+@doc("""
+    Завершает вход и инвалидирует серверную сессию вместе с её CSRF-токеном,
+    затем удаляет cookie `JSESSIONID`. Вход не обязателен: при действительном
+    CSRF-токене анонимной сессии ответ также 204. Повторный вызов со старым токеном
+    возвращает 403, потому что его сессия уже завершена; новый токен выдаёт `GET /auth/csrf`.
+    """)
 @returnsDoc("Сессия завершена, cookie удалена.")
 @opExample(logoutSuccessOperationExample)
-@opExample(logoutWithoutCookieOperationExample)
+@opExample(forbiddenOperationExample)
 op logout(
-    @doc("Refresh-токен из cookie, если есть.")
-    @cookie("refresh_token")
-    @secret
-    @example(logoutCookieValueExample)
-    refresh_token?: string
+    ...CsrfTokenHeader
 ):
     {
         ...WorkersApi.Ok.NoContentResponse;
 
-        @doc("Удаление refresh-cookie.")
+        @doc("Удаление cookie сессии.")
         @header("Set-Cookie")
-        @example(clearedRefreshCookieExample)
+        @example(clearedSessionCookieExample)
         set_cookie: string;
 
         @header("Cache-Control")
         cache_control: "no-store";
-    };
+    }
+    | ForbiddenError;

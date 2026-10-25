@@ -8,7 +8,7 @@ namespace WorkersApi.Auth.Errors;
 const authValidationIssueExample = #{
     field: "password",
     title: "OUT_OF_RANGE",
-    description: "Password must contain between 6 and 255 characters."
+    description: "Password must contain between 6 and 32 characters."
 };
 
 const authBadRequestExample: BadRequestError = #{
@@ -34,34 +34,12 @@ const credentialsValidationErrorExample:
         }
     };
 
-const refreshTokenValidationErrorExample:
-    ValidationError<422, AuthValidationIssue> = #{
-        statusCode: 422,
-        contentType: "application/json",
-        body: #{
-            type: "/problems/validation-failed",
-            title: "Validation failed",
-            status: 422,
-            errors: #[
-                #{
-                    field: "refresh_token",
-                    title: "MUST_NOT_BE_EMPTY",
-                    description: "Refresh cookie must not be empty."
-                }
-            ]
-        }
-    };
-
 const authBadRequestOperationExample = #{
     returnType: authBadRequestExample
 };
 
 const credentialsValidationOperationExample = #{
     returnType: credentialsValidationErrorExample
-};
-
-const refreshTokenValidationOperationExample = #{
-    returnType: refreshTokenValidationErrorExample
 };
 
 @doc("Ошибки полей аутентификации.")
@@ -78,12 +56,6 @@ union AuthValidationIssue {
         field: "password";
         title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE"
             | "MUST_NOT_BE_EMPTY" | "OUT_OF_RANGE" | "MUST_MATCH_PATTERN";
-        description: string;
-    },
-
-    refresh_token: {
-        field: "refresh_token";
-        title: "REQUIRED" | "MUST_NOT_BE_EMPTY";
         description: string;
     },
 }

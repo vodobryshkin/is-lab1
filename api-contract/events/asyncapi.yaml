@@ -11,43 +11,43 @@ info:
     Отсутствующий или запрещённый `Origin` отклоняется HTTP-ответом 403.
     Параметры URL не поддерживаются; при их наличии сервер возвращает HTTP 400.
 
-    Первое прикладное сообщение клиента — `AUTHENTICATE` с access-токеном из login или refresh.
-    Его нужно отправить в течение 5 секунд после подключения.
-    Сервер проверяет подпись JWT, срок действия и остальные условия проверки access-токена в REST.
-    При успехе сервер сначала отправляет `AUTHENTICATED`, затем разрешает уведомления.
-    До этого момента данные не рассылаются. Refresh-cookie для WebSocket не используется.
-    Access-токен не передаётся в URL и не записывается в журналы.
+    Аутентификация выполняется при HTTP Upgrade той же серверной сессией, что и в REST:
+    браузер передаёт cookie `JSESSIONID` после `POST /api/v1/auth/login`.
+    Без действующего входа сервер отклоняет Upgrade HTTP-ответом 401, соединение не открывается.
+    Идентификатор сессии и другие секреты не передаются в URL и в сообщениях.
+    CSRF-токен для подключения не нужен: соединение не изменяет данные.
 
+    После открытия соединения сервер сначала отправляет `AUTHENTICATED`, затем разрешает уведомления.
     После фиксации транзакции, изменившей работников, организации, адреса, координаты,
-    локации или персон, сервер отправляет `DATA_CHANGED` всем аутентифицированным клиентам,
+    локации или персон, сервер отправляет `DATA_CHANGED` всем соединениям вошедших пользователей,
     включая инициатора изменения. Это относится и к найму, и к индексации зарплат.
     Одна транзакция даёт одно уведомление, даже если изменила несколько объектов.
     Откат транзакции и операции без изменений не создают уведомлений.
 
+    Событие не содержит изменённых данных: оно сообщает, что состояние нужно заново прочитать через REST.
     Получив `AUTHENTICATED`, клиент загружает актуальное состояние через REST.
     По `DATA_CHANGED` клиент перечитывает открытые списки, карточки и результаты специальных операций.
     Если уведомление пришло во время REST-запроса, перечитывание повторяется после его завершения.
-    История событий не хранится и не воспроизводится; после переподключения данные загружаются заново.
+    История событий не хранится и не воспроизводится: события, пропущенные без соединения,
+    не доставляются повторно, после переподключения данные загружаются заново через REST.
     Клиент может объединять несколько уведомлений в одно перечитывание.
 
-    Повторная аутентификация в том же соединении не поддерживается.
-    При истечении access-токена сервер отправляет `ERROR` с кодом `TOKEN_EXPIRED` и закрывает соединение.
-    Клиент обновляет токен через существующий REST refresh и подключается заново.
-    После успешного refresh активное соединение заменяется новым, с новым access-токеном.
-    При выходе клиент закрывает соединение кодом 1000 и прекращает переподключения.
-    При временном обрыве клиент повторяет подключение с увеличивающейся задержкой до 30 секунд.
-    Ошибка login или refresh требует повторного входа, без бесконечных повторов.
+    Соединение действует, пока действует вход сессии. При выходе, истечении тайм-аута бездействия,
+    повторном входе в той же сессии или перезапуске сервера сервер по возможности отправляет
+    `ERROR` с кодом `SESSION_ENDED` и закрывает соединение кодом 4001.
+    После этого клиент выполняет вход через REST и подключается заново.
+    При выходе клиент сам закрывает соединение кодом 1000 и прекращает переподключения.
+    При временном обрыве клиент повторяет подключение с увеличивающейся задержкой до 30 секунд;
+    ответ 401 на Upgrade требует повторного входа, без бесконечных повторов.
 
-    Прикладные сообщения — текстовый JSON, максимум 16384 байта на сообщение клиента.
-    Кроме первого `AUTHENTICATE`, прикладные сообщения клиента не поддерживаются.
-    Служебные WebSocket Ping/Pong не являются прикладными сообщениями.
+    Клиент не отправляет прикладных сообщений. Служебные WebSocket Ping/Pong не являются
+    прикладными сообщениями. Сообщения сервера — текстовый JSON.
     Перед закрытием сервер по возможности отправляет `ERROR`; получение ошибки не гарантируется при обрыве связи.
 
     Коды закрытия:
-    - 4001 — аутентификация отсутствует, токен недействителен или истёк.
-    - 4002 — некорректный JSON, неизвестное сообщение, лишнее поле или повторный `AUTHENTICATE`.
+    - 4001 — вход сессии завершён.
+    - 4002 — клиент отправил текстовое прикладное сообщение.
     - 1003 — бинарное сообщение.
-    - 1009 — превышен размер сообщения.
     Коды 4001 и 4002 — прикладные коды WebSocket, а не HTTP-статусы.
 
 defaultContentType: application/json
@@ -62,7 +62,7 @@ channels:
   events:
     address: /api/v1/events
     title: Обновления данных.
-    description: Один канал для аутентификации и уведомлений.
+    description: Один канал для подтверждения подключения и уведомлений.
     servers:
       - $ref: '#/servers/local'
     bindings:
@@ -71,18 +71,19 @@ channels:
         bindingVersion: 0.1.0
         headers:
           type: object
-          required: [Origin]
+          required: [Origin, Cookie]
           properties:
             Origin:
               type: string
               format: uri
               description: Разрешённый адрес фронтенда, проверяется до подключения.
+            Cookie:
+              type: string
+              description: Cookie `JSESSIONID` сессии с выполненным входом; браузер передаёт её сам.
         query:
           type: object
           additionalProperties: false
     messages:
-      authenticate:
-        $ref: '#/components/messages/Authenticate'
       authenticated:
         $ref: '#/components/messages/Authenticated'
       data_changed:
@@ -91,19 +92,10 @@ channels:
         $ref: '#/components/messages/Error'
 
 operations:
-  receive_authentication:
-    action: receive
-    title: Принять access-токен.
-    summary: Аутентифицирует новое соединение.
-    channel:
-      $ref: '#/channels/events'
-    messages:
-      - $ref: '#/channels/events/messages/authenticate'
-
   send_messages:
     action: send
     title: Отправить сообщение клиенту.
-    summary: Подтверждение входа, уведомление или ошибка.
+    summary: Подтверждение подключения, уведомление или ошибка.
     channel:
       $ref: '#/channels/events'
     messages:
@@ -113,28 +105,15 @@ operations:
 
 components:
   messages:
-    Authenticate:
-      name: Authenticate
-      title: Аутентификация соединения.
-      summary: Первое сообщение клиента.
-      payload:
-        $ref: '#/components/schemas/Authenticate'
-      examples:
-        - name: authenticate
-          summary: Передать access-токен.
-          payload:
-            type: AUTHENTICATE
-            access_token: example-access-token
-
     Authenticated:
       name: Authenticated
       title: Соединение аутентифицировано.
-      summary: После этого сообщения клиент загружает данные через REST.
+      summary: Первое сообщение сервера; после него клиент загружает данные через REST.
       payload:
         $ref: '#/components/schemas/Authenticated'
       examples:
         - name: authenticated
-          summary: Подтвердить вход.
+          summary: Подтвердить подключение.
           payload:
             type: AUTHENTICATED
 
@@ -157,46 +136,20 @@ components:
       payload:
         $ref: '#/components/schemas/Error'
       examples:
-        - name: authentication_required
-          summary: Аутентификация не выполнена вовремя.
+        - name: session_ended
+          summary: Вход сессии завершён.
           payload:
             type: ERROR
-            code: AUTHENTICATION_REQUIRED
-            description: Authenticate within 5 seconds of connecting.
-        - name: invalid_token
-          summary: Недействительный access-токен.
-          payload:
-            type: ERROR
-            code: INVALID_TOKEN
-            description: The access token is invalid.
-        - name: token_expired
-          summary: Истёк access-токен.
-          payload:
-            type: ERROR
-            code: TOKEN_EXPIRED
-            description: The access token has expired.
+            code: SESSION_ENDED
+            description: The session has ended. Log in again and reconnect.
         - name: invalid_message
           summary: Неподдерживаемое сообщение.
           payload:
             type: ERROR
             code: INVALID_MESSAGE
-            description: The message does not match the expected format.
+            description: Client messages are not supported.
 
   schemas:
-    Authenticate:
-      title: Данные аутентификации.
-      type: object
-      additionalProperties: false
-      required: [type, access_token]
-      properties:
-        type:
-          type: string
-          enum: [AUTHENTICATE]
-        access_token:
-          type: string
-          minLength: 1
-          description: Access-токен из REST login или refresh; пример является заглушкой.
-
     Authenticated:
       title: Подтверждение аутентификации.
       type: object
@@ -230,9 +183,7 @@ components:
           type: string
           description: Код ошибки.
           enum:
-            - AUTHENTICATION_REQUIRED
-            - INVALID_TOKEN
-            - TOKEN_EXPIRED
+            - SESSION_ENDED
             - INVALID_MESSAGE
         description:
           type: string

@@ -21,12 +21,20 @@ using WorkersApi.Workers.Errors;
 namespace WorkersApi.Workers;
 
 const updateWorkerSuccessOperationExample = #{
-    parameters: #{ id: 42, body: updateWorkerExample },
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        id: 42,
+        body: updateWorkerExample
+    },
     returnType: #{ statusCode: 204 }
 };
 
 const updateWorkerWithoutOrganizationOperationExample = #{
-    parameters: #{ id: 42, body: updateWorkerWithoutOrganizationExample },
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        id: 42,
+        body: updateWorkerWithoutOrganizationExample
+    },
     returnType: #{ statusCode: 204 }
 };
 
@@ -46,30 +54,6 @@ const updateWorkerBadRequestOperationExample = #{
     }
 };
 
-const updateWorkerUnauthorizedOperationExample = #{
-    returnType: #{
-        ...unauthorizedExample,
-        body: #{
-            type: "/problems/invalid-token",
-            status: 401,
-            title: "Invalid token",
-            detail: "The bearer token is invalid or expired."
-        }
-    }
-};
-
-const updateWorkerForbiddenOperationExample = #{
-    returnType: #{
-        ...forbiddenExample,
-        body: #{
-            type: "/problems/insufficient-permissions",
-            status: 403,
-            title: "Insufficient permissions",
-            detail: "Updating this worker is not allowed."
-        }
-    }
-};
-
 const updateWorkerNotFoundOperationExample = #{
     returnType: workerNotFoundErrorExample
 };
@@ -85,6 +69,7 @@ const updateWorkerValidationOperationExample = #{
 const updateWorkerWithExistingObjectsOperationExample = #{
     ...updateWorkerSuccessOperationExample,
     parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
         id: 42, body: #{
             ...updateWorkerExample,
             coordinates: existingCoordinatesExample,
@@ -96,6 +81,7 @@ const updateWorkerWithExistingObjectsOperationExample = #{
 const updateWorkerWithExistingPersonLocationOperationExample = #{
     ...updateWorkerSuccessOperationExample,
     parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
         id: 42, body: #{
             ...updateWorkerExample,
             person: personWithExistingLocationExample
@@ -105,7 +91,7 @@ const updateWorkerWithExistingPersonLocationOperationExample = #{
 
 @put
 @route("/{id}")
-@useAuth(BearerAuth)
+@useAuth(WorkersApi.Security.SessionCookieAuth)
 @summary("Обновить работника.")
 @doc("Заменяет поля и привязки в одной транзакции. person: null отвязывает персону без удаления; organization_id: null отвязывает организацию.")
 @opExample(locationNotFoundOperationExample)
@@ -119,12 +105,13 @@ const updateWorkerWithExistingPersonLocationOperationExample = #{
 @opExample(updateWorkerWithoutOrganizationOperationExample)
 @opExample(updateWorkerInvalidIdOperationExample)
 @opExample(updateWorkerBadRequestOperationExample)
-@opExample(updateWorkerUnauthorizedOperationExample)
-@opExample(updateWorkerForbiddenOperationExample)
+@opExample(unauthorizedOperationExample)
+@opExample(forbiddenOperationExample)
 @opExample(updateWorkerNotFoundOperationExample)
 @opExample(updateWorkerOrganizationNotFoundOperationExample)
 @opExample(updateWorkerValidationOperationExample)
 op updateWorker(
+    ...WorkersApi.Security.CsrfTokenHeader,
     @path
     @minValue(1)
     id: int32,

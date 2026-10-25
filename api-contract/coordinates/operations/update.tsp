@@ -13,7 +13,11 @@ using WorkersApi.Coordinates.Errors;
 namespace WorkersApi.Coordinates;
 
 const updateCoordinatesSuccessOperationExample = #{
-    parameters: #{ id: 5, body: coordinatesWriteExample },
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        id: 5,
+        body: coordinatesWriteExample
+    },
     returnType: #{ statusCode: 204 }
 };
 
@@ -25,12 +29,12 @@ const updateCoordinatesSuccessOperationExample = #{
 @opExample(updateCoordinatesSuccessOperationExample)
 @opExample(invalidIdOperationExample)
 @opExample(badRequestOperationExample)
-@opExample(missingTokenOperationExample)
-@opExample(invalidTokenOperationExample)
+@opExample(unauthorizedOperationExample)
 @opExample(forbiddenOperationExample)
 @opExample(coordinatesNotFoundOperationExample)
 @opExample(coordinatesValidationOperationExample)
 op updateCoordinates(
+    ...WorkersApi.Security.CsrfTokenHeader,
     @path
     @minValue(1)
     id: int64,

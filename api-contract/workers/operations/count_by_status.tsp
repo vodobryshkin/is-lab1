@@ -70,15 +70,14 @@ const workerStatusValidationOperationExample = #{
 
 @get
 @route("/count_by_status")
-@useAuth(BearerAuth)
+@useAuth(WorkersApi.Security.SessionCookieAuth)
 @summary("Посчитать работников по статусу.")
 @doc("Считает работников с указанным статусом. Для пустого статуса передайте status=null. При отсутствии совпадений возвращает 0.")
 @returnsDoc("Количество работников.")
 @opExample(countWorkersByStatusOperationExample)
 @opExample(countWorkersWithoutStatusOperationExample)
 @opExample(workerStatusValidationOperationExample)
-@opExample(getWorkerMissingTokenOperationExample)
-@opExample(getWorkerInvalidTokenOperationExample)
+@opExample(unauthorizedOperationExample)
 op countWorkersByStatus(
     @query status: Status | "null"
 ):
@@ -88,15 +87,14 @@ op countWorkersByStatus(
 
 @get
 @route("/count_by_status_greater_than")
-@useAuth(BearerAuth)
+@useAuth(WorkersApi.Security.SessionCookieAuth)
 @summary("Посчитать работников со статусом выше заданного.")
 @doc("Порядок: HIRED < RECOMMENDED_FOR_PROMOTION < REGULAR. Работники со статусом null не учитываются.")
 @returnsDoc("Количество работников.")
 @opExample(countWorkersByStatusGreaterThanOperationExample)
 @opExample(countWorkersAboveRegularOperationExample)
 @opExample(workerStatusValidationOperationExample)
-@opExample(getWorkerMissingTokenOperationExample)
-@opExample(getWorkerInvalidTokenOperationExample)
+@opExample(unauthorizedOperationExample)
 op countWorkersByStatusGreaterThan(
     @query status: Status
 ):

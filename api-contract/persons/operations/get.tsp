@@ -31,8 +31,7 @@ const getPersonSuccessOperationExample = #{
 @returnsDoc("Данные персоны.")
 @opExample(getPersonSuccessOperationExample)
 @opExample(invalidIdOperationExample)
-@opExample(missingTokenOperationExample)
-@opExample(invalidTokenOperationExample)
+@opExample(unauthorizedOperationExample)
 @opExample(personNotFoundOperationExample)
 op getPerson(
     @path
@@ -97,8 +96,7 @@ const listPersonsFilteredOperationExample = #{
 @opExample(listPersonsPastEndOperationExample)
 @opExample(listPersonsFilteredOperationExample)
 @opExample(listParameterValidationOperationExample)
-@opExample(missingTokenOperationExample)
-@opExample(invalidTokenOperationExample)
+@opExample(unauthorizedOperationExample)
 op listPersons(
     ...ListParameters,
 

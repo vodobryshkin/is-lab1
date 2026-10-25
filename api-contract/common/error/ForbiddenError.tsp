@@ -1,17 +1,15 @@
 import "./ProblemResponse.tsp";
 
-using TypeSpec.Http;
-
 namespace WorkersApi.Errors;
 
 const forbiddenExample: ForbiddenError = #{
     statusCode: 403,
     contentType: "application/json",
     body: #{
-        type: "/problems/insufficient-permissions",
-        title: "Insufficient permissions",
+        type: "/problems/invalid-csrf-token",
+        title: "Invalid CSRF token",
         status: 403,
-        detail: "Modifying this resource is not allowed.",
+        detail: "The X-CSRF-Token header is missing or does not match the current session.",
         instance: "/problem-occurrences/example-403"
     }
 };
@@ -21,11 +19,9 @@ const forbiddenOperationExample = #{
 };
 
 @error
-@doc("Ошибка: сервер отказывается выполнять запрос из-за недостатка прав.")
+@doc("""
+    Ошибка: изменяющий запрос не прошёл проверку CSRF. Заголовок `X-CSRF-Token`
+    отсутствует или не совпадает с токеном текущей сессии. Операция не выполняется.
+    """)
 @example(forbiddenExample)
-model ForbiddenError {
-    ...ProblemResponse<403>;
-
-    @header("WWW-Authenticate")
-    wwwAuthenticate?: string;
-}
+model ForbiddenError is ProblemResponse<403>;

@@ -31,8 +31,7 @@ const getCoordinatesSuccessOperationExample = #{
 @returnsDoc("Данные координат.")
 @opExample(getCoordinatesSuccessOperationExample)
 @opExample(invalidIdOperationExample)
-@opExample(missingTokenOperationExample)
-@opExample(invalidTokenOperationExample)
+@opExample(unauthorizedOperationExample)
 @opExample(coordinatesNotFoundOperationExample)
 op getCoordinates(
     @path
@@ -86,8 +85,7 @@ const listCoordinatesPastEndOperationExample = #{
 @opExample(listCoordinatesEmptyOperationExample)
 @opExample(listCoordinatesPastEndOperationExample)
 @opExample(listParameterValidationOperationExample)
-@opExample(missingTokenOperationExample)
-@opExample(invalidTokenOperationExample)
+@opExample(unauthorizedOperationExample)
 op listCoordinates(
     ...ListParameters,
 

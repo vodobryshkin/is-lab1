@@ -12,7 +12,7 @@ using WorkersApi.Domain;
 
 @route("/coordinates")
 @tag("Coordinates")
-@useAuth(BearerAuth)
+@useAuth(WorkersApi.Security.SessionCookieAuth)
 namespace WorkersApi.Coordinates;
 
 const coordinatesWriteExample: CoordinatesWriteRequest = #{

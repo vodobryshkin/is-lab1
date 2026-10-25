@@ -23,59 +23,58 @@ using WorkersApi.Workers.Errors;
 namespace WorkersApi.Workers;
 
 const createWorkerWithNewOrganizationOperationExample = #{
-    parameters: #{ body: createWorkerWithNewOrganizationExample },
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        body: createWorkerWithNewOrganizationExample
+    },
     returnType: createWorkerCreatedExample
 };
 
 const createWorkerWithExistingOrganizationOperationExample = #{
-    parameters: #{ body: createWorkerWithExistingOrganizationExample },
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        body: createWorkerWithExistingOrganizationExample
+    },
     returnType: createWorkerCreatedExample
 };
 
 const createWorkerWithExistingAddressesOperationExample = #{
     ...createWorkerWithNewOrganizationOperationExample,
-    parameters: #{ body: createWorkerWithExistingAddressesExample }
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        body: createWorkerWithExistingAddressesExample
+    }
 };
 
 const createWorkerWithNewOfficialAddressOperationExample = #{
     ...createWorkerWithNewOrganizationOperationExample,
-    parameters: #{ body: createWorkerWithNewOfficialAddressExample }
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        body: createWorkerWithNewOfficialAddressExample
+    }
 };
 
 const createWorkerWithNewPostalAddressOperationExample = #{
     ...createWorkerWithNewOrganizationOperationExample,
-    parameters: #{ body: createWorkerWithNewPostalAddressExample }
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        body: createWorkerWithNewPostalAddressExample
+    }
 };
 
 const createWorkerWithoutOrganizationOperationExample = #{
-    parameters: #{ body: createWorkerWithoutOrganizationExample },
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        body: createWorkerWithoutOrganizationExample
+    },
     returnType: #{
         ...createWorkerCreatedExample,
         body: #{ ...createdWorkerExample, organization_id: null }
     }
 };
 
-const createWorkerForbiddenExample: ForbiddenError = #{
-    statusCode: 403,
-    contentType: "application/json",
-    body: #{
-        type: "/problems/insufficient-permissions",
-        title: "Insufficient permissions",
-        status: 403,
-        detail: "Creating workers is not allowed."
-    }
-};
-
 const createWorkerBadRequestOperationExample = #{
     returnType: badRequestExample
-};
-
-const createWorkerUnauthorizedOperationExample = #{
-    returnType: unauthorizedExample
-};
-
-const createWorkerForbiddenOperationExample = #{
-    returnType: createWorkerForbiddenExample
 };
 
 const createWorkerOrganizationNotFoundOperationExample = #{
@@ -97,6 +96,7 @@ const createWorkerAddressNotFoundOperationExample = #{
 const createWorkerWithExistingObjectsOperationExample = #{
     ...createWorkerWithoutOrganizationOperationExample,
     parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
         body: #{
             ...createWorkerWithoutOrganizationExample,
             coordinates: existingCoordinatesExample,
@@ -108,6 +108,7 @@ const createWorkerWithExistingObjectsOperationExample = #{
 const createWorkerWithExistingPersonLocationOperationExample = #{
     ...createWorkerWithoutOrganizationOperationExample,
     parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
         body: #{
             ...createWorkerWithoutOrganizationExample,
             person: personWithExistingLocationExample
@@ -117,7 +118,7 @@ const createWorkerWithExistingPersonLocationOperationExample = #{
 
 @post
 @route("")
-@useAuth(BearerAuth)
+@useAuth(WorkersApi.Security.SessionCookieAuth)
 @summary("Создать работника.")
 @doc("Создаёт работника и новые вложенные объекты в одной транзакции.")
 @opExample(locationNotFoundOperationExample)
@@ -134,13 +135,14 @@ const createWorkerWithExistingPersonLocationOperationExample = #{
 @opExample(createWorkerWithExistingOrganizationOperationExample)
 @opExample(createWorkerWithoutOrganizationOperationExample)
 @opExample(createWorkerBadRequestOperationExample)
-@opExample(createWorkerUnauthorizedOperationExample)
-@opExample(createWorkerForbiddenOperationExample)
+@opExample(unauthorizedOperationExample)
+@opExample(forbiddenOperationExample)
 @opExample(createWorkerOrganizationNotFoundOperationExample)
 @opExample(createWorkerAddressNotFoundOperationExample)
 @opExample(createWorkerOrganizationNameConflictOperationExample)
 @opExample(createWorkerValidationOperationExample)
 op createWorker(
+    ...WorkersApi.Security.CsrfTokenHeader,
     @body body: CreateWorkerRequest
 ):
     WorkersApi.Ok.CreatedResponse<CreateWorkerResponse>

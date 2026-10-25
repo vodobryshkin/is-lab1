@@ -14,7 +14,11 @@ using WorkersApi.Organizations.Errors;
 namespace WorkersApi.Organizations;
 
 const indexSalariesSuccessOperationExample = #{
-    parameters: #{ id: 42, body: indexSalariesExample },
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        id: 42,
+        body: indexSalariesExample
+    },
     returnType: #{
         statusCode: 200,
         contentType: "application/json",
@@ -63,13 +67,13 @@ const indexSalariesConflictOperationExample = #{
 @opExample(indexSalariesEmptyOrganizationOperationExample)
 @opExample(organizationInvalidIdOperationExample)
 @opExample(organizationBadRequestOperationExample)
-@opExample(organizationMissingTokenOperationExample)
-@opExample(organizationInvalidTokenOperationExample)
-@opExample(organizationForbiddenOperationExample)
+@opExample(unauthorizedOperationExample)
+@opExample(forbiddenOperationExample)
 @opExample(organizationNotFoundOperationExample)
 @opExample(indexSalariesConflictOperationExample)
 @opExample(indexSalariesValidationOperationExample)
 op indexOrganizationSalaries(
+    ...WorkersApi.Security.CsrfTokenHeader,
     @path
     @minValue(1)
     id: int64,

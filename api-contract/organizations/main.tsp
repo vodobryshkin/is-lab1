@@ -10,5 +10,5 @@ using TypeSpec.Http;
 
 @route("/organizations")
 @tag("Organizations")
-@useAuth(BearerAuth)
+@useAuth(WorkersApi.Security.SessionCookieAuth)
 namespace WorkersApi.Organizations;

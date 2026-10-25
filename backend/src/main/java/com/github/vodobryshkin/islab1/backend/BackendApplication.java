@@ -9,6 +9,6 @@ import jakarta.ws.rs.core.Application;
  * @author vodobryshkin
  * @since 18.09.2026 12:50
  */
-@ApplicationPath("/api")
+@ApplicationPath("/api/v1")
 public class BackendApplication extends Application {
 }

@@ -14,13 +14,21 @@ using WorkersApi.Persons.Errors;
 namespace WorkersApi.Persons;
 
 const updatePersonSuccessOperationExample = #{
-    parameters: #{ id: 10, body: personWriteExample },
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        id: 10,
+        body: personWriteExample
+    },
     returnType: #{ statusCode: 204 }
 };
 
 const updatePersonWithExistingLocationOperationExample = #{
     ...updatePersonSuccessOperationExample,
-    parameters: #{ id: 10, body: personWithExistingLocationExample }
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        id: 10,
+        body: personWithExistingLocationExample
+    }
 };
 
 @put
@@ -33,12 +41,12 @@ const updatePersonWithExistingLocationOperationExample = #{
 @opExample(locationNotFoundOperationExample)
 @opExample(invalidIdOperationExample)
 @opExample(badRequestOperationExample)
-@opExample(missingTokenOperationExample)
-@opExample(invalidTokenOperationExample)
+@opExample(unauthorizedOperationExample)
 @opExample(forbiddenOperationExample)
 @opExample(personNotFoundOperationExample)
 @opExample(personValidationOperationExample)
 op updatePerson(
+    ...WorkersApi.Security.CsrfTokenHeader,
     @path
     @minValue(1)
     id: int64,

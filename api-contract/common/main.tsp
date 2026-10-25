@@ -1,6 +1,8 @@
 import "./error/BadRequestError.tsp";
 import "./error/UnauthorizedError.tsp";
 import "./error/ForbiddenError.tsp";
+import "./security/SessionCookieAuth.tsp";
+import "./security/CsrfTokenHeader.tsp";
 import "./error/NotFoundError.tsp";
 import "./error/ConflictError.tsp";
 import "./error/UnprocessableContentError.tsp";

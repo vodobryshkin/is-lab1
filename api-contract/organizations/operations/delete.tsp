@@ -11,7 +11,7 @@ using WorkersApi.Organizations.Errors;
 namespace WorkersApi.Organizations;
 
 const deleteOrganizationSuccessOperationExample = #{
-    parameters: #{ id: 42 },
+    parameters: #{ csrf_token: WorkersApi.Security.csrfTokenExample, id: 42 },
     returnType: #{ statusCode: 204 }
 };
 
@@ -22,12 +22,12 @@ const deleteOrganizationSuccessOperationExample = #{
 @returnsDoc("Организация удалена.")
 @opExample(deleteOrganizationSuccessOperationExample)
 @opExample(organizationInvalidIdOperationExample)
-@opExample(organizationMissingTokenOperationExample)
-@opExample(organizationInvalidTokenOperationExample)
-@opExample(organizationForbiddenOperationExample)
+@opExample(unauthorizedOperationExample)
+@opExample(forbiddenOperationExample)
 @opExample(organizationNotFoundOperationExample)
 @opExample(deleteOrganizationConflictOperationExample)
 op deleteOrganization(
+    ...WorkersApi.Security.CsrfTokenHeader,
     @path
     @minValue(1)
     id: int64

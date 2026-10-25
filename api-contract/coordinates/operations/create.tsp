@@ -14,7 +14,10 @@ using WorkersApi.Coordinates.Errors;
 namespace WorkersApi.Coordinates;
 
 const createCoordinatesSuccessOperationExample = #{
-    parameters: #{ body: coordinatesWriteExample },
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        body: coordinatesWriteExample
+    },
     returnType: #{
         statusCode: 201,
         contentType: "application/json",
@@ -30,11 +33,11 @@ const createCoordinatesSuccessOperationExample = #{
 @returnsDoc("ID созданного объекта.")
 @opExample(createCoordinatesSuccessOperationExample)
 @opExample(badRequestOperationExample)
-@opExample(missingTokenOperationExample)
-@opExample(invalidTokenOperationExample)
+@opExample(unauthorizedOperationExample)
 @opExample(forbiddenOperationExample)
 @opExample(coordinatesValidationOperationExample)
 op createCoordinates(
+    ...WorkersApi.Security.CsrfTokenHeader,
     @body body: CoordinatesWriteRequest
 ):
     WorkersApi.Ok.CreatedResponse<IdResponse>

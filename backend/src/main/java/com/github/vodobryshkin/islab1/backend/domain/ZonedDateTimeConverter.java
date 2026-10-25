@@ -7,11 +7,6 @@ import java.time.ZonedDateTime;
 
 /**
  * Преобразует {@link ZonedDateTime} в {@link OffsetDateTime} для колонок {@code TIMESTAMPTZ}.
- *
- * <p>JPA 3.1 не включает {@link ZonedDateTime} в список поддерживаемых временных типов,
- * и EclipseLink без преобразования сохраняет его как сериализованный {@code bytea}.
- * {@code TIMESTAMPTZ} хранит момент времени без идентификатора часового пояса,
- * поэтому после чтения значение содержит только смещение.
  */
 @Converter(autoApply = true)
 public class ZonedDateTimeConverter implements AttributeConverter<ZonedDateTime, OffsetDateTime> {

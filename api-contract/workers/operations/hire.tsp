@@ -13,17 +13,29 @@ using WorkersApi.Organizations.Errors;
 namespace WorkersApi.Workers;
 
 const hireWorkerSuccessOperationExample = #{
-    parameters: #{ id: 42, body: hireWorkerExample },
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        id: 42,
+        body: hireWorkerExample
+    },
     returnType: #{ statusCode: 204 }
 };
 
 const hireWorkerNotFoundOperationExample = #{
-    parameters: #{ id: 999, body: hireWorkerExample },
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        id: 999,
+        body: hireWorkerExample
+    },
     returnType: workerNotFoundErrorExample
 };
 
 const hireWorkerOrganizationNotFoundOperationExample = #{
-    parameters: #{ id: 42, body: #{ organization_id: 999 } },
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        id: 42,
+        body: #{ organization_id: 999 }
+    },
     returnType: organizationNotFoundErrorExample
 };
 
@@ -46,35 +58,22 @@ const hireWorkerValidationOperationExample = #{
     }
 };
 
-const hireWorkerForbiddenOperationExample = #{
-    returnType: #{
-        statusCode: 403,
-        contentType: "application/json",
-        body: #{
-            type: "/problems/insufficient-permissions",
-            title: "Insufficient permissions",
-            status: 403,
-            detail: "Hiring this worker is not allowed."
-        }
-    }
-};
-
 @post
 @route("/{id}/hire")
-@useAuth(BearerAuth)
+@useAuth(WorkersApi.Security.SessionCookieAuth)
 @summary("Принять работника в организацию.")
 @doc("Назначает организацию и статус HIRED в одной транзакции. Заменяет прежнюю привязку, если она была.")
 @returnsDoc("Работник принят в организацию.")
 @opExample(hireWorkerSuccessOperationExample)
 @opExample(getWorkerInvalidIdOperationExample)
 @opExample(organizationBadRequestOperationExample)
-@opExample(getWorkerMissingTokenOperationExample)
-@opExample(getWorkerInvalidTokenOperationExample)
-@opExample(hireWorkerForbiddenOperationExample)
+@opExample(unauthorizedOperationExample)
+@opExample(forbiddenOperationExample)
 @opExample(hireWorkerNotFoundOperationExample)
 @opExample(hireWorkerOrganizationNotFoundOperationExample)
 @opExample(hireWorkerValidationOperationExample)
 op hireWorker(
+    ...WorkersApi.Security.CsrfTokenHeader,
     @path
     @minValue(1)
     id: int32,

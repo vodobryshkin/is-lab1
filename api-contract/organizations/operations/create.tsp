@@ -16,7 +16,10 @@ using WorkersApi.Organizations.Errors;
 namespace WorkersApi.Organizations;
 
 const createOrganizationSuccessOperationExample = #{
-    parameters: #{ body: organizationWithNewAddressesExample },
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        body: organizationWithNewAddressesExample
+    },
     returnType: #{
         statusCode: 201,
         contentType: "application/json",
@@ -26,22 +29,34 @@ const createOrganizationSuccessOperationExample = #{
 
 const createOrganizationWithExistingAddressesOperationExample = #{
     ...createOrganizationSuccessOperationExample,
-    parameters: #{ body: organizationWithExistingAddressesExample }
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        body: organizationWithExistingAddressesExample
+    }
 };
 
 const createOrganizationWithNewOfficialAddressOperationExample = #{
     ...createOrganizationSuccessOperationExample,
-    parameters: #{ body: organizationWithNewOfficialAddressExample }
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        body: organizationWithNewOfficialAddressExample
+    }
 };
 
 const createOrganizationWithNewPostalAddressOperationExample = #{
     ...createOrganizationSuccessOperationExample,
-    parameters: #{ body: organizationWithNewPostalAddressExample }
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        body: organizationWithNewPostalAddressExample
+    }
 };
 
 const createOrganizationWithExistingLocationOperationExample = #{
     ...createOrganizationSuccessOperationExample,
-    parameters: #{ body: organizationWithExistingLocationsExample }
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        body: organizationWithExistingLocationsExample
+    }
 };
 
 @post
@@ -56,14 +71,14 @@ const createOrganizationWithExistingLocationOperationExample = #{
 @opExample(createOrganizationWithNewOfficialAddressOperationExample)
 @opExample(createOrganizationWithNewPostalAddressOperationExample)
 @opExample(organizationBadRequestOperationExample)
-@opExample(organizationMissingTokenOperationExample)
-@opExample(organizationInvalidTokenOperationExample)
-@opExample(organizationForbiddenOperationExample)
+@opExample(unauthorizedOperationExample)
+@opExample(forbiddenOperationExample)
 @opExample(organizationAddressNotFoundOperationExample)
 @opExample(organizationNameConflictOperationExample)
 @opExample(organizationValidationOperationExample)
 @opExample(organizationAddressOptionsValidationOperationExample)
 op createOrganization(
+    ...WorkersApi.Security.CsrfTokenHeader,
     @body body: OrganizationRequest
 ):
     WorkersApi.Ok.CreatedResponse<IdResponse>

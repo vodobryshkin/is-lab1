@@ -42,8 +42,7 @@ const getAddressWithoutTownOperationExample = #{
 @opExample(getAddressSuccessOperationExample)
 @opExample(getAddressWithoutTownOperationExample)
 @opExample(addressInvalidIdOperationExample)
-@opExample(addressMissingTokenOperationExample)
-@opExample(addressInvalidTokenOperationExample)
+@opExample(unauthorizedOperationExample)
 @opExample(addressNotFoundOperationExample)
 op getAddress(
     @path
@@ -107,8 +106,7 @@ const listAddressesFilteredOperationExample = #{
 @opExample(listAddressesPastEndOperationExample)
 @opExample(listAddressesFilteredOperationExample)
 @opExample(listParameterValidationOperationExample)
-@opExample(missingTokenOperationExample)
-@opExample(invalidTokenOperationExample)
+@opExample(unauthorizedOperationExample)
 op listAddresses(
     ...ListParameters,
 

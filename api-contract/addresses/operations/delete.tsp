@@ -11,7 +11,7 @@ using WorkersApi.Addresses.Errors;
 namespace WorkersApi.Addresses;
 
 const deleteAddressSuccessOperationExample = #{
-    parameters: #{ id: 42 },
+    parameters: #{ csrf_token: WorkersApi.Security.csrfTokenExample, id: 42 },
     returnType: #{ statusCode: 204 }
 };
 
@@ -22,12 +22,12 @@ const deleteAddressSuccessOperationExample = #{
 @returnsDoc("Адрес удалён.")
 @opExample(deleteAddressSuccessOperationExample)
 @opExample(addressInvalidIdOperationExample)
-@opExample(addressMissingTokenOperationExample)
-@opExample(addressInvalidTokenOperationExample)
-@opExample(addressForbiddenOperationExample)
+@opExample(unauthorizedOperationExample)
+@opExample(forbiddenOperationExample)
 @opExample(addressNotFoundOperationExample)
 @opExample(deleteAddressConflictOperationExample)
 op deleteAddress(
+    ...WorkersApi.Security.CsrfTokenHeader,
     @path
     @minValue(1)
     id: int64

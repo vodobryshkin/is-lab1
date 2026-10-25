@@ -15,18 +15,26 @@ using WorkersApi.Addresses.Errors;
 namespace WorkersApi.Addresses;
 
 const updateAddressSuccessOperationExample = #{
-    parameters: #{ id: 42, body: addressExample },
+    parameters: #{ csrf_token: WorkersApi.Security.csrfTokenExample, id: 42, body: addressExample },
     returnType: #{ statusCode: 204 }
 };
 
 const updateAddressWithoutTownOperationExample = #{
     ...updateAddressSuccessOperationExample,
-    parameters: #{ id: 42, body: #{ ...addressExample, town: null } }
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        id: 42,
+        body: #{ ...addressExample, town: null }
+    }
 };
 
 const updateAddressWithExistingLocationOperationExample = #{
     ...updateAddressSuccessOperationExample,
-    parameters: #{ id: 42, body: addressWithExistingLocationExample }
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        id: 42,
+        body: addressWithExistingLocationExample
+    }
 };
 
 @put
@@ -40,12 +48,12 @@ const updateAddressWithExistingLocationOperationExample = #{
 @opExample(updateAddressWithoutTownOperationExample)
 @opExample(addressInvalidIdOperationExample)
 @opExample(addressBadRequestOperationExample)
-@opExample(addressMissingTokenOperationExample)
-@opExample(addressInvalidTokenOperationExample)
-@opExample(addressForbiddenOperationExample)
+@opExample(unauthorizedOperationExample)
+@opExample(forbiddenOperationExample)
 @opExample(addressNotFoundOperationExample)
 @opExample(addressValidationOperationExample)
 op updateAddress(
+    ...WorkersApi.Security.CsrfTokenHeader,
     @path
     @minValue(1)
     id: int64,

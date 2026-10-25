@@ -1,55 +1,28 @@
-import "@typespec/http";
-import "./ProblemDetails.tsp";
-
-using TypeSpec.Http;
+import "./ProblemResponse.tsp";
 
 namespace WorkersApi.Errors;
 
 const unauthorizedExample: UnauthorizedError = #{
     statusCode: 401,
-    wwwAuthenticate: "Bearer realm=\"Workers API\", error=\"invalid_token\"",
-    contentType: "application/problem+json",
+    contentType: "application/json",
     body: #{
-        type: "/problems/invalid-token",
-        title: "Invalid token",
+        type: "/problems/authentication-required",
+        title: "Authentication required",
         status: 401,
-        detail: "The bearer token is invalid or expired.",
+        detail: "Log in to access this resource.",
         instance: "/problem-occurrences/example-401"
     }
 };
 
-const missingTokenExample: UnauthorizedError = #{
-    ...unauthorizedExample,
-    wwwAuthenticate: "Bearer realm=\"Workers API\"",
-    body: #{
-        type: "/problems/missing-token",
-        title: "Authentication required",
-        status: 401,
-        detail: "A bearer token is required."
-    }
-};
-
-const missingTokenOperationExample = #{
-    returnType: missingTokenExample
-};
-
-const invalidTokenOperationExample = #{
+const unauthorizedOperationExample = #{
     returnType: unauthorizedExample
 };
 
 @error
-@doc("Ошибка: отсутствуют действительные данные аутентификации.")
+@doc("""
+    Ошибка: нет действующего входа. Сессия отсутствует, истекла или завершена выходом.
+    Ответ не содержит `WWW-Authenticate`: для cookie-сессии нет стандартной HTTP-схемы
+    challenge, клиент выполняет вход через `POST /auth/login`.
+    """)
 @example(unauthorizedExample)
-model UnauthorizedError {
-    @statusCode
-    statusCode: 401;
-
-    @header("WWW-Authenticate")
-    wwwAuthenticate: string;
-
-    @header("Content-Type")
-    contentType: "application/problem+json";
-
-    @body
-    body?: ProblemDetails<401>;
-}
+model UnauthorizedError is ProblemResponse<401>;

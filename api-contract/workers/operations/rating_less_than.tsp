@@ -49,15 +49,14 @@ const workerRatingValidationOperationExample = #{
 
 @get
 @route("/rating_less_than")
-@useAuth(BearerAuth)
+@useAuth(WorkersApi.Security.SessionCookieAuth)
 @summary("Получить работников с рейтингом ниже заданного.")
 @doc("Возвращает всех работников с rating строго меньше порога. При отсутствии совпадений возвращает пустой массив.")
 @returnsDoc("Массив работников.")
 @opExample(getWorkersByRatingOperationExample)
 @opExample(getWorkersByRatingEmptyOperationExample)
 @opExample(workerRatingValidationOperationExample)
-@opExample(getWorkerMissingTokenOperationExample)
-@opExample(getWorkerInvalidTokenOperationExample)
+@opExample(unauthorizedOperationExample)
 op getWorkersByRatingLessThan(
     @query rating: int32
 ):

@@ -11,7 +11,7 @@ using WorkersApi.Coordinates.Errors;
 namespace WorkersApi.Coordinates;
 
 const deleteCoordinatesSuccessOperationExample = #{
-    parameters: #{ id: 5 },
+    parameters: #{ csrf_token: WorkersApi.Security.csrfTokenExample, id: 5 },
     returnType: #{ statusCode: 204 }
 };
 
@@ -22,12 +22,12 @@ const deleteCoordinatesSuccessOperationExample = #{
 @returnsDoc("Координаты удалены.")
 @opExample(deleteCoordinatesSuccessOperationExample)
 @opExample(invalidIdOperationExample)
-@opExample(missingTokenOperationExample)
-@opExample(invalidTokenOperationExample)
+@opExample(unauthorizedOperationExample)
 @opExample(forbiddenOperationExample)
 @opExample(coordinatesNotFoundOperationExample)
 @opExample(deleteCoordinatesConflictOperationExample)
 op deleteCoordinates(
+    ...WorkersApi.Security.CsrfTokenHeader,
     @path
     @minValue(1)
     id: int64

@@ -9,5 +9,5 @@ using TypeSpec.Http;
 
 @route("/addresses")
 @tag("Addresses")
-@useAuth(BearerAuth)
+@useAuth(WorkersApi.Security.SessionCookieAuth)
 namespace WorkersApi.Addresses;

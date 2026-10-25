@@ -31,8 +31,7 @@ const getLocationSuccessOperationExample = #{
 @returnsDoc("Данные локации.")
 @opExample(getLocationSuccessOperationExample)
 @opExample(invalidIdOperationExample)
-@opExample(missingTokenOperationExample)
-@opExample(invalidTokenOperationExample)
+@opExample(unauthorizedOperationExample)
 @opExample(locationNotFoundOperationExample)
 op getLocation(
     @path
@@ -86,8 +85,7 @@ const listLocationsPastEndOperationExample = #{
 @opExample(listLocationsEmptyOperationExample)
 @opExample(listLocationsPastEndOperationExample)
 @opExample(listParameterValidationOperationExample)
-@opExample(missingTokenOperationExample)
-@opExample(invalidTokenOperationExample)
+@opExample(unauthorizedOperationExample)
 op listLocations(
     ...ListParameters,
 

@@ -1,28 +1,31 @@
 import "@typespec/http";
 
 import "../model/request/LoginRequest.tsp";
-import "../model/response/TokenResponse.tsp";
+import "../model/response/CurrentUserResponse.tsp";
 import "../model/error/AuthValidationIssue.tsp";
 
+import "../../common/error/ForbiddenError.tsp";
 import "../../common/ok/OkResponse.tsp";
+import "../../common/security/CsrfTokenHeader.tsp";
 
 using TypeSpec.Http;
 using WorkersApi.Errors;
+using WorkersApi.Security;
 using WorkersApi.Auth.Errors;
 
 namespace WorkersApi.Auth;
 
-const loginRefreshCookieExample =
-    "refresh_token=e134aff8-7826-45b0-9b72-a5daa36b56c5; Path=/api/v1/auth; Max-Age=604800; HttpOnly; Secure; SameSite=Strict";
+const loginSessionCookieExample =
+    "JSESSIONID=Vb5nM1qX8tK3wR6yP0cL9dF2gH4jS7aZ; Path=/; HttpOnly; SameSite=Lax";
 
 const loginSuccessOperationExample = #{
-    parameters: #{ body: loginRequestExample },
+    parameters: #{ csrf_token: csrfTokenExample, body: loginRequestExample },
     returnType: #{
         statusCode: 200,
         contentType: "application/json",
-        set_cookie: loginRefreshCookieExample,
+        set_cookie: loginSessionCookieExample,
         cache_control: "no-store",
-        body: tokenResponseExample
+        body: currentUserResponseExample
     }
 };
 
@@ -44,25 +47,35 @@ const loginInvalidCredentialsOperationExample = #{
 @post
 @route("/login")
 @summary("Войти в систему.")
-@doc("Возвращает access-токен и устанавливает refresh-cookie.")
-@returnsDoc("Access-токен и refresh-cookie.")
+@doc("""
+    Проверяет логин и пароль и связывает вход с серверной сессией. Сначала сервер проверяет
+    CSRF-токен текущей сессии и только затем учётные данные.
+    При успехе сервер меняет ID сессии и устанавливает новую cookie `JSESSIONID`;
+    прежний ID сессии больше не даёт доступа. CSRF-токен тоже заменяется:
+    перед следующим изменяющим запросом получите его через `GET /auth/csrf`.
+    Повторный вход в той же сессии заменяет текущего пользователя.
+    """)
+@returnsDoc("Вошедший пользователь и cookie новой сессии.")
 @opExample(loginSuccessOperationExample)
 @opExample(authBadRequestOperationExample)
 @opExample(loginInvalidCredentialsOperationExample)
+@opExample(forbiddenOperationExample)
 @opExample(credentialsValidationOperationExample)
 op login(
+    ...CsrfTokenHeader,
     @body body: LoginRequest
 ):
     {
-        ...WorkersApi.Ok.OkResponse<TokenResponse>;
+        ...WorkersApi.Ok.OkResponse<CurrentUserResponse>;
 
-        @doc("Refresh-cookie: HttpOnly, Secure, SameSite=Strict, Path=/api/v1/auth.")
+        @doc("Cookie новой сессии: HttpOnly, SameSite=Lax, Path=/; при HTTPS также Secure.")
         @header("Set-Cookie")
-        @example(loginRefreshCookieExample)
+        @example(loginSessionCookieExample)
         set_cookie: string;
 
         @header("Cache-Control")
         cache_control: "no-store";
     }
     | BadRequestError
+    | ForbiddenError
     | ValidationError<422, AuthValidationIssue>;

@@ -20,28 +20,48 @@ const updateOrganizationExample: OrganizationRequest = #{
 };
 
 const updateOrganizationSuccessOperationExample = #{
-    parameters: #{ id: 42, body: updateOrganizationExample },
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        id: 42,
+        body: updateOrganizationExample
+    },
     returnType: #{ statusCode: 204 }
 };
 
 const updateOrganizationWithNewAddressesOperationExample = #{
     ...updateOrganizationSuccessOperationExample,
-    parameters: #{ id: 42, body: organizationWithNewAddressesExample }
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        id: 42,
+        body: organizationWithNewAddressesExample
+    }
 };
 
 const updateOrganizationWithNewOfficialAddressOperationExample = #{
     ...updateOrganizationSuccessOperationExample,
-    parameters: #{ id: 42, body: organizationWithNewOfficialAddressExample }
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        id: 42,
+        body: organizationWithNewOfficialAddressExample
+    }
 };
 
 const updateOrganizationWithNewPostalAddressOperationExample = #{
     ...updateOrganizationSuccessOperationExample,
-    parameters: #{ id: 42, body: organizationWithNewPostalAddressExample }
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        id: 42,
+        body: organizationWithNewPostalAddressExample
+    }
 };
 
 const updateOrganizationWithExistingLocationOperationExample = #{
     ...updateOrganizationSuccessOperationExample,
-    parameters: #{ id: 42, body: organizationWithExistingLocationsExample }
+    parameters: #{
+        csrf_token: WorkersApi.Security.csrfTokenExample,
+        id: 42,
+        body: organizationWithExistingLocationsExample
+    }
 };
 
 @put
@@ -57,15 +77,15 @@ const updateOrganizationWithExistingLocationOperationExample = #{
 @opExample(updateOrganizationWithNewPostalAddressOperationExample)
 @opExample(organizationInvalidIdOperationExample)
 @opExample(organizationBadRequestOperationExample)
-@opExample(organizationMissingTokenOperationExample)
-@opExample(organizationInvalidTokenOperationExample)
-@opExample(organizationForbiddenOperationExample)
+@opExample(unauthorizedOperationExample)
+@opExample(forbiddenOperationExample)
 @opExample(organizationNotFoundOperationExample)
 @opExample(organizationAddressNotFoundOperationExample)
 @opExample(organizationNameConflictOperationExample)
 @opExample(organizationValidationOperationExample)
 @opExample(organizationAddressOptionsValidationOperationExample)
 op updateOrganization(
+    ...WorkersApi.Security.CsrfTokenHeader,
     @path
     @minValue(1)
     id: int64,

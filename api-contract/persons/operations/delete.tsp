@@ -11,7 +11,7 @@ using WorkersApi.Persons.Errors;
 namespace WorkersApi.Persons;
 
 const deletePersonSuccessOperationExample = #{
-    parameters: #{ id: 10 },
+    parameters: #{ csrf_token: WorkersApi.Security.csrfTokenExample, id: 10 },
     returnType: #{ statusCode: 204 }
 };
 
@@ -22,12 +22,12 @@ const deletePersonSuccessOperationExample = #{
 @returnsDoc("Персона удалена.")
 @opExample(deletePersonSuccessOperationExample)
 @opExample(invalidIdOperationExample)
-@opExample(missingTokenOperationExample)
-@opExample(invalidTokenOperationExample)
+@opExample(unauthorizedOperationExample)
 @opExample(forbiddenOperationExample)
 @opExample(personNotFoundOperationExample)
 @opExample(deletePersonConflictOperationExample)
 op deletePerson(
+    ...WorkersApi.Security.CsrfTokenHeader,
     @path
     @minValue(1)
     id: int64
