@@ -72,6 +72,47 @@ jobs:
       - run: ./gradlew test
 
 
+  tests-postgresql:
+    name: Tests on PostgreSQL
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: islab1
+          POSTGRES_PASSWORD: islab1-ci
+          POSTGRES_DB: islab1_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U islab1 -d islab1_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    defaults:
+      run:
+        working-directory: backend
+
+    env:
+      IS_LAB1_TEST_DB_URL: jdbc:postgresql://localhost:5432/islab1_test
+      IS_LAB1_TEST_DB_USER: islab1
+      IS_LAB1_TEST_DB_PASSWORD: islab1-ci
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: temurin
+          cache: gradle
+
+      - run: chmod +x gradlew
+      - run: ./gradlew test
+
+
   coverage:
     name: Code coverage
     runs-on: ubuntu-latest
