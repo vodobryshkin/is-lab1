@@ -1,0 +1,119 @@
+package com.github.vodobryshkin.islab1.backend.service;
+
+import com.github.vodobryshkin.islab1.backend.domain.Location;
+import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
+import com.github.vodobryshkin.islab1.backend.repository.LocationRepository;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Операции с локациями.
+ */
+@ApplicationScoped
+public class LocationService {
+    /** Результат удаления. */
+    public enum Deletion {
+        DELETED,
+        NOT_FOUND,
+        IN_USE
+    }
+
+    private final LocationRepository repository;
+
+    /**
+     * Создаёт сервис.
+     *
+     * @param repository хранилище локаций
+     */
+    @Inject
+    public LocationService(LocationRepository repository) {
+        this.repository = repository;
+    }
+
+    /** Нужен CDI для создания клиентского прокси; прикладной код его не вызывает. */
+    protected LocationService() {
+        this.repository = null;
+    }
+
+    /**
+     * Сохраняет новую локацию.
+     *
+     * @param location проверенная локация без ID
+     * @return ID новой локации
+     */
+    @Transactional
+    public Long create(Location location) {
+        repository.save(location);
+        return location.getId();
+    }
+
+    /**
+     * Ищет локацию.
+     *
+     * @param id ID локации
+     * @return локация или пустой результат
+     */
+    public Optional<Location> find(long id) {
+        return repository.findById(id);
+    }
+
+    /**
+     * Возвращает страницу локаций.
+     *
+     * @param query параметры страницы
+     * @return локации страницы
+     */
+    public List<Location> findPage(ListQuery query) {
+        return repository.findPage(query);
+    }
+
+    /**
+     * Считает все локации.
+     *
+     * @return количество
+     */
+    public long count() {
+        return repository.count();
+    }
+
+    /**
+     * Заменяет все поля локации, в том числе используемой адресами и персонами.
+     *
+     * @param id ID локации
+     * @param values новые значения
+     * @return {@code false}, если локации нет
+     */
+    @Transactional
+    public boolean update(long id, Location values) {
+        Optional<Location> location = repository.findById(id);
+        location.ifPresent(found -> {
+            found.setX(values.getX());
+            found.setY(values.getY());
+            found.setZ(values.getZ());
+        });
+        return location.isPresent();
+    }
+
+    /**
+     * Удаляет локацию, если на неё не ссылаются адреса и персоны.
+     * Связанные объекты при этом не отвязывает и не удаляет.
+     *
+     * @param id ID локации
+     * @return результат удаления
+     */
+    @Transactional
+    public Deletion delete(long id) {
+        Optional<Location> location = repository.findById(id);
+        if (location.isEmpty()) {
+            return Deletion.NOT_FOUND;
+        }
+        if (repository.isUsed(id)) {
+            return Deletion.IN_USE;
+        }
+        repository.delete(location.get());
+        return Deletion.DELETED;
+    }
+}

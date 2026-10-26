@@ -10,7 +10,9 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Класс, который отвечает за представление локации. Встраивается в JPA-сущности.
@@ -20,6 +22,8 @@ import lombok.NoArgsConstructor;
  */
 @Entity
 @Table(name = "locations")
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Location {
