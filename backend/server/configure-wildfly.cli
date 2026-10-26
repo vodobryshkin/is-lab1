@@ -1,3 +1,18 @@
+# Однократная настройка WildFly 38 для is-lab1; Docker не нужен.
+#
+#   ./gradlew war preparePostgresDriver
+#   $WILDFLY_HOME/bin/jboss-cli.sh --file=server/configure-wildfly.cli \
+#           -Dpostgres.driver.path=$PWD/build/server/postgresql.jar
+#   psql -v ON_ERROR_STOP=1 -1 -f db/schema.sql
+#   cp build/libs/backend-1.0-SNAPSHOT.war $WILDFLY_HOME/standalone/deployments/backend.war
+#   IS_LAB1_DB_URL=jdbc:postgresql://pg:5432/studs IS_LAB1_DB_USER=... IS_LAB1_DB_PASSWORD=... \
+#           $WILDFLY_HOME/bin/standalone.sh
+#
+# Сервер читает переменные окружения при каждом запуске:
+#   IS_LAB1_DB_URL, IS_LAB1_DB_USER, IS_LAB1_DB_PASSWORD — подключение к PostgreSQL;
+#   IS_LAB1_SESSION_TIMEOUT_MINUTES — тайм-аут бездействия сессии, по умолчанию 30.
+# Cookie сессии получает Secure, когда запрос пришёл по HTTPS.
+
 embed-server --std-out=echo --server-config=standalone.xml
 
 deploy ${postgres.driver.path} --name=postgresql.jar
@@ -17,5 +32,7 @@ data-source add \
     --exception-sorter-class-name=org.jboss.jca.adapters.jdbc.extensions.postgres.PostgreSQLExceptionSorter
 
 /subsystem=undertow/application-security-domain=is-lab1:add(security-domain=ApplicationDomain, integrated-jaspi=false)
+
+/subsystem=undertow/servlet-container=default:write-attribute(name=default-session-timeout, value=${env.IS_LAB1_SESSION_TIMEOUT_MINUTES:30})
 
 stop-embedded-server

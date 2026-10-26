@@ -36,8 +36,8 @@
         <mime-type>application/json</mime-type>
     </mime-mapping>
 
+    <!-- Тайм-аут бездействия задаёт сервер: default-session-timeout в configure-wildfly.cli. -->
     <session-config>
-        <session-timeout>30</session-timeout>
         <cookie-config>
             <http-only>true</http-only>
         </cookie-config>

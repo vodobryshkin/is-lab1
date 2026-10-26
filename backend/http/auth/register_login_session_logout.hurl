@@ -42,6 +42,8 @@ X-CSRF-Token: {{csrf}}
     "password": "secret_1"
 }
 HTTP 200
+[Captures]
+authenticated_session: cookie "JSESSIONID"
 [Asserts]
 header "Cache-Control" contains "no-store"
 cookie "JSESSIONID" != "{{anonymous_session}}"
@@ -95,3 +97,15 @@ X-CSRF-Token: {{authenticated_csrf}}
 HTTP 403
 [Asserts]
 jsonpath "$.type" == "/problems/invalid-csrf-token"
+
+GET {{base_url}}/auth/session
+[Cookies]
+JSESSIONID: {{anonymous_session}}
+HTTP 401
+
+GET {{base_url}}/auth/session
+[Cookies]
+JSESSIONID: {{authenticated_session}}
+HTTP 401
+[Asserts]
+jsonpath "$.type" == "/problems/authentication-required"
