@@ -61,7 +61,7 @@ public class Person {
     @Valid
     private Location location;                // Поле не может быть null
 
-    @Column(name = "birthday", columnDefinition = "TIMESTAMPTZ")
+    @Column(name = "birthday", nullable = false, columnDefinition = "TIMESTAMPTZ")
     @NotNull
     private ZonedDateTime birthday;           // Поле не может быть null
 
