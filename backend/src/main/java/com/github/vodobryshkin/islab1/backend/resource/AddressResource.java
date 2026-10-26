@@ -36,22 +36,26 @@ public class AddressResource {
 
     private final AddressService service;
     private final RequestReader requestReader;
+    private final RequestEntities entities;
 
     /**
      * Создаёт ресурс.
      *
      * @param service операции с адресами
      * @param requestReader чтение запросов
+     * @param entities сборка сущностей из полей запроса
      */
     @Inject
-    public AddressResource(AddressService service, RequestReader requestReader) {
+    public AddressResource(AddressService service, RequestReader requestReader,
+            RequestEntities entities) {
         this.service = service;
         this.requestReader = requestReader;
+        this.entities = entities;
     }
 
     /** Нужен CDI для прокси и Jakarta REST, который требует публичный конструктор. */
     public AddressResource() {
-        this(null, null);
+        this(null, null, null);
     }
 
     /**
@@ -154,7 +158,7 @@ public class AddressResource {
     private Address readAddress(String body) {
         RequestFields fields = requestReader.read(body).allowOnly(STREET, "town");
         return fields.validate(
-                new Address(null, fields.string(STREET), fields.location("town", true)));
+                new Address(null, fields.string(STREET), entities.location(fields, "town", true)));
     }
 
     private Response notFound(long id) {

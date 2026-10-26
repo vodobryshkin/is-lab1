@@ -17,11 +17,14 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import java.time.ZonedDateTime;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Класс, который отвечает за представление работника. Является JPA-сущностью.
@@ -31,6 +34,8 @@ import lombok.NoArgsConstructor;
  */
 @Entity
 @Table(name = "workers")
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Worker {
@@ -56,6 +61,7 @@ public class Worker {
     @Column(name = "name", nullable = false)
     @NotBlank
     @Size(max = 255)
+    @Pattern(regexp = "^[\\p{L}\\d\\s_.'\"-]{1,255}$")
     private String name; // Поле не может быть null, Строка не может быть пустой
 
     @ManyToOne(optional = false)

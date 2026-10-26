@@ -1,7 +1,5 @@
 package com.github.vodobryshkin.islab1.backend.resource;
 
-import com.github.vodobryshkin.islab1.backend.domain.Color;
-import com.github.vodobryshkin.islab1.backend.domain.Country;
 import com.github.vodobryshkin.islab1.backend.domain.Person;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
 import com.github.vodobryshkin.islab1.backend.dto.LocationResponse;
@@ -37,28 +35,31 @@ public class PersonResource {
     private static final String EYE_COLOR = "eye_color";
     private static final String HAIR_COLOR = "hair_color";
     private static final String NATIONALITY = "nationality";
-    private static final String LOCATION = "location";
     private static final Set<String> SORT_FIELDS =
             Set.of("id", EYE_COLOR, HAIR_COLOR, NATIONALITY, "birthday", "weight");
 
     private final PersonService service;
     private final RequestReader requestReader;
+    private final RequestEntities entities;
 
     /**
      * Создаёт ресурс.
      *
      * @param service операции с персонами
      * @param requestReader чтение запросов
+     * @param entities сборка сущностей из полей запроса
      */
     @Inject
-    public PersonResource(PersonService service, RequestReader requestReader) {
+    public PersonResource(PersonService service, RequestReader requestReader,
+            RequestEntities entities) {
         this.service = service;
         this.requestReader = requestReader;
+        this.entities = entities;
     }
 
     /** Нужен CDI для прокси и Jakarta REST, который требует публичный конструктор. */
     public PersonResource() {
-        this(null, null);
+        this(null, null, null);
     }
 
     /**
@@ -157,16 +158,8 @@ public class PersonResource {
     }
 
     private Person readPerson(String body) {
-        RequestFields fields = requestReader.read(body).allowOnly(EYE_COLOR, HAIR_COLOR, LOCATION,
-                "birthday", "weight", NATIONALITY);
-        return fields.validate(new Person(null,
-                fields.enumValue(EYE_COLOR, Color.class, true),
-                fields.enumValue(HAIR_COLOR, Color.class, false),
-                fields.location(LOCATION, false),
-                fields.dateTime("birthday"),
-                fields.float32("weight"),
-                fields.enumValue(NATIONALITY, Country.class, false),
-                null));
+        RequestFields fields = requestReader.read(body);
+        return fields.validate(entities.person(fields));
     }
 
     /** Дата рождения отдаётся в UTC, как {@code utcDateTime} контракта. */

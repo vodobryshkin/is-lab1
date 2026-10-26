@@ -31,6 +31,7 @@ class OrganizationRequestTest {
 
     private final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     private final RequestReader reader = new RequestReader(factory.getValidator());
+    private final RequestEntities entities = new RequestEntities();
 
     @AfterEach
     void closeFactory() {
@@ -178,7 +179,7 @@ class OrganizationRequestTest {
 
     private Organization read(String fields) {
         RequestFields body = reader.read("{" + fields + "}");
-        return body.validate(body.organization());
+        return body.validate(entities.organization(body));
     }
 
     private List<String> issues(String fields) {

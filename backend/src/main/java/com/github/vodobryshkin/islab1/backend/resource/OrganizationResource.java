@@ -40,22 +40,26 @@ public class OrganizationResource {
 
     private final OrganizationService service;
     private final RequestReader requestReader;
+    private final RequestEntities entities;
 
     /**
      * Создаёт ресурс.
      *
      * @param service операции с организациями
      * @param requestReader чтение запросов
+     * @param entities сборка сущностей из полей запроса
      */
     @Inject
-    public OrganizationResource(OrganizationService service, RequestReader requestReader) {
+    public OrganizationResource(OrganizationService service, RequestReader requestReader,
+            RequestEntities entities) {
         this.service = service;
         this.requestReader = requestReader;
+        this.entities = entities;
     }
 
     /** Нужен CDI для прокси и Jakarta REST, который требует публичный конструктор. */
     public OrganizationResource() {
-        this(null, null);
+        this(null, null, null);
     }
 
     /**
@@ -155,7 +159,7 @@ public class OrganizationResource {
 
     private Organization readOrganization(String body) {
         RequestFields fields = requestReader.read(body);
-        return fields.validate(fields.organization());
+        return fields.validate(entities.organization(fields));
     }
 
     private OrganizationResponse toResponse(Organization organization) {

@@ -36,7 +36,13 @@ class WorkerTest {
     @Test
     void rejects_name_of_256_characters() {
         assertThat(violations.of(worker("n".repeat(256), 1, 1, coordinates(), null)))
-                .containsExactly("name Size");
+                .contains("name Size");
+    }
+
+    @Test
+    void rejects_name_with_symbols_outside_contract_pattern() {
+        assertThat(violations.of(worker("Иван!", 1, 1, coordinates(), null)))
+                .containsExactly("name Pattern");
     }
 
     @Test

@@ -1,9 +1,5 @@
 package com.github.vodobryshkin.islab1.backend.resource;
 
-import com.github.vodobryshkin.islab1.backend.domain.Address;
-import com.github.vodobryshkin.islab1.backend.domain.Location;
-import com.github.vodobryshkin.islab1.backend.domain.Organization;
-import com.github.vodobryshkin.islab1.backend.domain.OrganizationType;
 import com.github.vodobryshkin.islab1.backend.dto.ProblemDetails;
 import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
@@ -23,7 +19,9 @@ import java.util.Set;
  * Поля одного JSON-объекта тела запроса. Накапливает нарушения структуры
  * до {@link #validate}, который добавляет нарушения Jakarta Validation и завершает
  * запрос ответом 422, если что-то неверно. Нарушения вложенных объектов получают
- * имя с префиксом, например {@code location.x}.
+ * имя с префиксом, например {@code location.x}. Сущности из полей собирает
+ * {@link RequestEntities}.
+ *
  *
  * <p>PMD считает класс слишком большим (GodClass). Все методы работают с общими
  * объектом JSON, префиксом, списком нарушений и набором ссылок; разделение по типам
@@ -99,7 +97,7 @@ public final class RequestFields {
      * @param newObjectFields поля варианта «новый объект»
      * @return {@code true}, если это ссылка
      */
-    private boolean isReference(String... newObjectFields) {
+    boolean isReference(String... newObjectFields) {
         List<String> allowed = new ArrayList<>(List.of(newObjectFields));
         allowed.add(ID_FIELD);
         allowOnly(allowed.toArray(String[]::new));
@@ -111,68 +109,6 @@ public final class RequestFields {
         }
         references.add(prefix);
         return true;
-    }
-
-    /**
-     * Читает локацию: новую {@code {x, y, z}} или ссылку {@code {id}}. У ссылки
-     * в результате задан только ID.
-     *
-     * @param field имя поля
-     * @param nullable допускается ли {@code null}
-     * @return локация или {@code null}
-     */
-    public Location location(String field, boolean nullable) {
-        RequestFields location = object(field, nullable);
-        if (location == null) {
-            return null;
-        }
-        if (location.isReference("x", "y", "z")) {
-            return new Location(location.id(ID_FIELD), null, null, null);
-        }
-        return new Location(null, location.int32("x"), location.int32("y"), location.int64("z"));
-    }
-
-    /**
-     * Читает адрес в варианте контракта «новый адрес в {@code objectField} или ID
-     * существующего в {@code idField}». Нужно ровно одно из двух полей. У ссылки в результате
-     * задан только ID.
-     *
-     * @param objectField поле нового адреса {@code {street, town}}
-     * @param idField поле ID существующего адреса
-     * @return адрес или {@code null}, если поля неверны
-     */
-    public Address address(String objectField, String idField) {
-        if (json.containsKey(objectField) && json.containsKey(idField)) {
-            String description = "Use either " + objectField + " or " + idField + ".";
-            add(objectField, MUTUALLY_EXCLUSIVE, description);
-            add(idField, MUTUALLY_EXCLUSIVE, description);
-            return null;
-        }
-        if (json.containsKey(idField)) {
-            references.add(name(objectField) + ".");
-            return new Address(id(idField), null, null);
-        }
-        RequestFields address = object(objectField, false);
-        if (address == null) {
-            return null;
-        }
-        address.allowOnly("street", "town");
-        return new Address(null, address.string("street"), address.location("town", true));
-    }
-
-    /**
-     * Читает этот объект как организацию с вариантами адресов из {@link #address}.
-     *
-     * @return организация без ID
-     */
-    public Organization organization() {
-        allowOnly("official_address", "official_address_id", "annual_turnover", "employees_count",
-                "full_name", "rating", "type", "postal_address", "postal_address_id");
-        Float turnover = float32("annual_turnover");
-        return new Organization(null, address("official_address", "official_address_id"),
-                turnover == null ? 0 : turnover, int64("employees_count"), string("full_name"),
-                int32("rating"), enumValue("type", OrganizationType.class, true),
-                address("postal_address", "postal_address_id"));
     }
 
     /**
@@ -250,23 +186,25 @@ public final class RequestFields {
     }
 
     /**
+     * Читает число типа float64.
+     *
+     * @param field имя поля
+     * @return значение или {@code null}, если поле неверно
+     */
+    public Double float64(String field) {
+        BigDecimal value = decimal(field, Double.MAX_VALUE, "float64");
+        return value == null ? null : value.doubleValue();
+    }
+
+    /**
      * Читает число типа float32.
      *
      * @param field имя поля
      * @return значение или {@code null}, если поле неверно
      */
     public Float float32(String field) {
-        JsonValue value = present(field);
-        if (!(value instanceof JsonNumber number)) {
-            invalidType(value, field, "a number");
-            return null;
-        }
-        BigDecimal decimal = number.bigDecimalValue();
-        if (decimal.abs().compareTo(BigDecimal.valueOf(Float.MAX_VALUE)) > 0) {
-            add(field, OUT_OF_RANGE, name(field) + " must fit into float32.");
-            return null;
-        }
-        return decimal.floatValue();
+        BigDecimal value = decimal(field, Float.MAX_VALUE, "float32");
+        return value == null ? null : value.floatValue();
     }
 
     /**
@@ -309,12 +247,14 @@ public final class RequestFields {
      * представлены только ею; поля ссылок {@code {id}} не проверяются как новый объект.
      *
      * @param value объект из прочитанных полей
+     * @param serverFields поля, которые заполняет сервер, а не клиент; их нарушения
+     *     не относятся к запросу
      * @param <T> тип объекта
      * @return тот же объект
      * @throws WebApplicationException 422 со всеми нарушениями полей
      */
-    public <T> T validate(T value) {
-        Set<String> invalidFields = new HashSet<>();
+    public <T> T validate(T value, String... serverFields) {
+        Set<String> invalidFields = new HashSet<>(List.of(serverFields));
         issues.forEach(issue -> invalidFields.add(issue.getField()));
         reader.violations(value).stream()
                 .filter(issue -> !invalidFields.contains(issue.getField()))
@@ -324,6 +264,59 @@ public final class RequestFields {
             throw reader.invalid(issues);
         }
         return value;
+    }
+
+    private BigDecimal decimal(String field, double max, String type) {
+        JsonValue value = present(field);
+        if (!(value instanceof JsonNumber number)) {
+            invalidType(value, field, "a number");
+            return null;
+        }
+        if (number.bigDecimalValue().abs().compareTo(BigDecimal.valueOf(max)) > 0) {
+            add(field, OUT_OF_RANGE, name(field) + " must fit into " + type + ".");
+            return null;
+        }
+        return number.bigDecimalValue();
+    }
+
+    /**
+     * Есть ли ключ в объекте, даже со значением {@code null}.
+     *
+     * @param field имя поля
+     * @return {@code true}, если ключ присутствует
+     */
+    boolean has(String field) {
+        return json.containsKey(field);
+    }
+
+    /**
+     * Равно ли значение поля {@code null}.
+     *
+     * @param field имя поля
+     * @return {@code true}, если ключ присутствует со значением {@code null}
+     */
+    boolean hasNull(String field) {
+        return json.containsKey(field) && isNull(json.get(field));
+    }
+
+    /**
+     * Отмечает вложенный объект как ссылку по ID: его поля нового объекта не проверяются.
+     *
+     * @param field имя поля вложенного объекта
+     */
+    void markReference(String field) {
+        references.add(name(field) + ".");
+    }
+
+    /**
+     * Добавляет нарушение, которое проверил вызывающий код.
+     *
+     * @param field имя поля
+     * @param title код из контракта
+     * @param description описание
+     */
+    void reject(String field, String title, String description) {
+        add(field, title, description);
     }
 
     private JsonValue present(String field) {
