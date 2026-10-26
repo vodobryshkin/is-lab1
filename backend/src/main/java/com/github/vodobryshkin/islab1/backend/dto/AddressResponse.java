@@ -1,5 +1,6 @@
 package com.github.vodobryshkin.islab1.backend.dto;
 
+import com.github.vodobryshkin.islab1.backend.domain.Address;
 import jakarta.json.bind.annotation.JsonbNillable;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -27,4 +28,14 @@ public class AddressResponse {
     @JsonbNillable
     @Valid
     private LocationResponse town;
+
+    /**
+     * Создаёт ответ из сохранённого адреса вместе с его локацией.
+     *
+     * @param address адрес
+     */
+    public AddressResponse(Address address) {
+        this(address.getId(), address.getStreet(),
+                address.getTown() == null ? null : new LocationResponse(address.getTown()));
+    }
 }

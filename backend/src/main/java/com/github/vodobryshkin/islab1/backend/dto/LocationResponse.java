@@ -1,5 +1,6 @@
 package com.github.vodobryshkin.islab1.backend.dto;
 
+import com.github.vodobryshkin.islab1.backend.domain.Location;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
@@ -26,4 +27,13 @@ public class LocationResponse {
 
     @NotNull
     private Long z;
+
+    /**
+     * Создаёт ответ из сохранённой локации.
+     *
+     * @param location локация
+     */
+    public LocationResponse(Location location) {
+        this(location.getId(), location.getX(), location.getY(), location.getZ());
+    }
 }

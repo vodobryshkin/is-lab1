@@ -1,10 +1,8 @@
 package com.github.vodobryshkin.islab1.backend.resource;
 
 import com.github.vodobryshkin.islab1.backend.domain.Address;
-import com.github.vodobryshkin.islab1.backend.domain.Location;
 import com.github.vodobryshkin.islab1.backend.dto.AddressResponse;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
-import com.github.vodobryshkin.islab1.backend.dto.LocationResponse;
 import com.github.vodobryshkin.islab1.backend.dto.ProblemDetails;
 import com.github.vodobryshkin.islab1.backend.service.AddressService;
 import jakarta.enterprise.context.RequestScoped;
@@ -87,7 +85,7 @@ public class AddressResource {
     public Response get(@PathParam("id") String rawId) {
         long id = requestReader.id(rawId);
         return service.find(id)
-                .map(address -> Response.ok(toResponse(address)).build())
+                .map(address -> Response.ok(new AddressResponse(address)).build())
                 .orElseGet(() -> notFound(id));
     }
 
@@ -102,7 +100,7 @@ public class AddressResource {
         ListQuery query = requestReader.listQuery(uriInfo.getQueryParameters(), SORT_FIELDS);
         String street = uriInfo.getQueryParameters().getFirst(STREET);
         List<AddressResponse> items =
-                service.findPage(query, street).stream().map(this::toResponse).toList();
+                service.findPage(query, street).stream().map(AddressResponse::new).toList();
         return Response.ok(Map.of("items", items, "page", query.page(),
                 "page_size", query.pageSize(), "total_items", service.count(street))).build();
     }
@@ -157,13 +155,6 @@ public class AddressResource {
         RequestFields fields = requestReader.read(body).allowOnly(STREET, "town");
         return fields.validate(
                 new Address(null, fields.string(STREET), fields.location("town", true)));
-    }
-
-    private AddressResponse toResponse(Address address) {
-        Location town = address.getTown();
-        return new AddressResponse(address.getId(), address.getStreet(), town == null
-                ? null
-                : new LocationResponse(town.getId(), town.getX(), town.getY(), town.getZ()));
     }
 
     private Response notFound(long id) {

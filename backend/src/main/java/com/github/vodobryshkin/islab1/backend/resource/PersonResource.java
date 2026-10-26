@@ -2,7 +2,6 @@ package com.github.vodobryshkin.islab1.backend.resource;
 
 import com.github.vodobryshkin.islab1.backend.domain.Color;
 import com.github.vodobryshkin.islab1.backend.domain.Country;
-import com.github.vodobryshkin.islab1.backend.domain.Location;
 import com.github.vodobryshkin.islab1.backend.domain.Person;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
 import com.github.vodobryshkin.islab1.backend.dto.LocationResponse;
@@ -172,10 +171,8 @@ public class PersonResource {
 
     /** Дата рождения отдаётся в UTC, как {@code utcDateTime} контракта. */
     private PersonResponse toResponse(Person person) {
-        Location location = person.getLocation();
         return new PersonResponse(person.getId(), person.getEyeColor(), person.getHairColor(),
-                new LocationResponse(location.getId(), location.getX(), location.getY(),
-                        location.getZ()),
+                new LocationResponse(person.getLocation()),
                 person.getBirthday().withZoneSameInstant(ZoneOffset.UTC), person.getWeight(),
                 person.getNationality());
     }

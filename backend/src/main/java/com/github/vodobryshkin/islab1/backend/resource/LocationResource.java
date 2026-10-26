@@ -79,7 +79,7 @@ public class LocationResource {
     public Response get(@PathParam("id") String rawId) {
         long id = requestReader.id(rawId);
         return service.find(id)
-                .map(location -> Response.ok(toResponse(location)).build())
+                .map(location -> Response.ok(new LocationResponse(location)).build())
                 .orElseGet(() -> notFound(id));
     }
 
@@ -93,7 +93,7 @@ public class LocationResource {
     public Response list(@Context UriInfo uriInfo) {
         ListQuery query = requestReader.listQuery(uriInfo.getQueryParameters(), SORT_FIELDS);
         List<LocationResponse> items =
-                service.findPage(query).stream().map(this::toResponse).toList();
+                service.findPage(query).stream().map(LocationResponse::new).toList();
         return Response.ok(Map.of("items", items, "page", query.page(),
                 "page_size", query.pageSize(), "total_items", service.count())).build();
     }
@@ -137,11 +137,6 @@ public class LocationResource {
         RequestFields fields = requestReader.read(body).allowOnly("x", "y", "z");
         return fields.validate(
                 new Location(null, fields.int32("x"), fields.int32("y"), fields.int64("z")));
-    }
-
-    private LocationResponse toResponse(Location location) {
-        return new LocationResponse(location.getId(), location.getX(), location.getY(),
-                location.getZ());
     }
 
     private Response notFound(long id) {
