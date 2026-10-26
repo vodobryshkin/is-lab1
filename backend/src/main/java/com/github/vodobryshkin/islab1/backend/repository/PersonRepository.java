@@ -114,6 +114,18 @@ public class PersonRepository {
     }
 
     /**
+     * Отвязывает персону от работника и сразу отправляет UPDATE: ограничение
+     * уникальности {@code worker_id} не отложено, и иначе привязка другой персоны к тому
+     * же работнику в этой транзакции могла бы выполниться раньше.
+     *
+     * @param person сохранённая персона
+     */
+    public void unlink(Person person) {
+        person.setWorker(null);
+        entityManager.flush();
+    }
+
+    /**
      * Удаляет персону; её локацию не удаляет.
      *
      * @param person сохранённая персона

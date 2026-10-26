@@ -75,7 +75,7 @@ public class WorkerService {
      */
     @Transactional
     public Change create(Worker worker, String username) {
-        Optional<Change> refusal = refusal(worker);
+        Optional<Change> refusal = refusal(worker, null);
         if (refusal.isPresent()) {
             return refusal.get();
         }
@@ -90,6 +90,67 @@ public class WorkerService {
     }
 
     /**
+     * Полностью заменяет поля и привязки работника в одной транзакции. Создатель и дата
+     * создания не меняются. Прежняя персона при замене или {@code person: null}
+     * отвязывается, но не удаляется; прежние координаты и организация тоже остаются.
+     *
+     * @param id ID работника
+     * @param values новые значения; организация — только ссылка или {@code null}
+     * @return {@code DONE}; {@code NOT_FOUND}; {@code REFERENCE_NOT_FOUND} с недостающей
+     *     ссылкой; {@code CONFLICT} с видом {@code "person"}, если персона связана
+     *     с другим работником
+     */
+    @Transactional
+    public Change update(int id, Worker values) {
+        Optional<Worker> found = repository.findById(id);
+        if (found.isEmpty()) {
+            return new Change(Outcome.NOT_FOUND, null, null, null);
+        }
+        Optional<Change> refusal = refusal(values, id);
+        if (refusal.isPresent()) {
+            return refusal.get();
+        }
+        Worker target = found.get();
+        target.setName(values.getName());
+        target.setCoordinates(persistOrFind(values.getCoordinates()));
+        target.setOrganization(persistOrFind(values.getOrganization()));
+        target.setSalary(values.getSalary());
+        target.setRating(values.getRating());
+        target.setStartDate(values.getStartDate());
+        target.setPosition(values.getPosition());
+        target.setStatus(values.getStatus());
+        Person current = target.getPerson();
+        Person next = values.getPerson();
+        if (current != null && (next == null || !current.getId().equals(next.getId()))) {
+            personRepository.unlink(current);
+            target.setPerson(null);
+        }
+        attach(target, next);
+        return new Change(Outcome.DONE, (long) id, null, null);
+    }
+
+    /**
+     * Удаляет работника, если на него не ссылается персона: по контракту сначала нужно
+     * отвязать её через обновление. Координаты и организацию не удаляет.
+     * Внешний ключ {@code persons.worker_id} защищает от одновременной привязки.
+     *
+     * @param id ID работника
+     * @return {@code DONE}, {@code NOT_FOUND} или {@code IN_USE}
+     */
+    @Transactional
+    public Outcome delete(int id) {
+        Optional<Worker> worker = repository.findById(id);
+        if (worker.isEmpty()) {
+            return Outcome.NOT_FOUND;
+        }
+        if (repository.isReferencedByPerson(id)) {
+            return Outcome.IN_USE;
+        }
+        repository.delete(worker.get());
+        return Outcome.DONE;
+    }
+
+    /**
      * Ищет работника.
      *
      * @param id ID работника
@@ -99,15 +160,20 @@ public class WorkerService {
         return repository.findById(id);
     }
 
-    /** Первая причина отказа: ненайденная ссылка или конфликт; без записи в БД. */
-    private Optional<Change> refusal(Worker worker) {
+    /**
+     * Первая причина отказа: ненайденная ссылка или конфликт; без записи в БД.
+     * {@code owner} — ID обновляемого работника, его собственная персона не конфликтует.
+     */
+    private Optional<Change> refusal(Worker worker, Integer owner) {
         Coordinates coordinates = worker.getCoordinates();
         if (coordinates.getId() != null
                 && coordinatesRepository.findById(coordinates.getId()).isEmpty()) {
             return Optional.of(missing("coordinates", coordinates.getId()));
         }
         Optional<Change> organization = organizationRefusal(worker.getOrganization());
-        return organization.isPresent() ? organization : personRefusal(worker.getPerson());
+        return organization.isPresent()
+                ? organization
+                : personRefusal(worker.getPerson(), owner);
     }
 
     private Optional<Change> organizationRefusal(Organization organization) {
@@ -126,7 +192,7 @@ public class WorkerService {
      * Существующая персона блокируется до конца транзакции: одновременные запросы
      * не привяжут её к двум работникам.
      */
-    private Optional<Change> personRefusal(Person person) {
+    private Optional<Change> personRefusal(Person person, Integer owner) {
         if (person == null) {
             return Optional.empty();
         }
@@ -141,7 +207,8 @@ public class WorkerService {
         if (existing.isEmpty()) {
             return Optional.of(missing(PERSON, person.getId()));
         }
-        return existing.get().getWorker() == null
+        Worker holder = existing.get().getWorker();
+        return holder == null || holder.getId().equals(owner)
                 ? Optional.empty()
                 : Optional.of(new Change(Outcome.CONFLICT, null, PERSON, person.getId()));
     }
