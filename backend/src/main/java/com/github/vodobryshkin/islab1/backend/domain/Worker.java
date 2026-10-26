@@ -14,7 +14,7 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -76,6 +76,8 @@ public class Worker {
 
     @Column(name = "salary", nullable = false)
     @Positive
+    // +∞ недопустима; NaN, 0 и отрицательные значения отклоняет @Positive.
+    @DecimalMax("1.7976931348623157E308")
     private double salary; // Значение поля должно быть больше 0
 
     @Column(name = "rating", nullable = false)
@@ -104,18 +106,6 @@ public class Worker {
      */
     @PrePersist
     protected void onCreate() {
-        if (creationDate == null) {
-            creationDate = ZonedDateTime.now();
-        }
-    }
-
-    /**
-     * Проверяет, что salary не является положительной бесконечностью.
-     *
-     * @return true, если salary является бесконечностью, иначе false
-     */
-    @AssertTrue
-    public boolean isSalary() {
-        return salary != Float.POSITIVE_INFINITY;
+        creationDate = ZonedDateTime.now();
     }
 }

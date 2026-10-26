@@ -1,259 +1,33 @@
 package com.github.vodobryshkin.islab1.backend.dto;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertAll;
 
-import jakarta.json.Json;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonReader;
-import jakarta.json.bind.Jsonb;
-import jakarta.json.bind.JsonbBuilder;
-import jakarta.json.bind.JsonbConfig;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validation;
-import jakarta.validation.ValidatorFactory;
-import java.io.StringReader;
-import java.util.Set;
+import com.github.vodobryshkin.islab1.backend.ConstraintViolations;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Тестовый класс для тестирования класса LocationResponse.
- *
- * @author vodobryshkin
- * @since 15.10.2026 21:54
+ * Проверяет обязательные поля локации ответа и её JSON.
  */
-@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class LocationResponseTest {
-    @Test
-    void passes_correct_dto() {
-        LocationResponse sut = new LocationResponse(1L, 1, 1, 0L);
+    private final ConstraintViolations violations = new ConstraintViolations();
+    private final JsonOf json = new JsonOf();
 
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            int actualSize = factory.getValidator().validate(sut).size();
-
-            assertThat(actualSize)
-                    .as(
-                            "If there are no errors in the DTO, then violations should not be thrown "
-                                    + "out."
-                    )
-                    .isEqualTo(0);
-        }
+    @AfterEach
+    void close() {
+        violations.close();
+        json.close();
     }
 
     @Test
-    void rejects_id_which_is_null() {
-        // Arrange
-        LocationResponse sut = new LocationResponse(null, 1, 1, 0L);
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<LocationResponse>> violations =
-                    factory.getValidator().validate(sut);
-
-            ConstraintViolation<LocationResponse> violation = violations.iterator().next();
-
-            int actualSize = violations.size();
-            String actualPropertyName = violation.getPropertyPath().toString();
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as(
-                                    "If id is invalid and all other fields are valid, one violation is "
-                                            + "expected."
-                            )
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("Field id which is null must not be validated.")
-                            .isEqualTo("id")
-            );
-        }
+    void rejects_missing_coordinates() {
+        assertThat(violations.of(new LocationResponse(1L, null, null, null)))
+                .containsExactlyInAnyOrder("x NotNull", "y NotNull", "z NotNull");
     }
 
     @Test
-    void rejects_id_below_minimum() {
-        // Arrange
-        Long forbiddenId = 0L;
-        LocationResponse sut = new LocationResponse(forbiddenId, 1, 1, 0L);
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<LocationResponse>> violations =
-                    factory.getValidator().validate(sut);
-
-            ConstraintViolation<LocationResponse> violation = violations.iterator().next();
-
-            int actualSize = violations.size();
-            String actualPropertyName = violation.getPropertyPath().toString();
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as(
-                                    "If id is invalid and all other fields are valid, one violation is "
-                                            + "expected."
-                            )
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("Field id less than 1 must not be validated.")
-                            .isEqualTo("id")
-            );
-        }
-    }
-
-    @Test
-    void rejects_id_which_equals_to_long_minimum() {
-        // Arrange
-        Long forbiddenId = Long.MIN_VALUE;
-        LocationResponse sut = new LocationResponse(forbiddenId, 1, 1, 0L);
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<LocationResponse>> violations =
-                    factory.getValidator().validate(sut);
-
-            ConstraintViolation<LocationResponse> violation = violations.iterator().next();
-
-            int actualSize = violations.size();
-            String actualPropertyName = violation.getPropertyPath().toString();
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as(
-                                    "If id is invalid and all other fields are valid, one violation is "
-                                            + "expected."
-                            )
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("Field id less than 1 must not be validated.")
-                            .isEqualTo("id")
-            );
-        }
-    }
-
-    @Test
-    void rejects_horizontal_coordinate_which_is_null() {
-        // Arrange
-        LocationResponse sut = new LocationResponse(1L, null, 1, 0L);
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<LocationResponse>> violations =
-                    factory.getValidator().validate(sut);
-
-            ConstraintViolation<LocationResponse> violation = violations.iterator().next();
-
-            int actualSize = violations.size();
-            String actualPropertyName = violation.getPropertyPath().toString();
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as(
-                                    "If x is invalid and all other fields are valid, one violation is "
-                                            + "expected."
-                            )
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("Field x which is null must not be validated.")
-                            .isEqualTo("x")
-            );
-        }
-    }
-
-    @Test
-    void rejects_vertical_coordinate_which_is_null() {
-        // Arrange
-        LocationResponse sut = new LocationResponse(1L, 1, null, 0L);
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<LocationResponse>> violations =
-                    factory.getValidator().validate(sut);
-
-            ConstraintViolation<LocationResponse> violation = violations.iterator().next();
-
-            int actualSize = violations.size();
-            String actualPropertyName = violation.getPropertyPath().toString();
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as(
-                                    "If y is invalid and all other fields are valid, one violation is "
-                                            + "expected."
-                            )
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("Field y which is null must not be validated.")
-                            .isEqualTo("y")
-            );
-        }
-    }
-
-    @Test
-    void rejects_location_depth_which_is_null() {
-        // Arrange
-        LocationResponse sut = new LocationResponse(1L, 1, 1, null);
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<LocationResponse>> violations =
-                    factory.getValidator().validate(sut);
-
-            ConstraintViolation<LocationResponse> violation = violations.iterator().next();
-
-            int actualSize = violations.size();
-            String actualPropertyName = violation.getPropertyPath().toString();
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as(
-                                    "If z is invalid and all other fields are valid, one violation is "
-                                            + "expected."
-                            )
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("Field id which is null must not be validated.")
-                            .isEqualTo("z")
-            );
-        }
-    }
-
-    @Test
-    void serializes_location_with_expected_property_names() throws Exception {
-        // Arrange
-        LocationResponse sut = new LocationResponse(1L, 1, 1, 1L);
-        JsonbConfig config = new JsonbConfig().withNullValues(true);
-
-        try (Jsonb jsonb = JsonbBuilder.create(config)) {
-            // Act
-            String serialized = jsonb.toJson(sut);
-
-            try (JsonReader reader = Json.createReader(new StringReader(serialized))) {
-                JsonObject actual = reader.readObject();
-
-                // Assert
-                assertThat(actual.keySet())
-                        .as(
-                                "The Location JSON must contain the field names from the API "
-                                        + "contract."
-                        )
-                        .containsExactlyInAnyOrder(
-                                "id",
-                                "x",
-                                "y",
-                                "z"
-                        );
-            }
-        }
+    void writes_contract_json() {
+        assertThat(json.serialize(new LocationResponse(7L, 1, -2, Long.MAX_VALUE)))
+                .isEqualTo(json.parse("{\"id\":7,\"x\":1,\"y\":-2,\"z\":9223372036854775807}"));
     }
 }

@@ -1,889 +1,135 @@
 package com.github.vodobryshkin.islab1.backend.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertAll;
 
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validation;
-import jakarta.validation.ValidatorFactory;
+import com.github.vodobryshkin.islab1.backend.ConstraintViolations;
 import java.time.ZonedDateTime;
-import java.util.Set;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-
 /**
- * Тестовый класс для тестирования класса Worker.
- *
- * @author vodobryshkin
- * @since 16.10.2026 9:44
+ * Проверяет ограничения работника: конечная положительная зарплата, имя, рейтинг,
+ * обязательные связи и каскадную проверку вложенных объектов.
  */
-@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class WorkerTest {
-    @Test
-    void passes_correct_entity() {
-        // Arrange
-        Worker sut = new Worker(
-                1,
-                new User(1L, "vodobryshkin", "hash", null),
-                "Иван Иванов",
-                new Coordinates(1L, 0, 0L),
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                new Organization(1L, new Address(1L, "official", null), 1f, 1L,
-                        "ООО Магистраль", 1, OrganizationType.GOVERNMENT,
-                        new Address(2L, "postal", null)),
-                1d,
-                1,
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                Position.DIRECTOR,
-                Status.HIRED,
-                new Person(1L, Color.BLUE, Color.BROWN, new Location(1L, 0, 0, 0L),
-                        ZonedDateTime.parse("2026-10-16T00:00:00+03:00"), 1f, Country.RUSSIA, null)
-        );
+    private static final ZonedDateTime DATE = ZonedDateTime.parse("2026-01-02T03:04:05+03:00");
+    private static final String SALARY_POSITIVE = "salary Positive";
+    private static final String NAME = "Иван Иванов";
 
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            int actualSize = factory.getValidator().validate(sut).size();
+    private final ConstraintViolations violations = new ConstraintViolations();
 
-            // Assert
-            assertThat(actualSize)
-                    .as("Valid entity must not produce constraint violations.")
-                    .isEqualTo(0);
-        }
+    @AfterEach
+    void closeValidator() {
+        violations.close();
     }
 
     @Test
-    void passes_correct_entity_with_atypical_values() {
-        // Arrange
-        Worker sut = new Worker(
-                1,
-                new User(1L, "vodobryshkin", "hash", null),
-                "𐄐 ꙮ𝔜̷̵𝔒̶̰ ☲☴ ﷽",
-                new Coordinates(1L, -953, -391L),
-                ZonedDateTime.parse("2999-01-01T00:00:00+14:00"),
-                null,
-                0x0.0000000000001P-1022,
-                1,
-                ZonedDateTime.parse("1900-01-01T00:00:00-12:00"),
-                null,
-                null,
-                null
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            int actualSize = factory.getValidator().validate(sut).size();
-
-            // Assert
-            assertThat(actualSize)
-                    .as("Valid entity must not produce constraint violations.")
-                    .isEqualTo(0);
-        }
+    void accepts_worker_without_optional_fields() {
+        assertThat(violations.of(worker(NAME, Double.MIN_VALUE, 1, coordinates(), null))).isEmpty();
     }
 
     @Test
-    void passes_correct_entity_with_maximum_numeric_values() {
-        // Arrange
-        Worker sut = new Worker(
-                Integer.MAX_VALUE,
-                new User(1L, "vodobryshkin", "hash", null),
-                "Иван Иванов",
-                new Coordinates(1L, Integer.MAX_VALUE, Long.MAX_VALUE),
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                null,
-                Double.MAX_VALUE,
-                Integer.MAX_VALUE,
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                Position.DIRECTOR,
-                Status.HIRED,
-                null
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            int actualSize = factory.getValidator().validate(sut).size();
-
-            // Assert
-            assertThat(actualSize)
-                    .as("Valid entity must not produce constraint violations.")
-                    .isEqualTo(0);
-        }
+    void accepts_name_of_255_characters() {
+        assertThat(violations.of(worker("n".repeat(255), 1, 1, coordinates(), null))).isEmpty();
     }
 
     @Test
-    void rejects_id_which_is_zero() {
-        // Arrange
-        Worker sut = new Worker(
-                0,
-                new User(1L, "vodobryshkin", "hash", null),
-                "Иван Иванов",
-                new Coordinates(1L, 0, 0L),
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                null,
-                1d,
-                1,
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                Position.DIRECTOR,
-                Status.HIRED,
-                null
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Worker>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field id.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field id.")
-                            .isEqualTo("id")
-            );
-        }
+    void rejects_name_of_256_characters() {
+        assertThat(violations.of(worker("n".repeat(256), 1, 1, coordinates(), null)))
+                .containsExactly("name Size");
     }
 
     @Test
-    void rejects_id_which_equals_to_integer_minimum() {
-        // Arrange
-        Worker sut = new Worker(
-                Integer.MIN_VALUE,
-                new User(1L, "vodobryshkin", "hash", null),
-                "Иван Иванов",
-                new Coordinates(1L, 0, 0L),
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                null,
-                1d,
-                1,
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                Position.DIRECTOR,
-                Status.HIRED,
-                null
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Worker>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field id.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field id.")
-                            .isEqualTo("id")
-            );
-        }
+    void rejects_name_of_spaces() {
+        assertThat(violations.of(worker(" ", 1, 1, coordinates(), null)))
+                .containsExactly("name NotBlank");
     }
 
     @Test
-    void rejects_name_which_is_null() {
-        // Arrange
-        Worker sut = new Worker(
-                1,
-                new User(1L, "vodobryshkin", "hash", null),
-                null,
-                new Coordinates(1L, 0, 0L),
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                null,
-                1d,
-                1,
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                Position.DIRECTOR,
-                Status.HIRED,
-                null
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Worker>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field name.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field name.")
-                            .isEqualTo("name")
-            );
-        }
+    void rejects_zero_salary() {
+        assertThat(violations.of(worker(NAME, 0, 1, coordinates(), null)))
+                .containsExactly(SALARY_POSITIVE);
     }
 
     @Test
-    void rejects_name_which_is_empty() {
-        // Arrange
-        Worker sut = new Worker(
-                1,
-                new User(1L, "vodobryshkin", "hash", null),
-                "",
-                new Coordinates(1L, 0, 0L),
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                null,
-                1d,
-                1,
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                Position.DIRECTOR,
-                Status.HIRED,
-                null
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Worker>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field name.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field name.")
-                            .isEqualTo("name")
-            );
-        }
-    }
-
-    @Test
-    void rejects_coordinates_which_is_null() {
-        // Arrange
-        Worker sut = new Worker(
-                1,
-                new User(1L, "vodobryshkin", "hash", null),
-                "Иван Иванов",
-                null,
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                null,
-                1d,
-                1,
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                Position.DIRECTOR,
-                Status.HIRED,
-                null
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Worker>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field coordinates.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field coordinates.")
-                            .isEqualTo("coordinates")
-            );
-        }
-    }
-
-    @Test
-    void rejects_creationDate_which_is_null() {
-        // Arrange
-        Worker sut = new Worker(
-                1,
-                new User(1L, "vodobryshkin", "hash", null),
-                "Иван Иванов",
-                new Coordinates(1L, 0, 0L),
-                null,
-                null,
-                1d,
-                1,
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                Position.DIRECTOR,
-                Status.HIRED,
-                null
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Worker>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field creationDate.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field creationDate.")
-                            .isEqualTo("creationDate")
-            );
-        }
-    }
-
-    @Test
-    void rejects_salary_which_is_positive_infinity() {
-        // Arrange
-        Worker sut = new Worker(
-                1,
-                new User(1L, "vodobryshkin", "hash", null),
-                "Иван Иванов",
-                new Coordinates(1L, 0, 0L),
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                null,
-                Double.POSITIVE_INFINITY,
-                1,
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                Position.DIRECTOR,
-                Status.HIRED,
-                null
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Worker>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field salary.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field salary.")
-                            .isEqualTo("salary")
-            );
-        }
+    void rejects_negative_salary() {
+        assertThat(violations.of(worker(NAME, -1, 1, coordinates(), null)))
+                .containsExactly(SALARY_POSITIVE);
     }
 
     @Test
     void rejects_salary_which_is_nan() {
-        // Arrange
-        Worker sut = new Worker(
-                1,
-                new User(1L, "vodobryshkin", "hash", null),
-                "Иван Иванов",
-                new Coordinates(1L, 0, 0L),
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                null,
-                Double.NaN,
-                1,
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                Position.DIRECTOR,
-                Status.HIRED,
-                null
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Worker>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field salary.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field salary.")
-                            .isEqualTo("salary")
-            );
-        }
+        assertThat(violations.of(worker(NAME, Double.NaN, 1, coordinates(), null)))
+                .contains(SALARY_POSITIVE);
     }
 
     @Test
-    void rejects_salary_which_is_zero() {
-        // Arrange
-        Worker sut = new Worker(
-                1,
-                new User(1L, "vodobryshkin", "hash", null),
-                "Иван Иванов",
-                new Coordinates(1L, 0, 0L),
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                null,
-                0d,
-                1,
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                Position.DIRECTOR,
-                Status.HIRED,
-                null
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Worker>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field salary.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field salary.")
-                            .isEqualTo("salary")
-            );
-        }
+    void rejects_salary_which_is_positive_infinity() {
+        assertThat(violations.of(worker(NAME, Double.POSITIVE_INFINITY, 1, coordinates(), null)))
+                .containsExactly("salary DecimalMax");
     }
 
     @Test
     void rejects_salary_which_is_negative_infinity() {
-        // Arrange
-        Worker sut = new Worker(
-                1,
-                new User(1L, "vodobryshkin", "hash", null),
-                "Иван Иванов",
-                new Coordinates(1L, 0, 0L),
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                null,
-                Double.NEGATIVE_INFINITY,
-                1,
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                Position.DIRECTOR,
-                Status.HIRED,
-                null
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Worker>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field salary.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field salary.")
-                            .isEqualTo("salary")
-            );
-        }
+        assertThat(violations.of(worker(NAME, Double.NEGATIVE_INFINITY, 1, coordinates(), null)))
+                .containsExactly(SALARY_POSITIVE);
     }
 
     @Test
-    void rejects_rating_which_is_null() {
-        // Arrange
-        Worker sut = new Worker(
-                1,
-                new User(1L, "vodobryshkin", "hash", null),
-                "Иван Иванов",
-                new Coordinates(1L, 0, 0L),
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                null,
-                1d,
-                null,
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                Position.DIRECTOR,
-                Status.HIRED,
-                null
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Worker>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field rating.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field rating.")
-                            .isEqualTo("rating")
-            );
-        }
+    void rejects_zero_rating() {
+        assertThat(violations.of(worker(NAME, 1, 0, coordinates(), null)))
+                .containsExactly("rating Positive");
     }
 
     @Test
-    void rejects_rating_which_is_zero() {
-        // Arrange
-        Worker sut = new Worker(
-                1,
-                new User(1L, "vodobryshkin", "hash", null),
-                "Иван Иванов",
-                new Coordinates(1L, 0, 0L),
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                null,
-                1d,
-                0,
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                Position.DIRECTOR,
-                Status.HIRED,
-                null
-        );
+    void generates_creation_date_before_saving() {
+        Worker sut = new Worker(null, new User(null, "alice", "hash", null), NAME, coordinates(),
+                null, null, 1, 1, DATE, null, null, null);
 
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Worker>> violations =
-                    factory.getValidator().validate(sut);
+        sut.onCreate();
 
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field rating.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field rating.")
-                            .isEqualTo("rating")
-            );
-        }
+        assertThat(violations.of(sut)).isEmpty();
     }
 
     @Test
-    void rejects_rating_which_equals_to_integer_minimum() {
-        // Arrange
-        Worker sut = new Worker(
-                1,
-                new User(1L, "vodobryshkin", "hash", null),
-                "Иван Иванов",
-                new Coordinates(1L, 0, 0L),
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                null,
-                1d,
-                Integer.MIN_VALUE,
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                Position.DIRECTOR,
-                Status.HIRED,
-                null
-        );
+    void rejects_missing_required_fields() {
+        Worker sut = new Worker(null, null, null, null, null, null, 1, null, null, null, null, null);
 
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Worker>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field rating.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field rating.")
-                            .isEqualTo("rating")
-            );
-        }
+        assertThat(violations.of(sut)).containsExactlyInAnyOrder("user NotNull", "name NotBlank",
+                "coordinates NotNull", "creationDate NotNull", "rating NotNull", "startDate NotNull");
     }
 
     @Test
-    void rejects_startDate_which_is_null() {
-        // Arrange
-        Worker sut = new Worker(
-                1,
-                new User(1L, "vodobryshkin", "hash", null),
-                "Иван Иванов",
-                new Coordinates(1L, 0, 0L),
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                null,
-                1d,
-                1,
-                null,
-                Position.DIRECTOR,
-                Status.HIRED,
-                null
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Worker>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field startDate.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field startDate.")
-                            .isEqualTo("startDate")
-            );
-        }
+    void validates_coordinates_in_cascade() {
+        assertThat(violations.of(worker(NAME, 1, 1, new Coordinates(null, -954, 0L), null)))
+                .containsExactly("coordinates.x Min");
     }
 
     @Test
-    void rejects_user_whose_username_is_null() {
-        // Arrange
-        Worker sut = new Worker(
-                1,
-                new User(1L, null, "hash", null),
-                "Иван Иванов",
-                new Coordinates(1L, 0, 0L),
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                null,
-                1d,
-                1,
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                Position.DIRECTOR,
-                Status.HIRED,
-                null
-        );
+    void validates_organization_in_cascade() {
+        Address address = new Address(null, "Kronverksky", null);
+        Organization organization =
+                new Organization(null, address, 1f, 1L, " ", 1, null, address);
 
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Worker>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field user.username.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field user.username.")
-                            .isEqualTo("user.username")
-            );
-        }
+        assertThat(violations.of(worker(NAME, 1, 1, coordinates(), organization)))
+                .containsExactly("organization.fullName NotBlank");
     }
 
     @Test
-    void rejects_coordinates_whose_x_is_null() {
-        // Arrange
-        Worker sut = new Worker(
-                1,
-                new User(1L, "vodobryshkin", "hash", null),
-                "Иван Иванов",
-                new Coordinates(1L, null, 0L),
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                null,
-                1d,
-                1,
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                Position.DIRECTOR,
-                Status.HIRED,
-                null
-        );
+    void validates_user_in_cascade() {
+        Worker sut = new Worker(null, new User(null, "ab", "hash", null), NAME, coordinates(), DATE,
+                null, 1, 1, DATE, null, null, null);
 
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Worker>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field coordinates.x.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field coordinates.x.")
-                            .isEqualTo("coordinates.x")
-            );
-        }
+        assertThat(violations.of(sut)).containsExactly("user.username Pattern");
     }
 
-    @Test
-    void rejects_organization_whose_fullName_is_null() {
-        // Arrange
-        Organization organization = new Organization(
-                1L,
-                new Address(1L, "official", null),
-                1f,
-                1L,
-                null,
-                1,
-                OrganizationType.GOVERNMENT,
-                new Address(2L, "postal", null)
-        );
-
-        Worker sut = new Worker(
-                1,
-                new User(1L, "vodobryshkin", "hash", null),
-                "Иван Иванов",
-                new Coordinates(1L, 0, 0L),
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                organization,
-                1d,
-                1,
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                Position.DIRECTOR,
-                Status.HIRED,
-                null
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Worker>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field organization.fullName.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field organization.fullName.")
-                            .isEqualTo("organization.fullName")
-            );
-        }
+    private Worker worker(String name, double salary, Integer rating, Coordinates coordinates,
+            Organization organization) {
+        return new Worker(null, new User(null, "alice", "hash", null), name, coordinates, DATE,
+                organization, salary, rating, DATE, null, null, null);
     }
 
-    @Test
-    void rejects_person_whose_hairColor_is_null() {
-        // Arrange
-        Person person = new Person(
-                1L,
-                Color.BLUE,
-                null,
-                new Location(1L, 1, 1, 1L),
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                1f,
-                Country.RUSSIA,
-                null
-        );
-
-        Worker sut = new Worker(
-                1,
-                new User(1L, "vodobryshkin", "hash", null),
-                "Иван Иванов",
-                new Coordinates(1L, 0, 0L),
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                null,
-                1d,
-                1,
-                ZonedDateTime.parse("2026-10-16T00:00:00+03:00"),
-                Position.DIRECTOR,
-                Status.HIRED,
-                person
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Worker>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field person.hairColor.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field person.hairColor.")
-                            .isEqualTo("person.hairColor")
-            );
-        }
+    private Coordinates coordinates() {
+        return new Coordinates(null, 1, 1L);
     }
 }

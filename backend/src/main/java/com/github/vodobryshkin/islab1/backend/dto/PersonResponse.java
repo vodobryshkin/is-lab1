@@ -2,9 +2,10 @@ package com.github.vodobryshkin.islab1.backend.dto;
 
 import com.github.vodobryshkin.islab1.backend.domain.Color;
 import com.github.vodobryshkin.islab1.backend.domain.Country;
+import jakarta.json.bind.annotation.JsonbNillable;
 import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.time.ZonedDateTime;
@@ -24,6 +25,7 @@ public class PersonResponse {
     @Positive
     private Long id;
 
+    @JsonbNillable
     @JsonbProperty("eye_color")
     private Color eyeColor;
 
@@ -39,18 +41,10 @@ public class PersonResponse {
     private ZonedDateTime birthday;
 
     @Positive
+    // +∞ недопустима; NaN, 0 и отрицательные значения отклоняет @Positive.
+    @DecimalMax("3.4028235E38")
     private Float weight;
 
     @NotNull
     private Country nationality;
-
-    /**
-     * Проверяет, что weight не является положительной бесконечностью.
-     *
-     * @return true, если weight является бесконечностью, иначе false
-     */
-    @AssertTrue
-    public boolean isWeight() {
-        return weight == null || weight != Float.POSITIVE_INFINITY;
-    }
 }

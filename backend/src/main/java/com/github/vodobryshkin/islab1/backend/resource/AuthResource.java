@@ -25,10 +25,8 @@ import jakarta.ws.rs.core.CacheControl;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.security.Principal;
 import java.sql.SQLException;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Операции {@code /auth}: CSRF-токен, регистрация, вход, текущий пользователь и выход.
@@ -92,21 +90,17 @@ public class AuthResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response register(String body) {
         CredentialsRequest credentials = credentialsReader.read(body);
-        Optional<Long> id;
         try {
-            id = userService.register(credentials.getUsername(), credentials.getPassword());
+            Long id = userService.register(credentials.getUsername(), credentials.getPassword());
+            return Response.status(Response.Status.CREATED).entity(Map.of("id", id)).build();
         } catch (PersistenceException exception) {
             if (!isUniqueViolation(exception)) {
                 throw exception;
             }
-            id = Optional.empty();
-        }
-        if (id.isEmpty()) {
             return new ProblemDetails(409, "/problems/username-already-exists",
                     "Username already exists", "A user with this username already exists.")
                     .toResponse();
         }
-        return Response.status(Response.Status.CREATED).entity(Map.of("id", id.get())).build();
     }
 
     /**
@@ -147,7 +141,8 @@ public class AuthResource {
     }
 
     /**
-     * Возвращает пользователя текущей сессии.
+     * Возвращает пользователя текущей сессии. Без входа запрос сюда не доходит:
+     * адрес защищён в {@code web.xml}, и механизм аутентификации отвечает 401 раньше.
      *
      * @param request текущий запрос
      * @return 200 с пользователем
@@ -155,8 +150,7 @@ public class AuthResource {
     @GET
     @Path("/session")
     public Response getSession(@Context HttpServletRequest request) {
-        Principal principal = request.getUserPrincipal();
-        return currentUser(principal == null ? null : principal.getName());
+        return currentUser(request.getUserPrincipal().getName());
     }
 
     /**
@@ -171,24 +165,14 @@ public class AuthResource {
     @Path("/logout")
     public Response logout(@Context HttpServletRequest request) throws ServletException {
         request.logout();
-        if (request.getSession(false) != null) {
-            request.getSession(false).invalidate();
-        }
+        request.getSession().invalidate();
         return Response.noContent().cacheControl(noStore()).build();
     }
 
     private Response currentUser(String username) {
-        Optional<User> user = username == null
-                ? Optional.empty()
-                : userService.findByUsername(username);
-        if (user.isEmpty()) {
-            return new ProblemDetails(401, "/problems/authentication-required",
-                    "Authentication required", "Log in to access this resource.").toResponse();
-        }
-        Map<String, Object> body =
-                Map.of("id", user.get().getId(), "username", user.get().getUsername());
-        return Response.ok(body).cacheControl(noStore())
-                .build();
+        User user = userService.findByUsername(username).orElseThrow();
+        Map<String, Object> body = Map.of("id", user.getId(), "username", user.getUsername());
+        return Response.ok(body).cacheControl(noStore()).build();
     }
 
     private boolean isUniqueViolation(Throwable exception) {

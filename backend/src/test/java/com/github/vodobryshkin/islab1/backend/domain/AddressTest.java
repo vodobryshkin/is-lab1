@@ -1,264 +1,46 @@
 package com.github.vodobryshkin.islab1.backend.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertAll;
 
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validation;
-import jakarta.validation.ValidatorFactory;
-import java.util.Set;
+import com.github.vodobryshkin.islab1.backend.ConstraintViolations;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Тестовый класс для тестирования класса Address.
- *
- * @author vodobryshkin
- * @since 16.10.2026 9:08
+ * Проверяет непустую улицу и каскадную проверку необязательного города.
  */
-@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class AddressTest {
-    @Test
-    void passes_correct_entity() {
-        // Arrange
-        Address sut = new Address(
-                1L,
-                "Улица Пушкина, дом Колотушкина 1",
-                new Location(1L, 1, 1, 0L)
-        );
+    private final ConstraintViolations violations = new ConstraintViolations();
 
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            int actualSize = factory.getValidator().validate(sut).size();
-
-            // Assert
-            assertThat(actualSize)
-                    .as("Valid entity must not produce constraint violations.")
-                    .isEqualTo(0);
-        }
+    @AfterEach
+    void closeValidator() {
+        violations.close();
     }
 
     @Test
-    void rejects_id_which_is_zero() {
-        // Arrange
-        Address sut = new Address(
-                0L,
-                "Улица Пушкина, дом Колотушкина 1",
-                new Location(1L, 1, 1, 0L)
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Address>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field id.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field id.")
-                            .isEqualTo("id")
-            );
-        }
+    void accepts_address_with_town() {
+        assertThat(violations.of(new Address(null, "Kronverksky", new Location(null, 1, 2, 3L))))
+                .isEmpty();
     }
 
     @Test
-    void rejects_id_which_equals_to_long_minimum() {
-        // Arrange
-        Address sut = new Address(
-                Long.MIN_VALUE,
-                "Улица Пушкина, дом Колотушкина 1",
-                new Location(1L, 1, 1, 0L)
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Address>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field id.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field id.")
-                            .isEqualTo("id")
-            );
-        }
+    void accepts_address_without_town() {
+        assertThat(violations.of(new Address(null, "Kronverksky", null))).isEmpty();
     }
 
     @Test
-    void passes_correct_entity_with_atypical_street() {
-        // Arrange
-        Address sut = new Address(
-                1L,
-                "𐄐 ꙮ𝔜̷̵𝔒̶̰ ☲☴ ﷽",
-                new Location(1L, 1, 1, 0L)
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            int actualSize = factory.getValidator().validate(sut).size();
-
-            // Assert
-            assertThat(actualSize)
-                    .as("Valid entity must not produce constraint violations.")
-                    .isEqualTo(0);
-        }
+    void rejects_missing_street() {
+        assertThat(violations.of(new Address(null, null, null))).containsExactly("street NotBlank");
     }
 
     @Test
-    void passes_correct_entity_with_null_town() {
-        // Arrange
-        Address sut = new Address(
-                1L,
-                "Улица Пушкина, дом Колотушкина 1",
-                null
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            int actualSize = factory.getValidator().validate(sut).size();
-
-            // Assert
-            assertThat(actualSize)
-                    .as("Valid entity must not produce constraint violations.")
-                    .isEqualTo(0);
-        }
+    void rejects_street_of_spaces() {
+        assertThat(violations.of(new Address(null, " \t", null))).containsExactly("street NotBlank");
     }
 
     @Test
-    void passes_correct_entity_with_long_street() {
-        // Arrange
-        Address sut = new Address(
-                1L,
-                "ꙮ".repeat(1_024),
-                new Location(1L, 1, 1, 0L)
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            int actualSize = factory.getValidator().validate(sut).size();
-
-            // Assert
-            assertThat(actualSize)
-                    .as("Valid entity must not produce constraint violations.")
-                    .isEqualTo(0);
-        }
-    }
-
-    @Test
-    void rejects_street_which_is_null() {
-        // Arrange
-        Address sut = new Address(
-                1L,
-                null,
-                new Location(1L, 1, 1, 0L)
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Address>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field street.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field street.")
-                            .isEqualTo("street")
-            );
-        }
-    }
-
-    @Test
-    void rejects_street_which_is_empty() {
-        // Arrange
-        Address sut = new Address(
-                1L,
-                "",
-                new Location(1L, 1, 1, 0L)
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Address>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field street.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field street.")
-                            .isEqualTo("street")
-            );
-        }
-    }
-
-    @Test
-    void rejects_town_whose_x_is_null() {
-        // Arrange
-        Address sut = new Address(
-                1L,
-                "Улица Пушкина, дом Колотушкина 1",
-                new Location(1L, null, 1, 0L)
-        );
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Address>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field town.x.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field town.x.")
-                            .isEqualTo("town.x")
-            );
-        }
+    void validates_town_in_cascade() {
+        assertThat(violations.of(new Address(null, "Kronverksky", new Location(null, null, 2, 3L))))
+                .containsExactly("town.x NotNull");
     }
 }

@@ -1,9 +1,10 @@
 package com.github.vodobryshkin.islab1.backend.dto;
 
 import com.github.vodobryshkin.islab1.backend.domain.OrganizationType;
+import jakarta.json.bind.annotation.JsonbNillable;
 import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -30,6 +31,8 @@ public class OrganizationResponse {
 
     @JsonbProperty("annual_turnover")
     @Positive
+    // +∞ недопустима; NaN, 0 и отрицательные значения отклоняет @Positive.
+    @DecimalMax("3.4028235E38")
     private float annualTurnover;
 
     @JsonbProperty("employees_count")
@@ -45,20 +48,11 @@ public class OrganizationResponse {
     @Positive
     private Integer rating;
 
+    @JsonbNillable
     private OrganizationType type;
 
     @JsonbProperty("postal_address")
     @NotNull
     @Valid
     private AddressResponse postalAddress;
-
-    /**
-     * Проверяет, что annualTurnover не является положительной бесконечностью.
-     *
-     * @return true, если annualTurnover является бесконечностью, иначе false
-     */
-    @AssertTrue
-    public boolean isAnnualTurnover() {
-        return annualTurnover != Float.POSITIVE_INFINITY;
-    }
 }

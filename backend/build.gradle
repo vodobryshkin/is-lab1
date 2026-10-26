@@ -33,6 +33,9 @@ configurations {
     postgresDriver {
         transitive = false
     }
+    serverJacocoAgent {
+        transitive = false
+    }
 }
 
 java {
@@ -62,11 +65,35 @@ pmd {
     ruleSets = []
 }
 
+// Покрытие объединяет JUnit (test.exec) и прогон Hurl на сервере с агентом (hurl.exec).
+def coverageData = fileTree(layout.buildDirectory.dir('jacoco')).include('*.exec')
+
 jacocoTestReport {
+    executionData.setFrom(coverageData)
     reports {
         xml.required = true
         html.required = true
     }
+}
+
+jacocoTestCoverageVerification {
+    executionData.setFrom(coverageData)
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                minimum = 0.85
+            }
+            limit {
+                counter = 'BRANCH'
+                minimum = 0.85
+            }
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn jacocoTestCoverageVerification
 }
 
 tasks.withType(Pmd).configureEach {
@@ -83,6 +110,7 @@ dependencies {
         exclude group: 'jakarta.persistence', module: 'jakarta.persistence-api'
     }
     postgresDriver "org.postgresql:postgresql:${postgresqlVersion}"
+    serverJacocoAgent "org.jacoco:org.jacoco.agent:${jacoco.toolVersion}:runtime"
 
     implementation "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
@@ -107,4 +135,11 @@ tasks.register('preparePostgresDriver', Copy) {
     from configurations.postgresDriver
     into layout.buildDirectory.dir('server')
     rename { 'postgresql.jar' }
+}
+
+tasks.register('prepareJacocoAgent', Copy) {
+    description = 'Копирует JaCoCo-агент для запуска сервера при прогоне Hurl.'
+    from configurations.serverJacocoAgent
+    into layout.buildDirectory.dir('server')
+    rename { 'jacocoagent.jar' }
 }

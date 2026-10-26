@@ -55,24 +55,22 @@ public class UserService {
 
     /**
      * Создаёт пользователя с хешем пароля. Вход не выполняется.
-     * Одновременную регистрацию того же логина отклоняет уникальный индекс БД:
-     * тогда метод завершается {@code PersistenceException}.
+     * Занятый логин отклоняет уникальный индекс БД, в том числе при одновременной
+     * регистрации: тогда метод завершается {@code PersistenceException} и транзакция
+     * откатывается.
      *
      * @param username логин
      * @param password пароль
-     * @return ID нового пользователя или пустой результат, если логин занят
+     * @return ID нового пользователя
      */
     @Transactional
-    public Optional<Long> register(String username, String password) {
-        if (userRepository.findByUsername(username).isPresent()) {
-            return Optional.empty();
-        }
+    public Long register(String username, String password) {
         // Пустой список вместо null: иначе EclipseLink при commit загружает коллекцию
         // для общего кэша уже вне транзакции и ждёт повторов запроса около 10 секунд.
         User user = new User(null, username, passwordHash.generate(password.toCharArray()),
                 new ArrayList<>());
         userRepository.save(user);
-        return Optional.of(user.getId());
+        return user.getId();
     }
 
     /**

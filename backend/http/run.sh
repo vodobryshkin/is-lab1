@@ -13,6 +13,15 @@
 # Примеры:
 #   PGDATABASE=is_lab1_test PGUSER=is_lab1 sh http/run.sh
 #   sh http/run.sh http/auth/register_login_session_logout.hurl
+#
+# Покрытие кода сценариями Hurl (порог 85% в ./gradlew check считается вместе с JUnit):
+#   ./gradlew war preparePostgresDriver prepareJacocoAgent
+#   JAVA_OPTS="-javaagent:$PWD/build/server/jacocoagent.jar=destfile=$PWD/build/jacoco/hurl.exec,includes=com.github.vodobryshkin.*" \
+#           $WILDFLY_HOME/bin/standalone.sh
+#   sh http/run.sh
+#   $WILDFLY_HOME/bin/jboss-cli.sh -c --command=:shutdown   # агент пишет hurl.exec при остановке
+#   ./gradlew check jacocoTestReport
+# Между запуском сервера и check классы не пересобираются, иначе покрытие не сопоставится.
 set -eu
 
 script_dir=$(cd "$(dirname "$0")" && pwd)

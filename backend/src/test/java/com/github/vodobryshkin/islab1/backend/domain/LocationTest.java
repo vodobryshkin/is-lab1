@@ -1,179 +1,40 @@
 package com.github.vodobryshkin.islab1.backend.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertAll;
 
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validation;
-import jakarta.validation.ValidatorFactory;
-import java.util.Set;
+import com.github.vodobryshkin.islab1.backend.ConstraintViolations;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Тестовый класс для тестирования класса Location.
- *
- * @author vodobryshkin
- * @since 16.10.2026 8:34
+ * Проверяет обязательность координат локации.
  */
 class LocationTest {
-    @Test
-    void passes_correct_entity() {
-        // Arrange
-        Location sut = new Location(1L, 1, 1, 0L);
+    private final ConstraintViolations violations = new ConstraintViolations();
 
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            int actualSize = factory.getValidator().validate(sut).size();
-
-            // Assert
-            assertThat(actualSize)
-                    .as("Valid entity must not produce constraint violations.")
-                    .isEqualTo(0);
-        }
+    @AfterEach
+    void closeValidator() {
+        violations.close();
     }
 
     @Test
-    void rejects_id_which_is_zero() {
-        // Arrange
-        Location sut = new Location(0L, 1, 1, 0L);
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Location>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field id.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field id.")
-                            .isEqualTo("id")
-            );
-        }
+    void accepts_location_with_type_extremes() {
+        assertThat(violations.of(new Location(null, Integer.MIN_VALUE, Integer.MAX_VALUE, Long.MIN_VALUE)))
+                .isEmpty();
     }
 
     @Test
-    void rejects_id_which_equals_to_long_minimum() {
-        // Arrange
-        Location sut = new Location(Long.MIN_VALUE, 1, 1, 0L);
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Location>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field id.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field id.")
-                            .isEqualTo("id")
-            );
-        }
+    void rejects_missing_x() {
+        assertThat(violations.of(new Location(null, null, 0, 0L))).containsExactly("x NotNull");
     }
 
     @Test
-    void rejects_x_coordinate_which_is_null() {
-        // Arrange
-        Location sut = new Location(1L, null, 1, 0L);
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Location>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field x.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field x.")
-                            .isEqualTo("x")
-            );
-        }
+    void rejects_missing_y() {
+        assertThat(violations.of(new Location(null, 0, null, 0L))).containsExactly("y NotNull");
     }
 
     @Test
-    void rejects_y_coordinate_which_is_null() {
-        // Arrange
-        Location sut = new Location(1L, 1, null, 0L);
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Location>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field y.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field y.")
-                            .isEqualTo("y")
-            );
-        }
-    }
-
-    @Test
-    void rejects_z_coordinate_which_is_null() {
-        // Arrange
-        Location sut = new Location(1L, 1, 1, null);
-
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            // Act
-            Set<ConstraintViolation<Location>> violations =
-                    factory.getValidator().validate(sut);
-
-            int actualSize = violations.size();
-            String actualPropertyName = violations.stream()
-                    .map(violation -> violation.getPropertyPath().toString())
-                    .findFirst()
-                    .orElse(null);
-
-            // Assert
-            assertAll(
-                    () -> assertThat(actualSize)
-                            .as("Exactly one violation is expected for field z.")
-                            .isEqualTo(1),
-
-                    () -> assertThat(actualPropertyName)
-                            .as("The violation must refer to field z.")
-                            .isEqualTo("z")
-            );
-        }
+    void rejects_missing_z() {
+        assertThat(violations.of(new Location(null, 0, 0, null))).containsExactly("z NotNull");
     }
 }

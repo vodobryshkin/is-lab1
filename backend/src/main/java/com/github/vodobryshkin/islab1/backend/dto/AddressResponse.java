@@ -1,5 +1,6 @@
 package com.github.vodobryshkin.islab1.backend.dto;
 
+import jakarta.json.bind.annotation.JsonbNillable;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -23,6 +24,7 @@ public class AddressResponse {
     @NotBlank
     private String street;
 
+    @JsonbNillable
     @Valid
     private LocationResponse town;
 }

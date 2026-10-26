@@ -12,7 +12,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -50,6 +49,8 @@ public class Organization {
 
     @Column(name = "annual_turnover", nullable = false)
     @Positive
+    // +∞ недопустима; NaN, 0 и отрицательные значения отклоняет @Positive.
+    @DecimalMax("3.4028235E38")
     private float annualTurnover;    // Значение поля должно быть больше 0
 
     @Column(name = "employees_count", nullable = false)
@@ -76,14 +77,4 @@ public class Organization {
     @NotNull
     @Valid
     private Address postalAddress;   // Поле не может быть null
-
-    /**
-     * Проверяет, что annualTurnover не является положительной бесконечностью.
-     *
-     * @return true, если annualTurnover является бесконечностью, иначе false
-     */
-    @AssertTrue
-    public boolean isAnnualTurnover() {
-        return annualTurnover != Float.POSITIVE_INFINITY;
-    }
 }

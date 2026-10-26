@@ -13,7 +13,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.time.ZonedDateTime;
@@ -64,6 +64,8 @@ public class Person {
     @Column(name = "weight", nullable = false)
     @NotNull
     @Positive
+    // +∞ недопустима; NaN, 0 и отрицательные значения отклоняет @Positive.
+    @DecimalMax("3.4028235E38")
     private Float weight;                     // Поле не может быть null,
     // Значение поля должно быть больше 0
 
@@ -76,14 +78,4 @@ public class Person {
     @JoinColumn(name = "worker_id", unique = true)
     @Valid
     private Worker worker;
-
-    /**
-     * Проверяет, что weight не является положительной бесконечностью.
-     *
-     * @return true, если weight является бесконечностью, иначе false
-     */
-    @AssertTrue
-    public boolean isWeight() {
-        return weight == null || weight != Float.POSITIVE_INFINITY;
-    }
 }

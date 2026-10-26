@@ -2,13 +2,13 @@ package com.github.vodobryshkin.islab1.backend.dto;
 
 import com.github.vodobryshkin.islab1.backend.domain.Position;
 import com.github.vodobryshkin.islab1.backend.domain.Status;
+import jakarta.json.bind.annotation.JsonbNillable;
 import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
 import java.time.ZonedDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,7 +26,6 @@ public class WorkerResponse {
     @Positive
     private Integer id;
 
-    @Size(min = 1)
     @NotBlank
     private String name;
 
@@ -38,10 +37,13 @@ public class WorkerResponse {
     @NotNull
     private ZonedDateTime creationDate;
 
+    @JsonbNillable
     @Valid
     private OrganizationResponse organization;
 
     @Positive
+    // +∞ недопустима; NaN, 0 и отрицательные значения отклоняет @Positive.
+    @DecimalMax("1.7976931348623157E308")
     private double salary;
 
     @Positive
@@ -51,9 +53,12 @@ public class WorkerResponse {
     @NotNull
     private ZonedDateTime startDate;
 
+    @JsonbNillable
     private Position position;
+    @JsonbNillable
     private Status status;
 
+    @JsonbNillable
     @Valid
     private PersonResponse person;
 
@@ -61,14 +66,4 @@ public class WorkerResponse {
     @NotNull
     @Positive
     private Long creatorId;
-
-    /**
-     * Проверяет, что salary не является положительной бесконечностью.
-     *
-     * @return true, если salary является бесконечностью, иначе false
-     */
-    @AssertTrue
-    public boolean isSalary() {
-        return salary != Float.POSITIVE_INFINITY;
-    }
 }

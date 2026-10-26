@@ -73,12 +73,38 @@ jobs:
 
 
   coverage:
-    name: Code coverage
+    name: Hurl and code coverage
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: islab1
+          POSTGRES_PASSWORD: islab1-ci
+          POSTGRES_DB: islab1_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U islab1 -d islab1_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
 
     defaults:
       run:
         working-directory: backend
+
+    env:
+      WILDFLY_VERSION: 38.0.0.Final
+      HURL_VERSION: 8.0.1
+      PGHOST: localhost
+      PGUSER: islab1
+      PGPASSWORD: islab1-ci
+      PGDATABASE: islab1_test
+      IS_LAB1_DB_URL: jdbc:postgresql://localhost:5432/islab1_test
+      IS_LAB1_DB_USER: islab1
+      IS_LAB1_DB_PASSWORD: islab1-ci
 
     steps:
       - uses: actions/checkout@v4
@@ -89,8 +115,47 @@ jobs:
           distribution: temurin
           cache: gradle
 
-      - run: chmod +x gradlew
-      - run: ./gradlew test jacocoTestReport
+      - name: Install Hurl and WildFly
+        run: |
+          curl -sSLf -o "$RUNNER_TEMP/hurl.deb" \
+            "https://github.com/Orange-OpenSource/hurl/releases/download/$HURL_VERSION/hurl_${HURL_VERSION}_amd64.deb"
+          sudo apt-get install -y "$RUNNER_TEMP/hurl.deb"
+          curl -sSLf -o "$RUNNER_TEMP/wildfly.zip" \
+            "https://github.com/wildfly/wildfly/releases/download/$WILDFLY_VERSION/wildfly-$WILDFLY_VERSION.zip"
+          unzip -q "$RUNNER_TEMP/wildfly.zip" -d "$RUNNER_TEMP"
+          echo "WILDFLY_HOME=$RUNNER_TEMP/wildfly-$WILDFLY_VERSION" >> "$GITHUB_ENV"
+
+      - name: Build and configure the server
+        run: |
+          chmod +x gradlew
+          ./gradlew war preparePostgresDriver prepareJacocoAgent
+          "$WILDFLY_HOME/bin/jboss-cli.sh" --file=server/configure-wildfly.cli \
+            -Dpostgres.driver.path="$PWD/build/server/postgresql.jar"
+          psql -v ON_ERROR_STOP=1 -1 -f db/schema.sql
+          cp build/libs/backend-1.0-SNAPSHOT.war "$WILDFLY_HOME/standalone/deployments/backend.war"
+
+      - name: Start WildFly with the JaCoCo agent
+        run: |
+          JAVA_OPTS="-javaagent:$PWD/build/server/jacocoagent.jar=destfile=$PWD/build/jacoco/hurl.exec,includes=com.github.vodobryshkin.*" \
+            nohup "$WILDFLY_HOME/bin/standalone.sh" > wildfly.log 2>&1 &
+          for attempt in $(seq 1 60); do
+            [ -f "$WILDFLY_HOME/standalone/deployments/backend.war.deployed" ] && exit 0
+            [ -f "$WILDFLY_HOME/standalone/deployments/backend.war.failed" ] && break
+            sleep 2
+          done
+          cat wildfly.log
+          exit 1
+
+      - name: Run Hurl scenarios
+        run: sh http/run.sh
+
+      - name: Stop WildFly and write Hurl coverage
+        if: always()
+        run: |
+          "$WILDFLY_HOME/bin/jboss-cli.sh" -c --command=:shutdown || true
+
+      - name: Check coverage of JUnit and Hurl
+        run: ./gradlew check jacocoTestReport
 
       - uses: codecov/codecov-action@v5
         with:
