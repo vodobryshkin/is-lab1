@@ -2,6 +2,7 @@ package com.github.vodobryshkin.islab1.backend.service;
 
 import com.github.vodobryshkin.islab1.backend.domain.Coordinates;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
+import com.github.vodobryshkin.islab1.backend.events.EventSessions;
 import com.github.vodobryshkin.islab1.backend.repository.CoordinatesRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -15,20 +16,24 @@ import java.util.Optional;
 @ApplicationScoped
 public class CoordinatesService {
     private final CoordinatesRepository repository;
+    private final EventSessions events;
 
     /**
      * Создаёт сервис.
      *
      * @param repository хранилище координат
+     * @param events уведомление об изменениях после фиксации транзакции
      */
     @Inject
-    public CoordinatesService(CoordinatesRepository repository) {
+    public CoordinatesService(CoordinatesRepository repository, EventSessions events) {
         this.repository = repository;
+        this.events = events;
     }
 
     /** Нужен CDI для создания клиентского прокси; прикладной код его не вызывает. */
     protected CoordinatesService() {
         this.repository = null;
+        this.events = null;
     }
 
     /**
@@ -40,6 +45,7 @@ public class CoordinatesService {
     @Transactional
     public Long create(Coordinates coordinates) {
         repository.save(coordinates);
+        events.changed();
         return coordinates.getId();
     }
 
@@ -85,6 +91,7 @@ public class CoordinatesService {
         coordinates.ifPresent(found -> {
             found.setX(values.getX());
             found.setY(values.getY());
+            events.changed();
         });
         return coordinates.isPresent();
     }
@@ -106,6 +113,7 @@ public class CoordinatesService {
             return Outcome.IN_USE;
         }
         repository.delete(coordinates.get());
+        events.changed();
         return Outcome.DONE;
     }
 }

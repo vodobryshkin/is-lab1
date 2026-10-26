@@ -2,6 +2,7 @@ package com.github.vodobryshkin.islab1.backend.service;
 
 import com.github.vodobryshkin.islab1.backend.domain.Location;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
+import com.github.vodobryshkin.islab1.backend.events.EventSessions;
 import com.github.vodobryshkin.islab1.backend.repository.LocationRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -15,20 +16,24 @@ import java.util.Optional;
 @ApplicationScoped
 public class LocationService {
     private final LocationRepository repository;
+    private final EventSessions events;
 
     /**
      * Создаёт сервис.
      *
      * @param repository хранилище локаций
+     * @param events уведомление об изменениях после фиксации транзакции
      */
     @Inject
-    public LocationService(LocationRepository repository) {
+    public LocationService(LocationRepository repository, EventSessions events) {
         this.repository = repository;
+        this.events = events;
     }
 
     /** Нужен CDI для создания клиентского прокси; прикладной код его не вызывает. */
     protected LocationService() {
         this.repository = null;
+        this.events = null;
     }
 
     /**
@@ -40,6 +45,7 @@ public class LocationService {
     @Transactional
     public Long create(Location location) {
         repository.save(location);
+        events.changed();
         return location.getId();
     }
 
@@ -101,6 +107,7 @@ public class LocationService {
             found.setX(values.getX());
             found.setY(values.getY());
             found.setZ(values.getZ());
+            events.changed();
         });
         return location.isPresent();
     }
@@ -122,6 +129,7 @@ public class LocationService {
             return Outcome.IN_USE;
         }
         repository.delete(location.get());
+        events.changed();
         return Outcome.DONE;
     }
 }

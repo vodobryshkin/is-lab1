@@ -149,6 +149,9 @@ jobs:
       - name: Run Hurl scenarios
         run: sh http/run.sh
 
+      - name: Run WebSocket event tests
+        run: ./gradlew serverTest
+
       - name: Stop WildFly and write Hurl coverage
         if: always()
         run: |

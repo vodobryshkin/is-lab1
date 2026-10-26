@@ -6,9 +6,9 @@ import com.github.vodobryshkin.islab1.backend.domain.Organization;
 import com.github.vodobryshkin.islab1.backend.domain.Person;
 import com.github.vodobryshkin.islab1.backend.domain.Worker;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
+import com.github.vodobryshkin.islab1.backend.events.EventSessions;
 import com.github.vodobryshkin.islab1.backend.repository.CoordinatesRepository;
 import com.github.vodobryshkin.islab1.backend.repository.LocationRepository;
-import com.github.vodobryshkin.islab1.backend.repository.OrganizationRepository;
 import com.github.vodobryshkin.islab1.backend.repository.PersonRepository;
 import com.github.vodobryshkin.islab1.backend.repository.UserRepository;
 import com.github.vodobryshkin.islab1.backend.repository.WorkerRepository;
@@ -33,8 +33,8 @@ public class WorkerService {
     private final CoordinatesRepository coordinatesRepository;
     private final PersonRepository personRepository;
     private final LocationRepository locationRepository;
-    private final OrganizationRepository organizationRepository;
     private final OrganizationService organizationService;
+    private final EventSessions events;
 
     /**
      * Создаёт сервис.
@@ -44,21 +44,21 @@ public class WorkerService {
      * @param coordinatesRepository хранилище координат
      * @param personRepository хранилище персон
      * @param locationRepository хранилище локаций
-     * @param organizationRepository хранилище организаций
-     * @param organizationService проверка и создание новой организации
+     * @param organizationService поиск, проверка и создание организации
+     * @param events уведомление об изменениях после фиксации транзакции
      */
     @Inject
     public WorkerService(WorkerRepository repository, UserRepository userRepository,
             CoordinatesRepository coordinatesRepository, PersonRepository personRepository,
-            LocationRepository locationRepository, OrganizationRepository organizationRepository,
-            OrganizationService organizationService) {
+            LocationRepository locationRepository, OrganizationService organizationService,
+            EventSessions events) {
         this.repository = repository;
         this.userRepository = userRepository;
         this.coordinatesRepository = coordinatesRepository;
         this.personRepository = personRepository;
         this.locationRepository = locationRepository;
-        this.organizationRepository = organizationRepository;
         this.organizationService = organizationService;
+        this.events = events;
     }
 
     /** Нужен CDI для создания клиентского прокси; прикладной код его не вызывает. */
@@ -89,6 +89,7 @@ public class WorkerService {
         worker.setPerson(null);
         repository.save(worker);
         attach(worker, person);
+        events.changed();
         return new Change(Outcome.DONE, worker.getId().longValue(), null, null);
     }
 
@@ -129,6 +130,7 @@ public class WorkerService {
             target.setPerson(null);
         }
         attach(target, next);
+        events.changed();
         return new Change(Outcome.DONE, (long) id, null, null);
     }
 
@@ -150,6 +152,7 @@ public class WorkerService {
             return Outcome.IN_USE;
         }
         repository.delete(worker.get());
+        events.changed();
         return Outcome.DONE;
     }
 
@@ -207,7 +210,7 @@ public class WorkerService {
         if (organization.getId() == null) {
             return organizationService.refusal(organization);
         }
-        return organizationRepository.findById(organization.getId()).isPresent()
+        return organizationService.find(organization.getId()).isPresent()
                 ? Optional.empty()
                 : Optional.of(missing("organization", organization.getId()));
     }
@@ -254,7 +257,7 @@ public class WorkerService {
         if (organization == null || organization.getId() != null) {
             return organization == null
                     ? null
-                    : organizationRepository.findById(organization.getId()).orElseThrow();
+                    : organizationService.find(organization.getId()).orElseThrow();
         }
         organizationService.create(organization);
         return organization;

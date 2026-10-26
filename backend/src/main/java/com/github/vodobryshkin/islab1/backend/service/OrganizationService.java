@@ -4,6 +4,7 @@ import com.github.vodobryshkin.islab1.backend.domain.Address;
 import com.github.vodobryshkin.islab1.backend.domain.Location;
 import com.github.vodobryshkin.islab1.backend.domain.Organization;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
+import com.github.vodobryshkin.islab1.backend.events.EventSessions;
 import com.github.vodobryshkin.islab1.backend.repository.AddressRepository;
 import com.github.vodobryshkin.islab1.backend.repository.LocationRepository;
 import com.github.vodobryshkin.islab1.backend.repository.OrganizationRepository;
@@ -25,6 +26,7 @@ public class OrganizationService {
     private final OrganizationRepository repository;
     private final AddressRepository addressRepository;
     private final LocationRepository locationRepository;
+    private final EventSessions events;
 
     /**
      * Создаёт сервис.
@@ -32,13 +34,16 @@ public class OrganizationService {
      * @param repository хранилище организаций
      * @param addressRepository хранилище адресов
      * @param locationRepository хранилище локаций
+     * @param events уведомление об изменениях после фиксации транзакции
      */
     @Inject
     public OrganizationService(OrganizationRepository repository,
-            AddressRepository addressRepository, LocationRepository locationRepository) {
+            AddressRepository addressRepository, LocationRepository locationRepository,
+            EventSessions events) {
         this.repository = repository;
         this.addressRepository = addressRepository;
         this.locationRepository = locationRepository;
+        this.events = events;
     }
 
     /** Нужен CDI для создания клиентского прокси; прикладной код его не вызывает. */
@@ -46,6 +51,7 @@ public class OrganizationService {
         this.repository = null;
         this.addressRepository = null;
         this.locationRepository = null;
+        this.events = null;
     }
 
     /**
@@ -64,6 +70,7 @@ public class OrganizationService {
         organization.setOfficialAddress(persistOrFind(organization.getOfficialAddress()));
         organization.setPostalAddress(persistOrFind(organization.getPostalAddress()));
         repository.save(organization);
+        events.changed();
         return new Change(Outcome.DONE, organization.getId(), null, null);
     }
 
@@ -130,6 +137,7 @@ public class OrganizationService {
         target.setFullName(values.getFullName());
         target.setRating(values.getRating());
         target.setType(values.getType());
+        events.changed();
         return new Change(Outcome.DONE, null, null, null);
     }
 
@@ -149,6 +157,7 @@ public class OrganizationService {
             return Outcome.IN_USE;
         }
         repository.delete(organization.get());
+        events.changed();
         return Outcome.DONE;
     }
 

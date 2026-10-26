@@ -129,7 +129,20 @@ dependencies {
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags 'server'
+    }
+}
+
+tasks.register('serverTest', Test) {
+    description = 'Проверяет WebSocket-события на запущенном сервере (IS_LAB1_BASE_URL).'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'server'
+    }
+    outputs.upToDateWhen { false }
 }
 
 tasks.register('preparePostgresDriver', Copy) {

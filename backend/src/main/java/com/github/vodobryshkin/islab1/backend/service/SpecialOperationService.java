@@ -3,6 +3,7 @@ package com.github.vodobryshkin.islab1.backend.service;
 import com.github.vodobryshkin.islab1.backend.domain.Organization;
 import com.github.vodobryshkin.islab1.backend.domain.Status;
 import com.github.vodobryshkin.islab1.backend.domain.Worker;
+import com.github.vodobryshkin.islab1.backend.events.EventSessions;
 import com.github.vodobryshkin.islab1.backend.repository.OrganizationRepository;
 import com.github.vodobryshkin.islab1.backend.repository.WorkerRepository;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -23,23 +24,26 @@ public class SpecialOperationService {
 
     private final WorkerRepository workerRepository;
     private final OrganizationRepository organizationRepository;
+    private final EventSessions events;
 
     /**
      * Создаёт сервис.
      *
      * @param workerRepository хранилище работников
      * @param organizationRepository хранилище организаций
+     * @param events уведомление об изменениях после фиксации транзакции
      */
     @Inject
     public SpecialOperationService(WorkerRepository workerRepository,
-            OrganizationRepository organizationRepository) {
+            OrganizationRepository organizationRepository, EventSessions events) {
         this.workerRepository = workerRepository;
         this.organizationRepository = organizationRepository;
+        this.events = events;
     }
 
     /** Нужен CDI для создания клиентского прокси; прикладной код его не вызывает. */
     protected SpecialOperationService() {
-        this(null, null);
+        this(null, null, null);
     }
 
     /**
@@ -63,8 +67,13 @@ public class SpecialOperationService {
         if (organization.isEmpty()) {
             return Outcome.REFERENCE_NOT_FOUND;
         }
-        worker.get().setOrganization(organization.get());
-        worker.get().setStatus(Status.HIRED);
+        Worker target = worker.get();
+        if (target.getStatus() != Status.HIRED || target.getOrganization() == null
+                || !target.getOrganization().getId().equals(organizationId)) {
+            target.setOrganization(organization.get());
+            target.setStatus(Status.HIRED);
+            events.changed();
+        }
         return Outcome.DONE;
     }
 
@@ -93,7 +102,10 @@ public class SpecialOperationService {
             }
         }
         for (int i = 0; i < salaries.length; i++) {
-            workers.get(i).setSalary(salaries[i]);
+            if (Double.compare(workers.get(i).getSalary(), salaries[i]) != 0) {
+                workers.get(i).setSalary(salaries[i]);
+                events.changed();
+            }
         }
         return new Change(Outcome.DONE, (long) workers.size(), null, null);
     }

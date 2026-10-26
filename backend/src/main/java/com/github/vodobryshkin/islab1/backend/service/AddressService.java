@@ -3,6 +3,7 @@ package com.github.vodobryshkin.islab1.backend.service;
 import com.github.vodobryshkin.islab1.backend.domain.Address;
 import com.github.vodobryshkin.islab1.backend.domain.Location;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
+import com.github.vodobryshkin.islab1.backend.events.EventSessions;
 import com.github.vodobryshkin.islab1.backend.repository.AddressRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -17,23 +18,28 @@ import java.util.Optional;
 public class AddressService {
     private final AddressRepository repository;
     private final LocationService locationService;
+    private final EventSessions events;
 
     /**
      * Создаёт сервис.
      *
      * @param repository хранилище адресов
      * @param locationService локации
+     * @param events уведомление об изменениях после фиксации транзакции
      */
     @Inject
-    public AddressService(AddressRepository repository, LocationService locationService) {
+    public AddressService(AddressRepository repository, LocationService locationService,
+            EventSessions events) {
         this.repository = repository;
         this.locationService = locationService;
+        this.events = events;
     }
 
     /** Нужен CDI для создания клиентского прокси; прикладной код его не вызывает. */
     protected AddressService() {
         this.repository = null;
         this.locationService = null;
+        this.events = null;
     }
 
     /**
@@ -48,6 +54,7 @@ public class AddressService {
             return Optional.empty();
         }
         repository.save(address);
+        events.changed();
         return Optional.of(address.getId());
     }
 
@@ -99,6 +106,7 @@ public class AddressService {
             return Outcome.REFERENCE_NOT_FOUND;
         }
         address.get().setStreet(values.getStreet());
+        events.changed();
         return Outcome.DONE;
     }
 
@@ -118,6 +126,7 @@ public class AddressService {
             return Outcome.IN_USE;
         }
         repository.delete(address.get());
+        events.changed();
         return Outcome.DONE;
     }
 

@@ -3,6 +3,7 @@ package com.github.vodobryshkin.islab1.backend.service;
 import com.github.vodobryshkin.islab1.backend.domain.Location;
 import com.github.vodobryshkin.islab1.backend.domain.Person;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
+import com.github.vodobryshkin.islab1.backend.events.EventSessions;
 import com.github.vodobryshkin.islab1.backend.repository.PersonRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -19,23 +20,28 @@ import java.util.Optional;
 public class PersonService {
     private final PersonRepository repository;
     private final LocationService locationService;
+    private final EventSessions events;
 
     /**
      * Создаёт сервис.
      *
      * @param repository хранилище персон
      * @param locationService локации
+     * @param events уведомление об изменениях после фиксации транзакции
      */
     @Inject
-    public PersonService(PersonRepository repository, LocationService locationService) {
+    public PersonService(PersonRepository repository, LocationService locationService,
+            EventSessions events) {
         this.repository = repository;
         this.locationService = locationService;
+        this.events = events;
     }
 
     /** Нужен CDI для создания клиентского прокси; прикладной код его не вызывает. */
     protected PersonService() {
         this.repository = null;
         this.locationService = null;
+        this.events = null;
     }
 
     /**
@@ -53,6 +59,7 @@ public class PersonService {
         person.setLocation(location.get());
         person.setWorker(null);
         repository.save(person);
+        events.changed();
         return Optional.of(person.getId());
     }
 
@@ -112,6 +119,7 @@ public class PersonService {
         target.setBirthday(values.getBirthday());
         target.setWeight(values.getWeight());
         target.setNationality(values.getNationality());
+        events.changed();
         return Outcome.DONE;
     }
 
@@ -133,6 +141,7 @@ public class PersonService {
             return Outcome.IN_USE;
         }
         repository.delete(person.get());
+        events.changed();
         return Outcome.DONE;
     }
 }

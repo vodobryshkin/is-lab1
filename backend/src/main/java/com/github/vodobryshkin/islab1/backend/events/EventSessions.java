@@ -1,7 +1,11 @@
 package com.github.vodobryshkin.islab1.backend.events;
 
+import jakarta.annotation.Resource;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.servlet.http.HttpSession;
+import jakarta.transaction.Status;
+import jakarta.transaction.Synchronization;
+import jakarta.transaction.TransactionSynchronizationRegistry;
 import jakarta.websocket.CloseReason;
 import jakarta.websocket.Session;
 import java.io.IOException;
@@ -12,7 +16,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Открытые WebSocket-соединения вошедших пользователей и HTTP-сессии, в которых они
- * открыты. Отправки в одно соединение идут по очереди под его блокировкой: стандартный
+ * открыты, и уведомление {@code DATA_CHANGED} после фиксации изменяющей транзакции.
+ * Отправки в одно соединение идут по очереди под его блокировкой: стандартный
  * {@code RemoteEndpoint.Basic} не допускает одновременных отправок.
  */
 @ApplicationScoped
@@ -25,8 +30,41 @@ public class EventSessions {
             + "reconnect.\"}";
 
     private static final String LOCK = "lock";
+    private static final String DATA_CHANGED = "{\"type\":\"DATA_CHANGED\"}";
+
+    /** Ключ отметки «уведомление уже запланировано» в текущей JTA-транзакции. */
+    private static final Object PENDING = new Object();
 
     private final Map<Session, HttpSession> connections = new ConcurrentHashMap<>();
+
+    @Resource
+    private TransactionSynchronizationRegistry transactions;
+
+    /**
+     * Отмечает, что текущая транзакция изменила данные. После её фиксации все
+     * соединения получат одно {@code DATA_CHANGED}, сколько бы раз метод ни вызвали
+     * в этой транзакции; при откате уведомления нет. Вызывается сервисом, когда
+     * бизнес-сценарий действительно изменил данные.
+     */
+    public void changed() {
+        if (transactions.getResource(PENDING) != null) {
+            return;
+        }
+        transactions.putResource(PENDING, Boolean.TRUE);
+        transactions.registerInterposedSynchronization(new Synchronization() {
+            @Override
+            public void beforeCompletion() {
+                // Уведомление нужно только после результата транзакции.
+            }
+
+            @Override
+            public void afterCompletion(int status) {
+                if (status == Status.STATUS_COMMITTED) {
+                    connections.keySet().forEach(connection -> send(connection, DATA_CHANGED));
+                }
+            }
+        });
+    }
 
     /**
      * Регистрирует открытое соединение.
