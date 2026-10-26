@@ -14,7 +14,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Класс, который отвечает за представление географического адреса. Является JPA-сущностью.
@@ -24,6 +26,8 @@ import lombok.NoArgsConstructor;
  */
 @Entity
 @Table(name = "addresses")
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Address {

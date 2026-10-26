@@ -20,6 +20,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
@@ -41,6 +42,15 @@ public class RequestReader {
     private static final int MAX_PAGE_SIZE = 100;
     private static final String OUT_OF_RANGE = "OUT_OF_RANGE";
     private static final String FIELD = "Field ";
+    private static final String INVALID_TYPE = "INVALID_TYPE";
+
+    /** Код контракта и окончание описания для ограничений Jakarta Validation. */
+    private static final Map<String, List<String>> RULES = Map.of(
+            "NotNull", List.of("MUST_NOT_BE_NULL", " must not be null."),
+            "NotEmpty", List.of("MUST_NOT_BE_EMPTY", " must not be empty."),
+            "NotBlank", List.of("MUST_NOT_BE_EMPTY", " must not be empty."),
+            "Positive", List.of("MUST_BE_POSITIVE", " must be greater than zero."),
+            "Pattern", List.of("MUST_MATCH_PATTERN", " has an invalid format."));
 
     /** Для каждого поля в ответ попадает первое нарушение в этом порядке. */
     private static final List<String> CONSTRAINTS = List.of("NotNull", "NotEmpty", "NotBlank",
@@ -87,10 +97,10 @@ public class RequestReader {
                     "Request body must not be null.")));
         }
         if (!(json instanceof JsonObject object)) {
-            throw invalid(List.of(issue(BODY, "INVALID_TYPE",
+            throw invalid(List.of(issue(BODY, INVALID_TYPE,
                     "Request body must be a JSON object.")));
         }
-        return new Fields(object);
+        return new Fields(object, "", new ArrayList<>());
     }
 
     /**
@@ -155,7 +165,7 @@ public class RequestReader {
 
     private Long positiveLong(String raw, String name, List<ProblemDetails.Issue> issues) {
         if (!raw.matches("-?\\d+")) {
-            issues.add(issue(name, "INVALID_TYPE", name + " must be an integer."));
+            issues.add(issue(name, INVALID_TYPE, name + " must be an integer."));
             return null;
         }
         long value;
@@ -186,15 +196,111 @@ public class RequestReader {
         return new ProblemDetails.Issue(field, title, description);
     }
 
+    private int orderOf(ConstraintViolation<?> violation) {
+        return CONSTRAINTS.indexOf(constraintOf(violation));
+    }
+
+    private ProblemDetails.Issue toIssue(ConstraintViolation<?> violation) {
+        String field = violation.getPropertyPath().toString();
+        String constraint = constraintOf(violation);
+        List<String> rule =
+                RULES.getOrDefault(constraint, List.of(OUT_OF_RANGE, " is out of range."));
+        String title = "Min".equals(constraint)
+                ? "MUST_BE_GREATER_THAN_" + boundName(violation)
+                : rule.get(0);
+        String description = "Min".equals(constraint)
+                ? field + " must be greater than " + bound(violation) + "."
+                : field + rule.get(1);
+        boolean defaultMessage =
+                violation.getConstraintDescriptor().getMessageTemplate().startsWith("{");
+        return issue(field, title, defaultMessage ? description : violation.getMessage());
+    }
+
+    /** {@code @Min(-953)} означает «больше -954», как в ТЗ и контракте. */
+    private long bound(ConstraintViolation<?> violation) {
+        return ((Min) violation.getConstraintDescriptor().getAnnotation()).value() - 1;
+    }
+
+    private String boundName(ConstraintViolation<?> violation) {
+        long bound = bound(violation);
+        return bound < 0 ? "MINUS_" + -bound : String.valueOf(bound);
+    }
+
+    private String constraintOf(ConstraintViolation<?> violation) {
+        return violation.getConstraintDescriptor().getAnnotation().annotationType()
+                .getSimpleName();
+    }
+
     /**
      * Поля одного JSON-объекта тела; накапливает нарушения до вызова {@link #validate}.
      */
     public final class Fields {
         private final JsonObject json;
-        private final List<ProblemDetails.Issue> issues = new ArrayList<>();
+        private final String prefix;
+        private final List<ProblemDetails.Issue> issues;
 
-        private Fields(JsonObject json) {
+        private Fields(JsonObject json, String prefix, List<ProblemDetails.Issue> issues) {
             this.json = json;
+            this.prefix = prefix;
+            this.issues = issues;
+        }
+
+        /**
+         * Проверяет, есть ли поле в объекте.
+         *
+         * @param field имя поля
+         * @return {@code true}, если ключ присутствует, даже со значением {@code null}
+         */
+        public boolean has(String field) {
+            return json.containsKey(field);
+        }
+
+        /**
+         * Читает вложенный объект, который может быть {@code null}. Нарушения его полей
+         * получают имя с префиксом, например {@code town.x}.
+         *
+         * @param field имя поля
+         * @return поля вложенного объекта или {@code null}, если значение null или неверно
+         */
+        public Fields object(String field) {
+            JsonValue value = json.get(field);
+            if (value instanceof JsonObject object) {
+                return new Fields(object, name(field) + ".", issues);
+            }
+            if (value == null) {
+                issues.add(issue(name(field), "REQUIRED", FIELD + name(field) + " is required."));
+            } else if (value.getValueType() != JsonValue.ValueType.NULL) {
+                issues.add(issue(name(field), INVALID_TYPE,
+                        FIELD + name(field) + " must be an object or null."));
+            }
+            return null;
+        }
+
+        /**
+         * Читает положительный ID существующего объекта.
+         *
+         * @param field имя поля
+         * @return ID или {@code null}, если поле неверно
+         */
+        public Long id(String field) {
+            Long value = integer(field);
+            if (value != null && value <= 0) {
+                issues.add(issue(name(field), "MUST_BE_POSITIVE",
+                        name(field) + " must be greater than zero."));
+                return null;
+            }
+            return value;
+        }
+
+        /**
+         * Добавляет нарушение, которое проверил вызывающий код.
+         *
+         * @param field имя поля
+         * @param title код нарушения из контракта
+         * @param description описание
+         */
+        public void reject(String field, String title, String description) {
+            issues.add(issue(name(field), title, description));
         }
 
         /**
@@ -205,9 +311,9 @@ public class RequestReader {
          */
         public Fields allowOnly(String... allowed) {
             Set<String> names = Set.of(allowed);
-            json.keySet().stream().filter(name -> !names.contains(name)).sorted()
-                    .forEach(name -> issues.add(issue(name, "UNKNOWN_FIELD",
-                            FIELD + name + " is not supported.")));
+            json.keySet().stream().filter(key -> !names.contains(key)).sorted()
+                    .forEach(key -> issues.add(issue(name(key), "UNKNOWN_FIELD",
+                            FIELD + name(key) + " is not supported.")));
             return this;
         }
 
@@ -235,7 +341,7 @@ public class RequestReader {
         public Integer int32(String field) {
             Long value = integer(field);
             if (value != null && (value < Integer.MIN_VALUE || value > Integer.MAX_VALUE)) {
-                issues.add(issue(field, OUT_OF_RANGE, field + " must fit into int32."));
+                issues.add(issue(name(field), OUT_OF_RANGE, name(field) + " must fit into int32."));
                 return null;
             }
             return value == null ? null : value.intValue();
@@ -268,11 +374,11 @@ public class RequestReader {
                             violation.getPropertyPath().toString()))
                     .collect(Collectors.groupingBy(violation -> violation.getPropertyPath()
                                     .toString(), TreeMap::new,
-                            Collectors.minBy(Comparator.comparingInt(this::orderOf))))
+                            Collectors.minBy(Comparator.comparingInt(RequestReader.this::orderOf))))
                     .values()
                     .stream()
                     .flatMap(Optional::stream)
-                    .map(this::toIssue)
+                    .map(RequestReader.this::toIssue)
                     .forEach(issues::add);
             if (!issues.isEmpty()) {
                 throw invalid(issues);
@@ -289,7 +395,7 @@ public class RequestReader {
             try {
                 return number.longValueExact();
             } catch (ArithmeticException exception) {
-                issues.add(issue(field, OUT_OF_RANGE, field + " must fit into int64."));
+                issues.add(issue(name(field), OUT_OF_RANGE, name(field) + " must fit into int64."));
                 return null;
             }
         }
@@ -297,63 +403,23 @@ public class RequestReader {
         private JsonValue present(String field) {
             JsonValue value = json.get(field);
             if (value == null) {
-                issues.add(issue(field, "REQUIRED", FIELD + field + " is required."));
+                issues.add(issue(name(field), "REQUIRED", FIELD + name(field) + " is required."));
             } else if (value.getValueType() == JsonValue.ValueType.NULL) {
-                issues.add(issue(field, "MUST_NOT_BE_NULL",
-                        FIELD + field + " must not be null."));
+                issues.add(issue(name(field), "MUST_NOT_BE_NULL",
+                        FIELD + name(field) + " must not be null."));
             }
             return value;
         }
 
         private void invalidType(JsonValue value, String field, String expected) {
             if (value != null && value.getValueType() != JsonValue.ValueType.NULL) {
-                issues.add(issue(field, "INVALID_TYPE",
-                        FIELD + field + " must be " + expected + "."));
+                issues.add(issue(name(field), INVALID_TYPE,
+                        FIELD + name(field) + " must be " + expected + "."));
             }
         }
 
-        private int orderOf(ConstraintViolation<?> violation) {
-            return CONSTRAINTS.indexOf(constraintOf(violation));
-        }
-
-        private ProblemDetails.Issue toIssue(ConstraintViolation<?> violation) {
-            String field = violation.getPropertyPath().toString();
-            boolean defaultMessage =
-                    violation.getConstraintDescriptor().getMessageTemplate().startsWith("{");
-            String custom = defaultMessage ? null : violation.getMessage();
-            return switch (constraintOf(violation)) {
-                case "NotNull" -> violationIssue(field, "MUST_NOT_BE_NULL", custom,
-                        field + " must not be null.");
-                case "NotEmpty", "NotBlank" -> violationIssue(field, "MUST_NOT_BE_EMPTY", custom,
-                        field + " must not be empty.");
-                case "Positive" -> violationIssue(field, "MUST_BE_POSITIVE", custom,
-                        field + " must be greater than zero.");
-                case "Pattern" -> violationIssue(field, "MUST_MATCH_PATTERN", custom,
-                        field + " has an invalid format.");
-                case "Min" -> violationIssue(field, "MUST_BE_GREATER_THAN_" + boundName(violation),
-                        custom, field + " must be greater than " + bound(violation) + ".");
-                default -> violationIssue(field, OUT_OF_RANGE, custom, field + " is out of range.");
-            };
-        }
-
-        private ProblemDetails.Issue violationIssue(String field, String title, String custom,
-                String description) {
-            return new ProblemDetails.Issue(field, title, custom == null ? description : custom);
-        }
-
-        /** {@code @Min(-953)} означает «больше -954», как в ТЗ и контракте. */
-        private long bound(ConstraintViolation<?> violation) {
-            return ((Min) violation.getConstraintDescriptor().getAnnotation()).value() - 1;
-        }
-
-        private String boundName(ConstraintViolation<?> violation) {
-            long bound = bound(violation);
-            return bound < 0 ? "MINUS_" + -bound : String.valueOf(bound);
-        }
-
-        private String constraintOf(ConstraintViolation<?> violation) {
-            return violation.getConstraintDescriptor().getAnnotation().annotationType()
-                    .getSimpleName();
+        private String name(String field) {
+            return prefix + field;
         }
     }
 }
