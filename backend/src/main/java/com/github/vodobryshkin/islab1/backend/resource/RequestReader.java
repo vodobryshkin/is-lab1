@@ -18,11 +18,13 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -41,6 +43,7 @@ public class RequestReader {
     private static final int MAX_PAGE_SIZE = 100;
     private static final String OUT_OF_RANGE = "OUT_OF_RANGE";
     private static final String INVALID_TYPE = "INVALID_TYPE";
+    private static final Pattern SNAKE_CASE_BOUNDARY = Pattern.compile("([a-z0-9])([A-Z])");
 
     /** Код контракта и окончание описания для ограничений Jakarta Validation. */
     private static final Map<String, List<String>> RULES = Map.of(
@@ -217,7 +220,7 @@ public class RequestReader {
      */
     List<ProblemDetails.Issue> violations(Object value) {
         return validator.validate(value).stream()
-                .collect(Collectors.groupingBy(violation -> violation.getPropertyPath().toString(),
+                .collect(Collectors.groupingBy(this::fieldOf,
                         TreeMap::new, Collectors.minBy(Comparator.comparingInt(this::orderOf))))
                 .values()
                 .stream()
@@ -230,8 +233,17 @@ public class RequestReader {
         return CONSTRAINTS.indexOf(constraintOf(violation));
     }
 
+    /**
+     * Имя поля нарушения в JSON: путь свойств Java переводится в snake_case контракта,
+     * например {@code officialAddress.town.x} в {@code official_address.town.x}.
+     */
+    private String fieldOf(ConstraintViolation<?> violation) {
+        return SNAKE_CASE_BOUNDARY.matcher(violation.getPropertyPath().toString())
+                .replaceAll("$1_$2").toLowerCase(Locale.ROOT);
+    }
+
     private ProblemDetails.Issue toIssue(ConstraintViolation<?> violation) {
-        String field = violation.getPropertyPath().toString();
+        String field = fieldOf(violation);
         String constraint = constraintOf(violation);
         List<String> rule =
                 RULES.getOrDefault(constraint, List.of(OUT_OF_RANGE, " is out of range."));

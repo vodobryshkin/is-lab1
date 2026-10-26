@@ -1,6 +1,9 @@
 package com.github.vodobryshkin.islab1.backend.resource;
 
+import com.github.vodobryshkin.islab1.backend.domain.Address;
 import com.github.vodobryshkin.islab1.backend.domain.Location;
+import com.github.vodobryshkin.islab1.backend.domain.Organization;
+import com.github.vodobryshkin.islab1.backend.domain.OrganizationType;
 import com.github.vodobryshkin.islab1.backend.dto.ProblemDetails;
 import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
@@ -32,6 +35,7 @@ public final class RequestFields {
     private static final String INVALID_TYPE = "INVALID_TYPE";
     private static final String OUT_OF_RANGE = "OUT_OF_RANGE";
     private static final String ID_FIELD = "id";
+    private static final String MUTUALLY_EXCLUSIVE = "MUTUALLY_EXCLUSIVE";
 
     private final RequestReader reader;
     private final JsonObject json;
@@ -103,7 +107,7 @@ public final class RequestFields {
             return false;
         }
         if (List.of(newObjectFields).stream().anyMatch(json::containsKey)) {
-            add(ID_FIELD, "MUTUALLY_EXCLUSIVE", "Use either id or the fields of a new object.");
+            add(ID_FIELD, MUTUALLY_EXCLUSIVE, "Use either id or the fields of a new object.");
         }
         references.add(prefix);
         return true;
@@ -126,6 +130,49 @@ public final class RequestFields {
             return new Location(location.id(ID_FIELD), null, null, null);
         }
         return new Location(null, location.int32("x"), location.int32("y"), location.int64("z"));
+    }
+
+    /**
+     * Читает адрес в варианте контракта «новый адрес в {@code objectField} или ID
+     * существующего в {@code idField}». Нужно ровно одно из двух полей. У ссылки в результате
+     * задан только ID.
+     *
+     * @param objectField поле нового адреса {@code {street, town}}
+     * @param idField поле ID существующего адреса
+     * @return адрес или {@code null}, если поля неверны
+     */
+    public Address address(String objectField, String idField) {
+        if (json.containsKey(objectField) && json.containsKey(idField)) {
+            String description = "Use either " + objectField + " or " + idField + ".";
+            add(objectField, MUTUALLY_EXCLUSIVE, description);
+            add(idField, MUTUALLY_EXCLUSIVE, description);
+            return null;
+        }
+        if (json.containsKey(idField)) {
+            references.add(name(objectField) + ".");
+            return new Address(id(idField), null, null);
+        }
+        RequestFields address = object(objectField, false);
+        if (address == null) {
+            return null;
+        }
+        address.allowOnly("street", "town");
+        return new Address(null, address.string("street"), address.location("town", true));
+    }
+
+    /**
+     * Читает этот объект как организацию с вариантами адресов из {@link #address}.
+     *
+     * @return организация без ID
+     */
+    public Organization organization() {
+        allowOnly("official_address", "official_address_id", "annual_turnover", "employees_count",
+                "full_name", "rating", "type", "postal_address", "postal_address_id");
+        Float turnover = float32("annual_turnover");
+        return new Organization(null, address("official_address", "official_address_id"),
+                turnover == null ? 0 : turnover, int64("employees_count"), string("full_name"),
+                int32("rating"), enumValue("type", OrganizationType.class, true),
+                address("postal_address", "postal_address_id"));
     }
 
     /**

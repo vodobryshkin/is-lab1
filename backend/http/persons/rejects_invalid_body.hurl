@@ -62,6 +62,7 @@ jsonpath "$.errors[?(@.field == 'birthday')].title" contains "INVALID_DATE_TIME"
 jsonpath "$.errors[?(@.field == 'weight')].title" contains "MUST_BE_POSITIVE"
 jsonpath "$.errors[?(@.field == 'nationality')].title" contains "INVALID_ENUM_VALUE"
 jsonpath "$.errors[?(@.field == 'age')].title" contains "UNKNOWN_FIELD"
+jsonpath "$.errors" count == 7
 
 POST {{base_url}}/persons
 X-CSRF-Token: {{csrf}}

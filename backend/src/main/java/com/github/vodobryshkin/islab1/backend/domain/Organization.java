@@ -17,7 +17,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Класс, который отвечает за представление организации. Является JPA-сущностью.
@@ -27,6 +29,8 @@ import lombok.NoArgsConstructor;
  */
 @Entity
 @Table(name = "organizations")
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Organization {
