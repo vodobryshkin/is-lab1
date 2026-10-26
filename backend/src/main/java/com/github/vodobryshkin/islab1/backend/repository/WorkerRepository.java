@@ -127,6 +127,51 @@ public class WorkerRepository {
     }
 
     /**
+     * Считает работников с указанным статусом.
+     *
+     * @param status статус; {@code null} — работники без статуса
+     * @return количество
+     */
+    public long countByStatus(Status status) {
+        if (status == null) {
+            return entityManager.createQuery(
+                            "SELECT COUNT(w) FROM Worker w WHERE w.status IS NULL", Long.class)
+                    .getSingleResult();
+        }
+        return entityManager.createQuery(
+                        "SELECT COUNT(w) FROM Worker w WHERE w.status = :value", Long.class)
+                .setParameter("value", status)
+                .getSingleResult();
+    }
+
+    /**
+     * Считает работников, чей статус входит в список.
+     *
+     * @param statuses непустой список статусов
+     * @return количество; работники без статуса не учитываются
+     */
+    public long countByStatusIn(List<Status> statuses) {
+        return entityManager.createQuery(
+                        "SELECT COUNT(w) FROM Worker w WHERE w.status IN :statuses", Long.class)
+                .setParameter("statuses", statuses)
+                .getSingleResult();
+    }
+
+    /**
+     * Возвращает всех работников с рейтингом строго меньше порога, по возрастанию ID.
+     *
+     * @param rating порог
+     * @return работники с вложенными объектами; без совпадений — пустой список
+     */
+    public List<Worker> findByRatingLessThan(int rating) {
+        return entityManager.createQuery(
+                        "SELECT w FROM Worker w WHERE w.rating < :rating ORDER BY w.id",
+                        Worker.class)
+                .setParameter("rating", rating)
+                .getResultList();
+    }
+
+    /**
      * Проверяет, ссылается ли на работника персона.
      *
      * @param id ID работника

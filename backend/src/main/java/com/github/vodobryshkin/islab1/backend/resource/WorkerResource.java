@@ -1,10 +1,12 @@
 package com.github.vodobryshkin.islab1.backend.resource;
 
+import com.github.vodobryshkin.islab1.backend.domain.Status;
 import com.github.vodobryshkin.islab1.backend.domain.Worker;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
 import com.github.vodobryshkin.islab1.backend.dto.ProblemDetails;
 import com.github.vodobryshkin.islab1.backend.dto.WorkerResponse;
 import com.github.vodobryshkin.islab1.backend.service.Change;
+import com.github.vodobryshkin.islab1.backend.service.SpecialOperationService;
 import com.github.vodobryshkin.islab1.backend.service.WorkerService;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
@@ -19,6 +21,7 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -34,8 +37,9 @@ import java.util.Set;
 @RequestScoped
 @Produces(MediaType.APPLICATION_JSON)
 public class WorkerResource {
+    private static final String STATUS = "status";
     private static final Set<String> SORT_FIELDS = Set.of("id", "name", "salary", "rating",
-            "start_date", "creation_date", "position", "status", "organization_full_name",
+            "start_date", "creation_date", "position", STATUS, "organization_full_name",
             "organization_type", "organization_official_address_street",
             "organization_postal_address_street", "person_eye_color", "person_hair_color",
             "person_nationality");
@@ -43,8 +47,14 @@ public class WorkerResource {
     private static final String ORGANIZATION = "organization";
     private static final String PERSON = "person";
     private static final String MISSING = " does not exist.";
+    private static final String RATING_PARAMETER = "rating";
+    private static final String COUNT = "count";
+    private static final String NOT_INT32 = "Rating must be an int32 value.";
+    private static final String REQUIRED = "REQUIRED";
+    private static final String NULL = "null";
 
     private final WorkerService service;
+    private final SpecialOperationService specialOperations;
     private final RequestReader requestReader;
     private final RequestEntities entities;
 
@@ -52,20 +62,22 @@ public class WorkerResource {
      * Создаёт ресурс.
      *
      * @param service операции с работниками
+     * @param specialOperations специальные операции ТЗ
      * @param requestReader чтение запросов
      * @param entities сборка сущностей из полей запроса
      */
     @Inject
-    public WorkerResource(WorkerService service, RequestReader requestReader,
-            RequestEntities entities) {
+    public WorkerResource(WorkerService service, SpecialOperationService specialOperations,
+            RequestReader requestReader, RequestEntities entities) {
         this.service = service;
+        this.specialOperations = specialOperations;
         this.requestReader = requestReader;
         this.entities = entities;
     }
 
     /** Нужен CDI для прокси и Jakarta REST, который требует публичный конструктор. */
     public WorkerResource() {
-        this(null, null, null);
+        this(null, null, null, null);
     }
 
     /**
@@ -127,6 +139,51 @@ public class WorkerResource {
     }
 
     /**
+     * Считает работников с указанным статусом; {@code status=null} — без статуса.
+     *
+     * @param uriInfo параметр {@code status}
+     * @return 200 с количеством или 400 при неверном параметре
+     */
+    @GET
+    @Path("/count_by_status")
+    public Response countByStatus(@Context UriInfo uriInfo) {
+        String raw = uriInfo.getQueryParameters().getFirst(STATUS);
+        Status status = NULL.equals(raw) ? null : statusParameter(raw);
+        return Response.ok(Map.of(COUNT, specialOperations.countByStatus(status))).build();
+    }
+
+    /**
+     * Считает работников со статусом выше заданного; работники без статуса не учитываются.
+     *
+     * @param uriInfo параметр {@code status}
+     * @return 200 с количеством или 400 при неверном параметре
+     */
+    @GET
+    @Path("/count_by_status_greater_than")
+    public Response countByStatusGreaterThan(@Context UriInfo uriInfo) {
+        Status status =
+                statusParameter(uriInfo.getQueryParameters().getFirst(STATUS));
+        return Response.ok(Map.of(COUNT, specialOperations.countByStatusGreaterThan(status)))
+                .build();
+    }
+
+    /**
+     * Возвращает всех работников с рейтингом строго меньше порога, без страниц.
+     *
+     * @param uriInfo параметр {@code rating}
+     * @return 200 с массивом работников или 400 при неверном параметре
+     */
+    @GET
+    @Path("/rating_less_than")
+    public Response ratingLessThan(@Context UriInfo uriInfo) {
+        int rating = ratingParameter(uriInfo.getQueryParameters().getFirst(RATING_PARAMETER));
+        List<WorkerResponse> workers = specialOperations.findByRatingLessThan(rating).stream()
+                .map(WorkerResponse::new)
+                .toList();
+        return Response.ok(workers).build();
+    }
+
+    /**
      * Заменяет все поля и привязки работника.
      *
      * @param rawId ID из пути
@@ -172,6 +229,42 @@ public class WorkerResource {
     public record Created(long id,
             @JsonbNillable @JsonbProperty("organization_id") Long organizationId) {}
 
+    private Status statusParameter(String raw) {
+        if (raw == null) {
+            throw invalidParameter(STATUS, REQUIRED, "status is required.");
+        }
+        for (Status status : Status.values()) {
+            if (status.name().equals(raw)) {
+                return status;
+            }
+        }
+        throw invalidParameter(STATUS, "INVALID_ENUM_VALUE",
+                "The status value is not supported by this operation.");
+    }
+
+    /** Целое вне диапазона int32 — {@code OUT_OF_RANGE}, остальное нечисловое — тип. */
+    private int ratingParameter(String raw) {
+        if (raw == null) {
+            throw invalidParameter(RATING_PARAMETER, REQUIRED, "rating is required.");
+        }
+        if (!raw.matches("-?\\d+")) {
+            throw invalidParameter(RATING_PARAMETER, "INVALID_TYPE", NOT_INT32);
+        }
+        try {
+            return Integer.parseInt(raw);
+        } catch (NumberFormatException exception) {
+            throw new WebApplicationException(exception,
+                    invalidParameter(RATING_PARAMETER, "OUT_OF_RANGE", NOT_INT32).getResponse());
+        }
+    }
+
+    private WebApplicationException invalidParameter(String field, String title,
+            String description) {
+        return new WebApplicationException(new ProblemDetails("/problems/validation-failed",
+                "Invalid request parameters", 400, null,
+                List.of(new ProblemDetails.Issue(field, title, description))).toResponse());
+    }
+
     private Worker readWorker(String body, boolean update) {
         RequestFields fields = requestReader.read(body);
         return fields.validate(entities.worker(fields, update), "user", "creation_date");
@@ -187,7 +280,7 @@ public class WorkerResource {
         return Response.status(409)
                 .type(MediaType.APPLICATION_JSON_TYPE)
                 .entity(Map.of("type", "/problems/organization-name-already-exists",
-                        "title", "Organization name already exists", "status", 409,
+                        "title", "Organization name already exists", STATUS, 409,
                         "detail", "Another organization with this full_name already exists.",
                         "full_name", worker.getOrganization().getFullName()))
                 .build();
@@ -222,7 +315,7 @@ public class WorkerResource {
             String idField, long id) {
         return Response.status(status)
                 .type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(Map.of("type", type, "title", title, "status", status, "detail", detail,
+                .entity(Map.of("type", type, "title", title, STATUS, status, "detail", detail,
                         idField, id))
                 .build();
     }
