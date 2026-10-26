@@ -16,6 +16,8 @@
         <class>com.github.vodobryshkin.islab1.backend.domain.Worker</class>
         <class>com.github.vodobryshkin.islab1.backend.domain.ZonedDateTimeConverter</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
+        <!-- Без общего кэша чтение идёт из БД и видит изменения, сделанные мимо приложения. -->
+        <shared-cache-mode>NONE</shared-cache-mode>
 
         <properties>
             <!-- EclipseLink упакован в WAR: WildFly не должен подставлять встроенный Hibernate. -->

@@ -58,4 +58,10 @@ union AuthValidationIssue {
             | "MUST_NOT_BE_EMPTY" | "OUT_OF_RANGE" | "MUST_MATCH_PATTERN";
         description: string;
     },
+
+    body: {
+        field: "$";
+        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE";
+        description: string;
+    },
 }

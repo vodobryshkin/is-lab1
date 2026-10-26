@@ -11,7 +11,9 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Класс, который отвечает за представление координат. Встраивается в JPA-сущности.
@@ -21,6 +23,8 @@ import lombok.NoArgsConstructor;
  */
 @Entity
 @Table(name = "coordinates")
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Coordinates {

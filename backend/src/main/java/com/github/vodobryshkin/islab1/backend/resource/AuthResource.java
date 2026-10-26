@@ -42,7 +42,7 @@ public class AuthResource {
     private final UserService userService;
     private final CsrfProtection csrfProtection;
     private final SecurityContext securityContext;
-    private final CredentialsReader credentialsReader;
+    private final RequestReader requestReader;
 
     /**
      * Создаёт ресурс.
@@ -50,15 +50,15 @@ public class AuthResource {
      * @param userService пользователи
      * @param csrfProtection CSRF-токены сессии
      * @param securityContext контекст Jakarta Security
-     * @param credentialsReader чтение логина и пароля из тела запроса
+     * @param requestReader чтение тела запроса
      */
     @Inject
     public AuthResource(UserService userService, CsrfProtection csrfProtection,
-            SecurityContext securityContext, CredentialsReader credentialsReader) {
+            SecurityContext securityContext, RequestReader requestReader) {
         this.userService = userService;
         this.csrfProtection = csrfProtection;
         this.securityContext = securityContext;
-        this.credentialsReader = credentialsReader;
+        this.requestReader = requestReader;
     }
 
     /** Нужен CDI для прокси и Jakarta REST, который требует публичный конструктор. */
@@ -89,7 +89,7 @@ public class AuthResource {
     @Path("/register")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response register(String body) {
-        CredentialsRequest credentials = credentialsReader.read(body);
+        CredentialsRequest credentials = readCredentials(body);
         try {
             Long id = userService.register(credentials.getUsername(), credentials.getPassword());
             return Response.status(Response.Status.CREATED).entity(Map.of("id", id)).build();
@@ -122,7 +122,7 @@ public class AuthResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response login(String body, @Context HttpServletRequest request,
             @Context HttpServletResponse response) throws ServletException {
-        CredentialsRequest credentials = credentialsReader.read(body);
+        CredentialsRequest credentials = readCredentials(body);
         if (request.getUserPrincipal() != null) {
             request.logout();
         }
@@ -173,6 +173,12 @@ public class AuthResource {
         User user = userService.findByUsername(username).orElseThrow();
         Map<String, Object> body = Map.of("id", user.getId(), "username", user.getUsername());
         return Response.ok(body).cacheControl(noStore()).build();
+    }
+
+    private CredentialsRequest readCredentials(String body) {
+        RequestReader.Fields fields = requestReader.read(body);
+        return fields.validate(
+                new CredentialsRequest(fields.string("username"), fields.string("password")));
     }
 
     private boolean isUniqueViolation(Throwable exception) {

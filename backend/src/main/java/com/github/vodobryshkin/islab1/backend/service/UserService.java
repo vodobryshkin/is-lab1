@@ -6,7 +6,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.security.enterprise.identitystore.Pbkdf2PasswordHash;
 import jakarta.transaction.Transactional;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Optional;
 
@@ -65,10 +64,7 @@ public class UserService {
      */
     @Transactional
     public Long register(String username, String password) {
-        // Пустой список вместо null: иначе EclipseLink при commit загружает коллекцию
-        // для общего кэша уже вне транзакции и ждёт повторов запроса около 10 секунд.
-        User user = new User(null, username, passwordHash.generate(password.toCharArray()),
-                new ArrayList<>());
+        User user = new User(null, username, passwordHash.generate(password.toCharArray()), null);
         userRepository.save(user);
         return user.getId();
     }
