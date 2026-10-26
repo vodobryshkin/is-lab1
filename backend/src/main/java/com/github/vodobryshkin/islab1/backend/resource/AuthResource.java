@@ -3,6 +3,7 @@ package com.github.vodobryshkin.islab1.backend.resource;
 import com.github.vodobryshkin.islab1.backend.domain.User;
 import com.github.vodobryshkin.islab1.backend.dto.CredentialsRequest;
 import com.github.vodobryshkin.islab1.backend.dto.ProblemDetails;
+import com.github.vodobryshkin.islab1.backend.events.EventSessions;
 import com.github.vodobryshkin.islab1.backend.security.CsrfProtection;
 import com.github.vodobryshkin.islab1.backend.service.UserService;
 import jakarta.enterprise.context.RequestScoped;
@@ -43,6 +44,7 @@ public class AuthResource {
     private final CsrfProtection csrfProtection;
     private final SecurityContext securityContext;
     private final RequestReader requestReader;
+    private final EventSessions eventSessions;
 
     /**
      * Создаёт ресурс.
@@ -51,19 +53,22 @@ public class AuthResource {
      * @param csrfProtection CSRF-токены сессии
      * @param securityContext контекст Jakarta Security
      * @param requestReader чтение тела запроса
+     * @param eventSessions WebSocket-соединения, завершаемые вместе со входом
      */
     @Inject
     public AuthResource(UserService userService, CsrfProtection csrfProtection,
-            SecurityContext securityContext, RequestReader requestReader) {
+            SecurityContext securityContext, RequestReader requestReader,
+            EventSessions eventSessions) {
         this.userService = userService;
         this.csrfProtection = csrfProtection;
         this.securityContext = securityContext;
         this.requestReader = requestReader;
+        this.eventSessions = eventSessions;
     }
 
     /** Нужен CDI для прокси и Jakarta REST, который требует публичный конструктор. */
     public AuthResource() {
-        this(null, null, null, null);
+        this(null, null, null, null, null);
     }
 
     /**
@@ -110,6 +115,7 @@ public class AuthResource {
      * <p>Прежний вход сессии завершается до проверки: {@code @AutoApplySession} в Soteria
      * восстанавливает сохранённого пользователя без вызова механизма даже при
      * {@code newAuthentication(true)}, и тогда любой пароль считался бы верным.
+     * WebSocket-соединения прежнего входа закрываются с {@code SESSION_ENDED}.
      *
      * @param body тело запроса
      * @param request текущий запрос
@@ -124,6 +130,7 @@ public class AuthResource {
             @Context HttpServletResponse response) throws ServletException {
         CredentialsRequest credentials = readCredentials(body);
         if (request.getUserPrincipal() != null) {
+            eventSessions.end(request.getSession());
             request.logout();
         }
         AuthenticationStatus status = securityContext.authenticate(request, response,
@@ -155,7 +162,9 @@ public class AuthResource {
 
     /**
      * Завершает вход и инвалидирует сессию вместе с CSRF-токеном. Cookie с
-     * {@code Max-Age=0} при инвалидации отправляет сам контейнер.
+     * {@code Max-Age=0} при инвалидации отправляет сам контейнер. WebSocket-соединения
+     * сессии закрываются с {@code SESSION_ENDED} до сброса входа: иначе контейнер закрыл
+     * бы их сам кодом 1008 без сообщения контракта.
      *
      * @param request текущий запрос
      * @return 204
@@ -164,6 +173,7 @@ public class AuthResource {
     @POST
     @Path("/logout")
     public Response logout(@Context HttpServletRequest request) throws ServletException {
+        eventSessions.end(request.getSession());
         request.logout();
         request.getSession().invalidate();
         return Response.noContent().cacheControl(noStore()).build();
