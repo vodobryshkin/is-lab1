@@ -6,6 +6,7 @@ import com.github.vodobryshkin.islab1.backend.dto.OrganizationResponse;
 import com.github.vodobryshkin.islab1.backend.dto.ProblemDetails;
 import com.github.vodobryshkin.islab1.backend.service.Change;
 import com.github.vodobryshkin.islab1.backend.service.OrganizationService;
+import com.github.vodobryshkin.islab1.backend.service.SpecialOperationService;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
@@ -36,8 +37,10 @@ public class OrganizationResource {
             "official_address_street", "postal_address_street");
 
     private static final String ADDRESS = "address";
+    private static final String COEFFICIENT = "coefficient";
 
     private final OrganizationService service;
+    private final SpecialOperationService specialOperations;
     private final RequestReader requestReader;
     private final RequestEntities entities;
 
@@ -45,20 +48,23 @@ public class OrganizationResource {
      * Создаёт ресурс.
      *
      * @param service операции с организациями
+     * @param specialOperations специальные операции ТЗ
      * @param requestReader чтение запросов
      * @param entities сборка сущностей из полей запроса
      */
     @Inject
-    public OrganizationResource(OrganizationService service, RequestReader requestReader,
+    public OrganizationResource(OrganizationService service,
+            SpecialOperationService specialOperations, RequestReader requestReader,
             RequestEntities entities) {
         this.service = service;
+        this.specialOperations = specialOperations;
         this.requestReader = requestReader;
         this.entities = entities;
     }
 
     /** Нужен CDI для прокси и Jakarta REST, который требует публичный конструктор. */
     public OrganizationResource() {
-        this(null, null, null);
+        this(null, null, null, null);
     }
 
     /**
@@ -133,6 +139,36 @@ public class OrganizationResource {
             case NOT_FOUND -> notFound(id);
             case CONFLICT -> nameTaken(values);
             default -> referenceNotFound(change);
+        };
+    }
+
+    /**
+     * Умножает зарплаты всех работников организации на положительный коэффициент.
+     *
+     * @param rawId ID из пути
+     * @param body тело запроса с {@code coefficient}
+     * @return 200 с числом работников, 404 без организации или 409, если новая зарплата
+     *     вышла бы за допустимые пределы
+     */
+    @POST
+    @Path("/{id}/index_salaries")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response indexSalaries(@PathParam("id") String rawId, String body) {
+        long id = requestReader.id(rawId);
+        RequestFields fields = requestReader.read(body).allowOnly(COEFFICIENT);
+        Double coefficient = fields.float64(COEFFICIENT);
+        if (coefficient != null && coefficient <= 0) {
+            fields.reject(COEFFICIENT, "MUST_BE_POSITIVE",
+                    "Coefficient must be greater than zero.");
+        }
+        Change change = specialOperations.indexSalaries(id, fields.validate(coefficient));
+        return switch (change.outcome()) {
+            case DONE -> Response.ok(Map.of("count", change.id())).build();
+            case CONFLICT -> problem(409, "/problems/salary-indexation-conflict",
+                    "Salary indexation conflict",
+                    "Indexation would produce a salary outside the allowed range.",
+                    "organization_id", id);
+            default -> notFound(id);
         };
     }
 

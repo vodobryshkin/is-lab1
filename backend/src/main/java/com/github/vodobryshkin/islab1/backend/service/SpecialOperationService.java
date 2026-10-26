@@ -69,6 +69,36 @@ public class SpecialOperationService {
     }
 
     /**
+     * Умножает зарплаты всех работников организации на коэффициент в одной транзакции.
+     * Сначала вычисляются все новые зарплаты; если хотя бы одна перестала быть
+     * конечной и положительной (переполнение или потеря точности до нуля), ни одна
+     * зарплата не меняется.
+     *
+     * @param organizationId ID организации
+     * @param coefficient положительный конечный коэффициент
+     * @return {@code DONE} с числом проиндексированных работников в {@code id} (0 для
+     *     организации без работников), {@code NOT_FOUND} или {@code CONFLICT}
+     */
+    @Transactional
+    public Change indexSalaries(long organizationId, double coefficient) {
+        if (organizationRepository.findById(organizationId).isEmpty()) {
+            return new Change(Outcome.NOT_FOUND, null, null, null);
+        }
+        List<Worker> workers = workerRepository.findByOrganizationForUpdate(organizationId);
+        double[] salaries = new double[workers.size()];
+        for (int i = 0; i < salaries.length; i++) {
+            salaries[i] = workers.get(i).getSalary() * coefficient;
+            if (salaries[i] <= 0 || Double.isInfinite(salaries[i])) {
+                return new Change(Outcome.CONFLICT, null, null, null);
+            }
+        }
+        for (int i = 0; i < salaries.length; i++) {
+            workers.get(i).setSalary(salaries[i]);
+        }
+        return new Change(Outcome.DONE, (long) workers.size(), null, null);
+    }
+
+    /**
      * Считает работников с указанным статусом.
      *
      * @param status статус; {@code null} — работники без статуса

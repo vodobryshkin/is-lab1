@@ -9,6 +9,7 @@ import com.github.vodobryshkin.islab1.backend.domain.Worker;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import java.util.List;
@@ -168,6 +169,23 @@ public class WorkerRepository {
                         "SELECT w FROM Worker w WHERE w.rating < :rating ORDER BY w.id",
                         Worker.class)
                 .setParameter("rating", rating)
+                .getResultList();
+    }
+
+    /**
+     * Возвращает работников организации и блокирует их строки до конца транзакции,
+     * чтобы одновременное изменение не потерялось. Порядок по ID одинаков для всех
+     * транзакций и не даёт им заблокировать друг друга по кругу.
+     *
+     * @param organizationId ID организации
+     * @return работники организации; без работников — пустой список
+     */
+    public List<Worker> findByOrganizationForUpdate(long organizationId) {
+        return entityManager.createQuery(
+                        "SELECT w FROM Worker w WHERE w.organization.id = :id ORDER BY w.id",
+                        Worker.class)
+                .setParameter("id", organizationId)
+                .setLockMode(LockModeType.PESSIMISTIC_WRITE)
                 .getResultList();
     }
 
