@@ -6,6 +6,7 @@ import com.github.vodobryshkin.islab1.backend.domain.Person;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import java.util.List;
@@ -49,6 +50,18 @@ public class PersonRepository {
      */
     public Optional<Person> findById(long id) {
         return Optional.ofNullable(entityManager.find(Person.class, id));
+    }
+
+    /**
+     * Ищет персону и блокирует её строку до конца транзакции, чтобы одновременные
+     * запросы не привязали одну персону к двум работникам.
+     *
+     * @param id ID персоны
+     * @return персона или пустой результат
+     */
+    public Optional<Person> findByIdForUpdate(long id) {
+        return Optional.ofNullable(
+                entityManager.find(Person.class, id, LockModeType.PESSIMISTIC_WRITE));
     }
 
     /**

@@ -172,13 +172,13 @@ public class OrganizationResource {
 
     /** У {@code address-not-found} в контракте нет поля с ID, у локации оно есть. */
     private Response referenceNotFound(Change change) {
-        if (ADDRESS.equals(change.missingType())) {
+        if (ADDRESS.equals(change.subject())) {
             return new ProblemDetails(404, "/problems/address-not-found", "Address not found",
-                    "Address with id=" + change.missingId() + " does not exist.").toResponse();
+                    "Address with id=" + change.subjectId() + " does not exist.").toResponse();
         }
         return problem(404, "/problems/location-not-found", "Location not found",
-                "Location with id=" + change.missingId() + " does not exist.", "location_id",
-                change.missingId());
+                "Location with id=" + change.subjectId() + " does not exist.", "location_id",
+                change.subjectId());
     }
 
     private Response nameTaken(Organization organization) {

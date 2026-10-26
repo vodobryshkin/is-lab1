@@ -5,9 +5,10 @@ package com.github.vodobryshkin.islab1.backend.service;
  *
  * @param outcome итог
  * @param id ID созданного объекта при успешном создании, иначе {@code null}
- * @param missingType вид ненайденного объекта, например {@code "address"},
- *     при {@link Outcome#REFERENCE_NOT_FOUND}, иначе {@code null}
- * @param missingId ID ненайденного объекта или {@code null}
+ * @param subject вид объекта, из-за которого изменение отклонено, например
+ *     {@code "address"} при {@link Outcome#REFERENCE_NOT_FOUND} или {@code "person"}
+ *     при {@link Outcome#CONFLICT}; иначе {@code null}
+ * @param subjectId ID этого объекта или {@code null}
  */
-public record Change(Outcome outcome, Long id, String missingType, Long missingId) {
+public record Change(Outcome outcome, Long id, String subject, Long subjectId) {
 }

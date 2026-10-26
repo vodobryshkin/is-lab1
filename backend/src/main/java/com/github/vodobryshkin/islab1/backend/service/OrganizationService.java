@@ -57,12 +57,9 @@ public class OrganizationService {
      */
     @Transactional
     public Change create(Organization organization) {
-        Optional<Change> missing = missingReference(organization);
-        if (missing.isPresent()) {
-            return missing.get();
-        }
-        if (repository.findByFullName(organization.getFullName()).isPresent()) {
-            return new Change(Outcome.CONFLICT, null, null, null);
+        Optional<Change> refusal = refusal(organization);
+        if (refusal.isPresent()) {
+            return refusal.get();
         }
         organization.setOfficialAddress(persistOrFind(organization.getOfficialAddress()));
         organization.setPostalAddress(persistOrFind(organization.getPostalAddress()));
@@ -153,6 +150,24 @@ public class OrganizationService {
         }
         repository.delete(organization.get());
         return Outcome.DONE;
+    }
+
+    /**
+     * Проверяет новую организацию без записи в БД: ссылки на адреса и локации
+     * и занятость полного названия.
+     *
+     * @param organization новая организация
+     * @return {@code REFERENCE_NOT_FOUND} с недостающей ссылкой, {@code CONFLICT}
+     *     с видом {@code "organization"} или пустой результат, если создать можно
+     */
+    public Optional<Change> refusal(Organization organization) {
+        Optional<Change> missing = missingReference(organization);
+        if (missing.isPresent()) {
+            return missing;
+        }
+        return repository.findByFullName(organization.getFullName()).isPresent()
+                ? Optional.of(new Change(Outcome.CONFLICT, null, "organization", null))
+                : Optional.empty();
     }
 
     /** Первая ссылка на несуществующий адрес или локацию нового адреса. */
