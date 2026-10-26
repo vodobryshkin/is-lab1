@@ -2,12 +2,14 @@ package com.github.vodobryshkin.islab1.backend.dto;
 
 import com.github.vodobryshkin.islab1.backend.domain.Color;
 import com.github.vodobryshkin.islab1.backend.domain.Country;
+import com.github.vodobryshkin.islab1.backend.domain.Person;
 import jakarta.json.bind.annotation.JsonbNillable;
 import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -47,4 +49,16 @@ public class PersonResponse {
 
     @NotNull
     private Country nationality;
+
+    /**
+     * Создаёт ответ из сохранённой персоны с её локацией; день рождения — в UTC.
+     *
+     * @param person персона
+     */
+    public PersonResponse(Person person) {
+        this(person.getId(), person.getEyeColor(), person.getHairColor(),
+                new LocationResponse(person.getLocation()),
+                person.getBirthday().withZoneSameInstant(ZoneOffset.UTC), person.getWeight(),
+                person.getNationality());
+    }
 }

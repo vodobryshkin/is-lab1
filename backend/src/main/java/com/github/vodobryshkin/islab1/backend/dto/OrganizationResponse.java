@@ -1,5 +1,6 @@
 package com.github.vodobryshkin.islab1.backend.dto;
 
+import com.github.vodobryshkin.islab1.backend.domain.Organization;
 import com.github.vodobryshkin.islab1.backend.domain.OrganizationType;
 import jakarta.json.bind.annotation.JsonbNillable;
 import jakarta.json.bind.annotation.JsonbProperty;
@@ -55,4 +56,16 @@ public class OrganizationResponse {
     @NotNull
     @Valid
     private AddressResponse postalAddress;
+
+    /**
+     * Создаёт ответ из сохранённой организации с адресами и их локациями.
+     *
+     * @param organization организация
+     */
+    public OrganizationResponse(Organization organization) {
+        this(organization.getId(), new AddressResponse(organization.getOfficialAddress()),
+                organization.getAnnualTurnover(), organization.getEmployeesCount(),
+                organization.getFullName(), organization.getRating(), organization.getType(),
+                new AddressResponse(organization.getPostalAddress()));
+    }
 }

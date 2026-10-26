@@ -112,10 +112,28 @@ public class RequestReader {
      * @throws WebApplicationException 400 с нарушением параметра {@code id}
      */
     public long id(String raw) {
+        return checkedId(raw, Long.MAX_VALUE, "/problems/validation-failed",
+                "Invalid request parameters");
+    }
+
+    /**
+     * Проверяет ID работника из пути: в контракте это int32 с отдельным типом ошибки.
+     *
+     * @param raw значение из пути
+     * @return положительный ID
+     * @throws WebApplicationException 400 {@code /problems/invalid-worker-id}
+     */
+    public int workerId(String raw) {
+        return (int) checkedId(raw, Integer.MAX_VALUE, "/problems/invalid-worker-id",
+                "Invalid worker ID");
+    }
+
+    private long checkedId(String raw, long max, String type, String title) {
         List<ProblemDetails.Issue> issues = new ArrayList<>();
-        Long id = positiveLong(raw, "id", issues);
+        Long id = positiveLong(raw, "id", max, issues);
         if (!issues.isEmpty()) {
-            throw invalidParameters(issues);
+            throw new WebApplicationException(
+                    new ProblemDetails(type, title, 400, null, issues).toResponse());
         }
         return id;
     }
@@ -144,10 +162,7 @@ public class RequestReader {
     private long number(MultivaluedMap<String, String> parameters, String name, long fallback,
             long max, List<ProblemDetails.Issue> issues) {
         String raw = parameters.getFirst(name);
-        Long value = raw == null ? Long.valueOf(fallback) : positiveLong(raw, name, issues);
-        if (value != null && value > max) {
-            issues.add(issue(name, OUT_OF_RANGE, name + " must not exceed " + max + "."));
-        }
+        Long value = raw == null ? Long.valueOf(fallback) : positiveLong(raw, name, max, issues);
         return value == null ? fallback : value;
     }
 
@@ -164,7 +179,8 @@ public class RequestReader {
         return value;
     }
 
-    private Long positiveLong(String raw, String name, List<ProblemDetails.Issue> issues) {
+    private Long positiveLong(String raw, String name, long max,
+            List<ProblemDetails.Issue> issues) {
         if (!raw.matches("-?\\d+")) {
             issues.add(issue(name, INVALID_TYPE, name + " must be an integer."));
             return null;
@@ -178,6 +194,10 @@ public class RequestReader {
         }
         if (value <= 0) {
             issues.add(issue(name, "MUST_BE_POSITIVE", name + " must be greater than zero."));
+            return null;
+        }
+        if (value > max) {
+            issues.add(issue(name, OUT_OF_RANGE, name + " must not exceed " + max + "."));
             return null;
         }
         return value;

@@ -2,7 +2,6 @@ package com.github.vodobryshkin.islab1.backend.resource;
 
 import com.github.vodobryshkin.islab1.backend.domain.Person;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
-import com.github.vodobryshkin.islab1.backend.dto.LocationResponse;
 import com.github.vodobryshkin.islab1.backend.dto.PersonResponse;
 import com.github.vodobryshkin.islab1.backend.service.PersonService;
 import jakarta.enterprise.context.RequestScoped;
@@ -19,7 +18,6 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -96,7 +94,7 @@ public class PersonResource {
     public Response get(@PathParam("id") String rawId) {
         long id = requestReader.id(rawId);
         return service.find(id)
-                .map(person -> Response.ok(toResponse(person)).build())
+                .map(person -> Response.ok(new PersonResponse(person)).build())
                 .orElseGet(() -> notFound(id));
     }
 
@@ -111,7 +109,7 @@ public class PersonResource {
         Map<String, List<String>> filters = uriInfo.getQueryParameters();
         ListQuery query = requestReader.listQuery(uriInfo.getQueryParameters(), SORT_FIELDS);
         List<PersonResponse> items =
-                service.findPage(query, filters).stream().map(this::toResponse).toList();
+                service.findPage(query, filters).stream().map(PersonResponse::new).toList();
         return Response.ok(Map.of("items", items, "page", query.page(),
                 "page_size", query.pageSize(), "total_items", service.count(filters))).build();
     }
@@ -163,13 +161,6 @@ public class PersonResource {
     }
 
     /** Дата рождения отдаётся в UTC, как {@code utcDateTime} контракта. */
-    private PersonResponse toResponse(Person person) {
-        return new PersonResponse(person.getId(), person.getEyeColor(), person.getHairColor(),
-                new LocationResponse(person.getLocation()),
-                person.getBirthday().withZoneSameInstant(ZoneOffset.UTC), person.getWeight(),
-                person.getNationality());
-    }
-
     private Response notFound(long id) {
         return problem(404, "/problems/person-not-found", "Person not found",
                 "Person with id=" + id + " does not exist.", "person_id", id);

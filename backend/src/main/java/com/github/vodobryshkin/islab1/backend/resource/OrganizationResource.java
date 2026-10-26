@@ -1,7 +1,6 @@
 package com.github.vodobryshkin.islab1.backend.resource;
 
 import com.github.vodobryshkin.islab1.backend.domain.Organization;
-import com.github.vodobryshkin.islab1.backend.dto.AddressResponse;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
 import com.github.vodobryshkin.islab1.backend.dto.OrganizationResponse;
 import com.github.vodobryshkin.islab1.backend.dto.ProblemDetails;
@@ -95,7 +94,7 @@ public class OrganizationResource {
     public Response get(@PathParam("id") String rawId) {
         long id = requestReader.id(rawId);
         return service.find(id)
-                .map(organization -> Response.ok(toResponse(organization)).build())
+                .map(organization -> Response.ok(new OrganizationResponse(organization)).build())
                 .orElseGet(() -> notFound(id));
     }
 
@@ -110,7 +109,7 @@ public class OrganizationResource {
         Map<String, List<String>> filters = uriInfo.getQueryParameters();
         ListQuery query = requestReader.listQuery(uriInfo.getQueryParameters(), SORT_FIELDS);
         List<OrganizationResponse> items =
-                service.findPage(query, filters).stream().map(this::toResponse).toList();
+                service.findPage(query, filters).stream().map(OrganizationResponse::new).toList();
         return Response.ok(Map.of("items", items, "page", query.page(),
                 "page_size", query.pageSize(), "total_items", service.count(filters))).build();
     }
@@ -160,14 +159,6 @@ public class OrganizationResource {
     private Organization readOrganization(String body) {
         RequestFields fields = requestReader.read(body);
         return fields.validate(entities.organization(fields));
-    }
-
-    private OrganizationResponse toResponse(Organization organization) {
-        return new OrganizationResponse(organization.getId(),
-                new AddressResponse(organization.getOfficialAddress()),
-                organization.getAnnualTurnover(), organization.getEmployeesCount(),
-                organization.getFullName(), organization.getRating(), organization.getType(),
-                new AddressResponse(organization.getPostalAddress()));
     }
 
     /** У {@code address-not-found} в контракте нет поля с ID, у локации оно есть. */

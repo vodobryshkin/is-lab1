@@ -5,6 +5,7 @@ import com.github.vodobryshkin.islab1.backend.domain.Location;
 import com.github.vodobryshkin.islab1.backend.domain.Organization;
 import com.github.vodobryshkin.islab1.backend.domain.Person;
 import com.github.vodobryshkin.islab1.backend.domain.Worker;
+import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
 import com.github.vodobryshkin.islab1.backend.repository.CoordinatesRepository;
 import com.github.vodobryshkin.islab1.backend.repository.LocationRepository;
 import com.github.vodobryshkin.islab1.backend.repository.OrganizationRepository;
@@ -14,6 +15,8 @@ import com.github.vodobryshkin.islab1.backend.repository.WorkerRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -158,6 +161,27 @@ public class WorkerService {
      */
     public Optional<Worker> find(int id) {
         return repository.findById(id);
+    }
+
+    /**
+     * Возвращает страницу работников с вложенными объектами.
+     *
+     * @param query страница и сортировка
+     * @param filters фильтры-подстроки из параметров запроса
+     * @return работники страницы
+     */
+    public List<Worker> findPage(ListQuery query, Map<String, List<String>> filters) {
+        return repository.findPage(query, filters);
+    }
+
+    /**
+     * Считает работников, прошедших фильтры.
+     *
+     * @param filters фильтры-подстроки из параметров запроса
+     * @return количество
+     */
+    public long count(Map<String, List<String>> filters) {
+        return repository.count(filters);
     }
 
     /**

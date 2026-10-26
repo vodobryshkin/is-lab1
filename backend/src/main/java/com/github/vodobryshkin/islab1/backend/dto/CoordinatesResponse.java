@@ -1,5 +1,6 @@
 package com.github.vodobryshkin.islab1.backend.dto;
 
+import com.github.vodobryshkin.islab1.backend.domain.Coordinates;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -26,4 +27,13 @@ public class CoordinatesResponse {
     @NotNull
     @Min(value = -391)
     private Long y;
+
+    /**
+     * Создаёт ответ из сохранённых координат.
+     *
+     * @param coordinates координаты
+     */
+    public CoordinatesResponse(Coordinates coordinates) {
+        this(coordinates.getId(), coordinates.getX(), coordinates.getY());
+    }
 }

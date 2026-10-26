@@ -79,7 +79,7 @@ public class CoordinatesResource {
     public Response get(@PathParam("id") String rawId) {
         long id = requestReader.id(rawId);
         return service.find(id)
-                .map(coordinates -> Response.ok(toResponse(coordinates)).build())
+                .map(coordinates -> Response.ok(new CoordinatesResponse(coordinates)).build())
                 .orElseGet(() -> notFound(id));
     }
 
@@ -93,7 +93,7 @@ public class CoordinatesResource {
     public Response list(@Context UriInfo uriInfo) {
         ListQuery query = requestReader.listQuery(uriInfo.getQueryParameters(), SORT_FIELDS);
         List<CoordinatesResponse> items =
-                service.findPage(query).stream().map(this::toResponse).toList();
+                service.findPage(query).stream().map(CoordinatesResponse::new).toList();
         return Response.ok(Map.of("items", items, "page", query.page(),
                 "page_size", query.pageSize(), "total_items", service.count())).build();
     }
@@ -137,10 +137,6 @@ public class CoordinatesResource {
     private Coordinates readCoordinates(String body) {
         RequestFields fields = requestReader.read(body).allowOnly("x", "y");
         return fields.validate(new Coordinates(null, fields.int32("x"), fields.int64("y")));
-    }
-
-    private CoordinatesResponse toResponse(Coordinates coordinates) {
-        return new CoordinatesResponse(coordinates.getId(), coordinates.getX(), coordinates.getY());
     }
 
     private Response notFound(long id) {

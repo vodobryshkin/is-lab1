@@ -2,6 +2,7 @@ package com.github.vodobryshkin.islab1.backend.dto;
 
 import com.github.vodobryshkin.islab1.backend.domain.Position;
 import com.github.vodobryshkin.islab1.backend.domain.Status;
+import com.github.vodobryshkin.islab1.backend.domain.Worker;
 import jakarta.json.bind.annotation.JsonbNillable;
 import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.validation.Valid;
@@ -9,6 +10,7 @@ import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -66,4 +68,22 @@ public class WorkerResponse {
     @NotNull
     @Positive
     private Long creatorId;
+
+    /**
+     * Создаёт ответ из сохранённого работника с вложенными объектами; даты — в UTC.
+     *
+     * @param worker работник
+     */
+    public WorkerResponse(Worker worker) {
+        this(worker.getId(), worker.getName(), new CoordinatesResponse(worker.getCoordinates()),
+                worker.getCreationDate().withZoneSameInstant(ZoneOffset.UTC),
+                worker.getOrganization() == null
+                        ? null
+                        : new OrganizationResponse(worker.getOrganization()),
+                worker.getSalary(), worker.getRating(),
+                worker.getStartDate().withZoneSameInstant(ZoneOffset.UTC), worker.getPosition(),
+                worker.getStatus(),
+                worker.getPerson() == null ? null : new PersonResponse(worker.getPerson()),
+                worker.getUser().getId());
+    }
 }
