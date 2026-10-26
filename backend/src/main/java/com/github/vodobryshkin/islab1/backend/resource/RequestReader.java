@@ -6,10 +6,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.json.Json;
 import jakarta.json.JsonException;
-import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
-import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
@@ -29,6 +27,7 @@ import java.util.stream.Collectors;
 
 /**
  * Читает тело, ID пути и параметры списка и переводит ошибки в коды контракта.
+ * Поля тела разбирает {@link RequestFields}.
  *
  * <p>Тело разбирается через JSON-P: так различаются отсутствие поля, {@code null},
  * неверный тип и выход за диапазон типа, которые после привязки к объекту неотличимы.
@@ -41,7 +40,6 @@ public class RequestReader {
     private static final String BODY = "$";
     private static final int MAX_PAGE_SIZE = 100;
     private static final String OUT_OF_RANGE = "OUT_OF_RANGE";
-    private static final String FIELD = "Field ";
     private static final String INVALID_TYPE = "INVALID_TYPE";
 
     /** Код контракта и окончание описания для ограничений Jakarta Validation. */
@@ -80,7 +78,7 @@ public class RequestReader {
      * @return поля тела
      * @throws WebApplicationException 400, если JSON некорректен; 422, если это не объект
      */
-    public Fields read(String body) {
+    public RequestFields read(String body) {
         if (body == null || body.isBlank()) {
             throw invalid(List.of(issue(BODY, "REQUIRED", "Request body is required.")));
         }
@@ -100,7 +98,7 @@ public class RequestReader {
             throw invalid(List.of(issue(BODY, INVALID_TYPE,
                     "Request body must be a JSON object.")));
         }
-        return new Fields(object, "", new ArrayList<>());
+        return new RequestFields(this, object);
     }
 
     /**
@@ -187,13 +185,45 @@ public class RequestReader {
                 "Invalid request parameters", 400, null, issues).toResponse());
     }
 
-    private WebApplicationException invalid(List<ProblemDetails.Issue> issues) {
+    /**
+     * Ошибка 422 со списком нарушений полей.
+     *
+     * @param issues нарушения
+     * @return исключение с готовым ответом
+     */
+    WebApplicationException invalid(List<ProblemDetails.Issue> issues) {
         return new WebApplicationException(new ProblemDetails("/problems/validation-failed",
                 "Validation failed", UNPROCESSABLE_CONTENT, null, issues).toResponse());
     }
 
-    private ProblemDetails.Issue issue(String field, String title, String description) {
+    /**
+     * Создаёт нарушение поля.
+     *
+     * @param field имя поля
+     * @param title код из контракта
+     * @param description описание
+     * @return нарушение
+     */
+    ProblemDetails.Issue issue(String field, String title, String description) {
         return new ProblemDetails.Issue(field, title, description);
+    }
+
+    /**
+     * Проверяет объект через Jakarta Validation и переводит нарушения в коды контракта;
+     * для каждого поля остаётся первое нарушение по порядку {@code CONSTRAINTS}.
+     *
+     * @param value проверяемый объект
+     * @return нарушения, упорядоченные по имени поля
+     */
+    List<ProblemDetails.Issue> violations(Object value) {
+        return validator.validate(value).stream()
+                .collect(Collectors.groupingBy(violation -> violation.getPropertyPath().toString(),
+                        TreeMap::new, Collectors.minBy(Comparator.comparingInt(this::orderOf))))
+                .values()
+                .stream()
+                .flatMap(Optional::stream)
+                .map(this::toIssue)
+                .toList();
     }
 
     private int orderOf(ConstraintViolation<?> violation) {
@@ -229,197 +259,5 @@ public class RequestReader {
     private String constraintOf(ConstraintViolation<?> violation) {
         return violation.getConstraintDescriptor().getAnnotation().annotationType()
                 .getSimpleName();
-    }
-
-    /**
-     * Поля одного JSON-объекта тела; накапливает нарушения до вызова {@link #validate}.
-     */
-    public final class Fields {
-        private final JsonObject json;
-        private final String prefix;
-        private final List<ProblemDetails.Issue> issues;
-
-        private Fields(JsonObject json, String prefix, List<ProblemDetails.Issue> issues) {
-            this.json = json;
-            this.prefix = prefix;
-            this.issues = issues;
-        }
-
-        /**
-         * Проверяет, есть ли поле в объекте.
-         *
-         * @param field имя поля
-         * @return {@code true}, если ключ присутствует, даже со значением {@code null}
-         */
-        public boolean has(String field) {
-            return json.containsKey(field);
-        }
-
-        /**
-         * Читает вложенный объект, который может быть {@code null}. Нарушения его полей
-         * получают имя с префиксом, например {@code town.x}.
-         *
-         * @param field имя поля
-         * @return поля вложенного объекта или {@code null}, если значение null или неверно
-         */
-        public Fields object(String field) {
-            JsonValue value = json.get(field);
-            if (value instanceof JsonObject object) {
-                return new Fields(object, name(field) + ".", issues);
-            }
-            if (value == null) {
-                issues.add(issue(name(field), "REQUIRED", FIELD + name(field) + " is required."));
-            } else if (value.getValueType() != JsonValue.ValueType.NULL) {
-                issues.add(issue(name(field), INVALID_TYPE,
-                        FIELD + name(field) + " must be an object or null."));
-            }
-            return null;
-        }
-
-        /**
-         * Читает положительный ID существующего объекта.
-         *
-         * @param field имя поля
-         * @return ID или {@code null}, если поле неверно
-         */
-        public Long id(String field) {
-            Long value = integer(field);
-            if (value != null && value <= 0) {
-                issues.add(issue(name(field), "MUST_BE_POSITIVE",
-                        name(field) + " must be greater than zero."));
-                return null;
-            }
-            return value;
-        }
-
-        /**
-         * Добавляет нарушение, которое проверил вызывающий код.
-         *
-         * @param field имя поля
-         * @param title код нарушения из контракта
-         * @param description описание
-         */
-        public void reject(String field, String title, String description) {
-            issues.add(issue(name(field), title, description));
-        }
-
-        /**
-         * Отмечает поля, которых нет в контракте.
-         *
-         * @param allowed имена полей контракта
-         * @return эти же поля
-         */
-        public Fields allowOnly(String... allowed) {
-            Set<String> names = Set.of(allowed);
-            json.keySet().stream().filter(key -> !names.contains(key)).sorted()
-                    .forEach(key -> issues.add(issue(name(key), "UNKNOWN_FIELD",
-                            FIELD + name(key) + " is not supported.")));
-            return this;
-        }
-
-        /**
-         * Читает строку.
-         *
-         * @param field имя поля
-         * @return значение или {@code null}, если поле неверно
-         */
-        public String string(String field) {
-            JsonValue value = present(field);
-            if (value instanceof JsonString string) {
-                return string.getString();
-            }
-            invalidType(value, field, "a string");
-            return null;
-        }
-
-        /**
-         * Читает целое число типа int32.
-         *
-         * @param field имя поля
-         * @return значение или {@code null}, если поле неверно
-         */
-        public Integer int32(String field) {
-            Long value = integer(field);
-            if (value != null && (value < Integer.MIN_VALUE || value > Integer.MAX_VALUE)) {
-                issues.add(issue(name(field), OUT_OF_RANGE, name(field) + " must fit into int32."));
-                return null;
-            }
-            return value == null ? null : value.intValue();
-        }
-
-        /**
-         * Читает целое число типа int64.
-         *
-         * @param field имя поля
-         * @return значение или {@code null}, если поле неверно
-         */
-        public Long int64(String field) {
-            return integer(field);
-        }
-
-        /**
-         * Проверяет собранный объект через Jakarta Validation; поля с ошибкой структуры
-         * в ответе представлены только ею.
-         *
-         * @param value объект из прочитанных полей
-         * @param <T> тип объекта
-         * @return тот же объект
-         * @throws WebApplicationException 422 со всеми нарушениями полей
-         */
-        public <T> T validate(T value) {
-            Set<String> invalidFields = issues.stream().map(ProblemDetails.Issue::getField)
-                    .collect(Collectors.toSet());
-            validator.validate(value).stream()
-                    .filter(violation -> !invalidFields.contains(
-                            violation.getPropertyPath().toString()))
-                    .collect(Collectors.groupingBy(violation -> violation.getPropertyPath()
-                                    .toString(), TreeMap::new,
-                            Collectors.minBy(Comparator.comparingInt(RequestReader.this::orderOf))))
-                    .values()
-                    .stream()
-                    .flatMap(Optional::stream)
-                    .map(RequestReader.this::toIssue)
-                    .forEach(issues::add);
-            if (!issues.isEmpty()) {
-                throw invalid(issues);
-            }
-            return value;
-        }
-
-        private Long integer(String field) {
-            JsonValue value = present(field);
-            if (!(value instanceof JsonNumber number) || !number.isIntegral()) {
-                invalidType(value, field, "an integer");
-                return null;
-            }
-            try {
-                return number.longValueExact();
-            } catch (ArithmeticException exception) {
-                issues.add(issue(name(field), OUT_OF_RANGE, name(field) + " must fit into int64."));
-                return null;
-            }
-        }
-
-        private JsonValue present(String field) {
-            JsonValue value = json.get(field);
-            if (value == null) {
-                issues.add(issue(name(field), "REQUIRED", FIELD + name(field) + " is required."));
-            } else if (value.getValueType() == JsonValue.ValueType.NULL) {
-                issues.add(issue(name(field), "MUST_NOT_BE_NULL",
-                        FIELD + name(field) + " must not be null."));
-            }
-            return value;
-        }
-
-        private void invalidType(JsonValue value, String field, String expected) {
-            if (value != null && value.getValueType() != JsonValue.ValueType.NULL) {
-                issues.add(issue(name(field), INVALID_TYPE,
-                        FIELD + name(field) + " must be " + expected + "."));
-            }
-        }
-
-        private String name(String field) {
-            return prefix + field;
-        }
     }
 }

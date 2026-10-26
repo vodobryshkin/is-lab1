@@ -14,13 +14,6 @@ import java.util.Optional;
  */
 @ApplicationScoped
 public class LocationService {
-    /** Результат удаления. */
-    public enum Deletion {
-        DELETED,
-        NOT_FOUND,
-        IN_USE
-    }
-
     private final LocationRepository repository;
 
     /**
@@ -48,6 +41,21 @@ public class LocationService {
     public Long create(Location location) {
         repository.save(location);
         return location.getId();
+    }
+
+    /**
+     * Сохраняет новую локацию (без ID) или находит существующую по ID в транзакции
+     * вызывающего сервиса.
+     *
+     * @param location новая локация или ссылка, у которой задан только ID
+     * @return сохранённая локация или пустой результат, если локации с таким ID нет
+     */
+    public Optional<Location> persistOrFind(Location location) {
+        if (location.getId() != null) {
+            return repository.findById(location.getId());
+        }
+        repository.save(location);
+        return Optional.of(location);
     }
 
     /**
@@ -105,15 +113,15 @@ public class LocationService {
      * @return результат удаления
      */
     @Transactional
-    public Deletion delete(long id) {
+    public Outcome delete(long id) {
         Optional<Location> location = repository.findById(id);
         if (location.isEmpty()) {
-            return Deletion.NOT_FOUND;
+            return Outcome.NOT_FOUND;
         }
         if (repository.isUsed(id)) {
-            return Deletion.IN_USE;
+            return Outcome.IN_USE;
         }
         repository.delete(location.get());
-        return Deletion.DELETED;
+        return Outcome.DONE;
     }
 }

@@ -4,7 +4,6 @@ import com.github.vodobryshkin.islab1.backend.domain.Address;
 import com.github.vodobryshkin.islab1.backend.domain.Location;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
 import com.github.vodobryshkin.islab1.backend.repository.AddressRepository;
-import com.github.vodobryshkin.islab1.backend.repository.LocationRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -16,33 +15,25 @@ import java.util.Optional;
  */
 @ApplicationScoped
 public class AddressService {
-    /** Результат изменения или удаления. */
-    public enum Outcome {
-        DONE,
-        NOT_FOUND,
-        TOWN_NOT_FOUND,
-        IN_USE
-    }
-
     private final AddressRepository repository;
-    private final LocationRepository locationRepository;
+    private final LocationService locationService;
 
     /**
      * Создаёт сервис.
      *
      * @param repository хранилище адресов
-     * @param locationRepository хранилище локаций
+     * @param locationService локации
      */
     @Inject
-    public AddressService(AddressRepository repository, LocationRepository locationRepository) {
+    public AddressService(AddressRepository repository, LocationService locationService) {
         this.repository = repository;
-        this.locationRepository = locationRepository;
+        this.locationService = locationService;
     }
 
     /** Нужен CDI для создания клиентского прокси; прикладной код его не вызывает. */
     protected AddressService() {
         this.repository = null;
-        this.locationRepository = null;
+        this.locationService = null;
     }
 
     /**
@@ -53,10 +44,9 @@ public class AddressService {
      */
     @Transactional
     public Optional<Long> create(Address address) {
-        if (!townExists(address.getTown())) {
+        if (!attachTown(address, address.getTown())) {
             return Optional.empty();
         }
-        address.setTown(persistentTown(address.getTown()));
         repository.save(address);
         return Optional.of(address.getId());
     }
@@ -97,7 +87,7 @@ public class AddressService {
      *
      * @param id ID адреса
      * @param values новые значения
-     * @return {@code DONE}, {@code NOT_FOUND} или {@code TOWN_NOT_FOUND}
+     * @return {@code DONE}, {@code NOT_FOUND} или {@code REFERENCE_NOT_FOUND}
      */
     @Transactional
     public Outcome update(long id, Address values) {
@@ -105,11 +95,10 @@ public class AddressService {
         if (address.isEmpty()) {
             return Outcome.NOT_FOUND;
         }
-        if (!townExists(values.getTown())) {
-            return Outcome.TOWN_NOT_FOUND;
+        if (!attachTown(address.get(), values.getTown())) {
+            return Outcome.REFERENCE_NOT_FOUND;
         }
         address.get().setStreet(values.getStreet());
-        address.get().setTown(persistentTown(values.getTown()));
         return Outcome.DONE;
     }
 
@@ -132,20 +121,18 @@ public class AddressService {
         return Outcome.DONE;
     }
 
-    /** Город без ID — новая локация, с ID — ссылка на существующую. */
-    private boolean townExists(Location town) {
-        return town == null || town.getId() == null
-                || locationRepository.findById(town.getId()).isPresent();
-    }
-
-    private Location persistentTown(Location town) {
+    /**
+     * Привязывает город: {@code null}, новую локацию или существующую по ID.
+     *
+     * @return {@code false}, если локации с указанным ID нет; адрес тогда не меняется
+     */
+    private boolean attachTown(Address address, Location town) {
         if (town == null) {
-            return null;
+            address.setTown(null);
+            return true;
         }
-        if (town.getId() != null) {
-            return locationRepository.findById(town.getId()).orElseThrow();
-        }
-        locationRepository.save(town);
-        return town;
+        Optional<Location> found = locationService.persistOrFind(town);
+        found.ifPresent(address::setTown);
+        return found.isPresent();
     }
 }

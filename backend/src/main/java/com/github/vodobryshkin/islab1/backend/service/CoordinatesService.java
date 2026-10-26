@@ -14,13 +14,6 @@ import java.util.Optional;
  */
 @ApplicationScoped
 public class CoordinatesService {
-    /** Результат удаления. */
-    public enum Deletion {
-        DELETED,
-        NOT_FOUND,
-        IN_USE
-    }
-
     private final CoordinatesRepository repository;
 
     /**
@@ -104,15 +97,15 @@ public class CoordinatesService {
      * @return результат удаления
      */
     @Transactional
-    public Deletion delete(long id) {
+    public Outcome delete(long id) {
         Optional<Coordinates> coordinates = repository.findById(id);
         if (coordinates.isEmpty()) {
-            return Deletion.NOT_FOUND;
+            return Outcome.NOT_FOUND;
         }
         if (repository.isUsed(id)) {
-            return Deletion.IN_USE;
+            return Outcome.IN_USE;
         }
         repository.delete(coordinates.get());
-        return Deletion.DELETED;
+        return Outcome.DONE;
     }
 }

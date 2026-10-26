@@ -176,7 +176,7 @@ public class AuthResource {
     }
 
     private CredentialsRequest readCredentials(String body) {
-        RequestReader.Fields fields = requestReader.read(body);
+        RequestFields fields = requestReader.read(body);
         return fields.validate(
                 new CredentialsRequest(fields.string("username"), fields.string("password")));
     }

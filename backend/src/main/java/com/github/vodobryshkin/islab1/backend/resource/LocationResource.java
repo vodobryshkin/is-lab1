@@ -126,15 +126,15 @@ public class LocationResource {
     public Response delete(@PathParam("id") String rawId) {
         long id = requestReader.id(rawId);
         return switch (service.delete(id)) {
-            case DELETED -> Response.noContent().build();
-            case NOT_FOUND -> notFound(id);
+            case DONE -> Response.noContent().build();
             case IN_USE -> problem(409, "/problems/location-is-in-use", "Location is in use",
                     "The location cannot be deleted while addresses or persons reference it.", id);
+            default -> notFound(id);
         };
     }
 
     private Location readLocation(String body) {
-        RequestReader.Fields fields = requestReader.read(body).allowOnly("x", "y", "z");
+        RequestFields fields = requestReader.read(body).allowOnly("x", "y", "z");
         return fields.validate(
                 new Location(null, fields.int32("x"), fields.int32("y"), fields.int64("z")));
     }

@@ -122,7 +122,7 @@ public class AddressResource {
         Address values = readAddress(body);
         return switch (service.update(id, values)) {
             case DONE -> Response.noContent().build();
-            case TOWN_NOT_FOUND -> townNotFound(values);
+            case REFERENCE_NOT_FOUND -> townNotFound(values);
             default -> notFound(id);
         };
     }
@@ -150,29 +150,13 @@ public class AddressResource {
     }
 
     /**
-     * Читает адрес. Город — новая локация {@code {x, y, z}}, ссылка {@code {id}} или
-     * {@code null}; у ссылки в возвращаемом адресе задан только ID локации.
+     * Читает адрес. Город — новая локация, ссылка {@code {id}} или {@code null};
+     * у ссылки в возвращаемом адресе задан только ID локации.
      */
     private Address readAddress(String body) {
-        RequestReader.Fields fields = requestReader.read(body).allowOnly(STREET, "town");
-        String street = fields.string(STREET);
-        RequestReader.Fields town = fields.object("town");
-        if (town == null) {
-            return fields.validate(new Address(null, street, null));
-        }
-        town.allowOnly("id", "x", "y", "z");
-        if (!town.has("id")) {
-            return fields.validate(new Address(null, street,
-                    new Location(null, town.int32("x"), town.int32("y"), town.int64("z"))));
-        }
-        if (town.has("x") || town.has("y") || town.has("z")) {
-            town.reject("id", "MUTUALLY_EXCLUSIVE",
-                    "town must contain either id or x, y and z, not both.");
-        }
-        Long townId = town.id("id");
-        Address address = fields.validate(new Address(null, street, null));
-        address.setTown(new Location(townId, null, null, null));
-        return address;
+        RequestFields fields = requestReader.read(body).allowOnly(STREET, "town");
+        return fields.validate(
+                new Address(null, fields.string(STREET), fields.location("town", true)));
     }
 
     private AddressResponse toResponse(Address address) {

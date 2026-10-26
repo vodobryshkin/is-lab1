@@ -18,7 +18,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.time.ZonedDateTime;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Класс, который отвечает за представление человека. Является JPA-сущностью.
@@ -28,6 +30,8 @@ import lombok.NoArgsConstructor;
  */
 @Entity
 @Table(name = "persons")
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Person {
