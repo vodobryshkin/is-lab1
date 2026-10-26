@@ -45,6 +45,7 @@ public class WorkerResource {
             "person_nationality");
 
     private static final String ORGANIZATION = "organization";
+    private static final String ORGANIZATION_ID = "organization_id";
     private static final String PERSON = "person";
     private static final String MISSING = " does not exist.";
     private static final String RATING_PARAMETER = "rating";
@@ -103,7 +104,7 @@ public class WorkerResource {
                             : worker.getOrganization().getId()))
                     .build();
             case CONFLICT -> conflict(change, worker);
-            default -> referenceNotFound(change);
+            default -> referenceNotFound(change.subject(), change.subjectId());
         };
     }
 
@@ -201,7 +202,28 @@ public class WorkerResource {
             case DONE -> Response.noContent().build();
             case NOT_FOUND -> notFound(id);
             case CONFLICT -> conflict(change, values);
-            default -> referenceNotFound(change);
+            default -> referenceNotFound(change.subject(), change.subjectId());
+        };
+    }
+
+    /**
+     * Принимает работника в существующую организацию со статусом {@code HIRED}.
+     *
+     * @param rawId ID из пути
+     * @param body тело запроса с {@code organization_id}
+     * @return 204 или 404 без работника либо организации
+     */
+    @POST
+    @Path("/{id}/hire")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response hire(@PathParam("id") String rawId, String body) {
+        int id = requestReader.workerId(rawId);
+        RequestFields fields = requestReader.read(body).allowOnly(ORGANIZATION_ID);
+        long organizationId = fields.validate(fields.id(ORGANIZATION_ID));
+        return switch (specialOperations.hire(id, organizationId)) {
+            case DONE -> Response.noContent().build();
+            case NOT_FOUND -> notFound(id);
+            default -> referenceNotFound(ORGANIZATION, organizationId);
         };
     }
 
@@ -227,7 +249,7 @@ public class WorkerResource {
 
     /** Ответ создания; {@code organization_id} равен {@code null} без организации. */
     public record Created(long id,
-            @JsonbNillable @JsonbProperty("organization_id") Long organizationId) {}
+            @JsonbNillable @JsonbProperty(ORGANIZATION_ID) Long organizationId) {}
 
     private Status statusParameter(String raw) {
         if (raw == null) {
@@ -287,9 +309,8 @@ public class WorkerResource {
     }
 
     /** У {@code address-not-found} в контракте нет поля с ID, у остальных ссылок есть. */
-    private Response referenceNotFound(Change change) {
-        long id = change.subjectId();
-        return switch (change.subject()) {
+    private Response referenceNotFound(String subject, long id) {
+        return switch (subject) {
             case "address" -> new ProblemDetails(404, "/problems/address-not-found",
                     "Address not found", "Address with id=" + id + MISSING)
                     .toResponse();
@@ -298,7 +319,7 @@ public class WorkerResource {
                     "coordinates_id", id);
             case ORGANIZATION -> problem(404, "/problems/organization-not-found",
                     "Organization not found", "Organization with id=" + id + MISSING,
-                    "organization_id", id);
+                    ORGANIZATION_ID, id);
             case PERSON -> problem(404, "/problems/person-not-found", "Person not found",
                     "Person with id=" + id + MISSING, "person_id", id);
             default -> problem(404, "/problems/location-not-found", "Location not found",

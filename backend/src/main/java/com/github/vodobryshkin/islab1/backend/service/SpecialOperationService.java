@@ -1,11 +1,15 @@
 package com.github.vodobryshkin.islab1.backend.service;
 
+import com.github.vodobryshkin.islab1.backend.domain.Organization;
 import com.github.vodobryshkin.islab1.backend.domain.Status;
 import com.github.vodobryshkin.islab1.backend.domain.Worker;
+import com.github.vodobryshkin.islab1.backend.repository.OrganizationRepository;
 import com.github.vodobryshkin.islab1.backend.repository.WorkerRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Специальные операции ТЗ над работниками. Отделены от {@link WorkerService}, чтобы
@@ -18,20 +22,50 @@ public class SpecialOperationService {
             List.of(Status.HIRED, Status.RECOMMENDED_FOR_PROMOTION, Status.REGULAR);
 
     private final WorkerRepository workerRepository;
+    private final OrganizationRepository organizationRepository;
 
     /**
      * Создаёт сервис.
      *
      * @param workerRepository хранилище работников
+     * @param organizationRepository хранилище организаций
      */
     @Inject
-    public SpecialOperationService(WorkerRepository workerRepository) {
+    public SpecialOperationService(WorkerRepository workerRepository,
+            OrganizationRepository organizationRepository) {
         this.workerRepository = workerRepository;
+        this.organizationRepository = organizationRepository;
     }
 
     /** Нужен CDI для создания клиентского прокси; прикладной код его не вызывает. */
     protected SpecialOperationService() {
-        this(null);
+        this(null, null);
+    }
+
+    /**
+     * Принимает работника в организацию: в одной транзакции назначает её и статус
+     * {@code HIRED}, заменяя прежнюю привязку. Повторный вызов с той же организацией
+     * ничего не меняет и тоже успешен. {@code employees_count} не пересчитывается:
+     * контракт этого не требует.
+     *
+     * @param workerId ID работника
+     * @param organizationId ID существующей организации
+     * @return {@code DONE}, {@code NOT_FOUND} без работника или
+     *     {@code REFERENCE_NOT_FOUND} без организации; при отказе ничего не меняется
+     */
+    @Transactional
+    public Outcome hire(int workerId, long organizationId) {
+        Optional<Worker> worker = workerRepository.findById(workerId);
+        if (worker.isEmpty()) {
+            return Outcome.NOT_FOUND;
+        }
+        Optional<Organization> organization = organizationRepository.findById(organizationId);
+        if (organization.isEmpty()) {
+            return Outcome.REFERENCE_NOT_FOUND;
+        }
+        worker.get().setOrganization(organization.get());
+        worker.get().setStatus(Status.HIRED);
+        return Outcome.DONE;
     }
 
     /**

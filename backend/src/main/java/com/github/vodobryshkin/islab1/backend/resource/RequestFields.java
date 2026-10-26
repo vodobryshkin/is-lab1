@@ -246,7 +246,8 @@ public final class RequestFields {
      * Проверяет собранный объект через Jakarta Validation. Поля с ошибкой структуры
      * представлены только ею; поля ссылок {@code {id}} не проверяются как новый объект.
      *
-     * @param value объект из прочитанных полей
+     * @param value объект из прочитанных полей; {@code null}, если поле с ошибкой было
+     *     единственным значением и проверять нечего, кроме ошибок самих полей
      * @param serverFields поля, которые заполняет сервер, а не клиент; их нарушения
      *     не относятся к запросу
      * @param <T> тип объекта
@@ -256,10 +257,12 @@ public final class RequestFields {
     public <T> T validate(T value, String... serverFields) {
         Set<String> invalidFields = new HashSet<>(List.of(serverFields));
         issues.forEach(issue -> invalidFields.add(issue.getField()));
-        reader.violations(value).stream()
-                .filter(issue -> !invalidFields.contains(issue.getField()))
-                .filter(issue -> references.stream().noneMatch(issue.getField()::startsWith))
-                .forEach(issues::add);
+        if (value != null) {
+            reader.violations(value).stream()
+                    .filter(issue -> !invalidFields.contains(issue.getField()))
+                    .filter(issue -> references.stream().noneMatch(issue.getField()::startsWith))
+                    .forEach(issues::add);
+        }
         if (!issues.isEmpty()) {
             throw reader.invalid(issues);
         }
