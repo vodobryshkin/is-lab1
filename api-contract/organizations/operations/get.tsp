@@ -40,9 +40,9 @@ op getOrganization(
     id: int64
 ):
     WorkersApi.Ok.OkResponse<GetSingleOrganizationResponse>
-    | ValidationError<400, ParameterValidationIssue>
+    | BadRequestError
     | UnauthorizedError
-    | OrganizationNotFoundError;
+    | NotFoundError;
 
 const listOrganizationsPageExample: PageResponse<GetSingleOrganizationResponse> = #{
     items: #[getSingleOrganizationExample],
@@ -125,5 +125,5 @@ op listOrganizations(
     postal_address_street?: SubstringFilter,
 ):
     WorkersApi.Ok.OkResponse<PageResponse<GetSingleOrganizationResponse>>
-    | ValidationError<400, ParameterValidationIssue>
+    | BadRequestError
     | UnauthorizedError;

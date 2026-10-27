@@ -171,9 +171,7 @@ HTTP 204
 GET {{base_url}}/organizations/{{second_id}}
 HTTP 404
 [Asserts]
-jsonpath "$.status" == 404
-jsonpath "$.type" == "/problems/organization-not-found"
-jsonpath "$.organization_id" == {{second_id}}
+jsonpath "$.message" == "Organization with id={{second_id}} does not exist."
 
 GET {{base_url}}/addresses/{{official_id}}
 HTTP 200
@@ -195,4 +193,4 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 404
 [Asserts]
-jsonpath "$.organization_id" == {{second_id}}
+jsonpath "$.message" == "Organization with id={{second_id}} does not exist."

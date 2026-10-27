@@ -92,10 +92,9 @@ op updateOrganization(
     @body body: OrganizationRequest
 ):
     WorkersApi.Ok.NoContentResponse
-    | ValidationError<400, ParameterValidationIssue>
     | BadRequestError
     | UnauthorizedError
     | ForbiddenError
-    | NotFoundError<OrganizationNotFoundDetails | AddressNotFoundDetails | LocationNotFoundDetails>
-    | OrganizationNameConflictError
+    | NotFoundError
+    | ConflictError
     | OrganizationValidationError;

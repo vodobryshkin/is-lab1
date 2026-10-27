@@ -61,19 +61,13 @@ GET {{base_url}}/workers/count_by_status?status=hired
 HTTP 400
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.status" == 400
-jsonpath "$.errors[0].field" == "status"
-jsonpath "$.errors[0].title" == "INVALID_ENUM_VALUE"
+jsonpath "$.message" == "Parameter status has an unsupported value."
 
 GET {{base_url}}/workers/count_by_status
 HTTP 400
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.status" == 400
-jsonpath "$.errors[0].field" == "status"
-jsonpath "$.errors[0].title" == "REQUIRED"
+jsonpath "$.message" == "Parameter status is required."
 
 GET {{base_url}}/workers/count_by_status_greater_than?status=HIRED
 HTTP 200
@@ -97,19 +91,13 @@ GET {{base_url}}/workers/count_by_status_greater_than?status=null
 HTTP 400
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.status" == 400
-jsonpath "$.errors[0].field" == "status"
-jsonpath "$.errors[0].title" == "INVALID_ENUM_VALUE"
+jsonpath "$.message" == "Parameter status has an unsupported value."
 
 GET {{base_url}}/workers/count_by_status_greater_than
 HTTP 400
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.status" == 400
-jsonpath "$.errors[0].field" == "status"
-jsonpath "$.errors[0].title" == "REQUIRED"
+jsonpath "$.message" == "Parameter status is required."
 
 GET {{base_url}}/workers/rating_less_than?rating=10
 HTTP 200
@@ -147,34 +135,22 @@ GET {{base_url}}/workers/rating_less_than?rating=abc
 HTTP 400
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.status" == 400
-jsonpath "$.errors[0].field" == "rating"
-jsonpath "$.errors[0].title" == "INVALID_TYPE"
+jsonpath "$.message" == "Parameter rating must be an integer."
 
 GET {{base_url}}/workers/rating_less_than?rating=1.5
 HTTP 400
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.status" == 400
-jsonpath "$.errors[0].field" == "rating"
-jsonpath "$.errors[0].title" == "INVALID_TYPE"
+jsonpath "$.message" == "Parameter rating must be an integer."
 
 GET {{base_url}}/workers/rating_less_than?rating=2147483648
 HTTP 400
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.status" == 400
-jsonpath "$.errors[0].field" == "rating"
-jsonpath "$.errors[0].title" == "OUT_OF_RANGE"
+jsonpath "$.message" == "Parameter rating must fit into int32."
 
 GET {{base_url}}/workers/rating_less_than
 HTTP 400
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.status" == 400
-jsonpath "$.errors[0].field" == "rating"
-jsonpath "$.errors[0].title" == "REQUIRED"
+jsonpath "$.message" == "Parameter rating is required."

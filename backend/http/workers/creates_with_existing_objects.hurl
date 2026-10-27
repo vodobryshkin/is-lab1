@@ -132,9 +132,7 @@ X-CSRF-Token: {{csrf}}
 HTTP 409
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/person-already-assigned"
-jsonpath "$.status" == 409
-jsonpath "$.person_id" == {{person_id}}
+jsonpath "$.message" == "Person with id={{person_id}} is already assigned to another worker."
 
 POST {{base_url}}/workers
 X-CSRF-Token: {{csrf}}
@@ -211,17 +209,14 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 409
 [Asserts]
-jsonpath "$.type" == "/problems/person-already-assigned"
-jsonpath "$.person_id" == {{second_person_id}}
+jsonpath "$.message" == "Person with id={{second_person_id}} is already assigned to another worker."
 
 DELETE {{base_url}}/workers/{{id}}
 X-CSRF-Token: {{csrf}}
 HTTP 409
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/worker-has-linked-objects"
-jsonpath "$.status" == 409
-jsonpath "$.worker_id" == {{id}}
+jsonpath "$.message" == "Worker with id={{id}} is referenced by a person and cannot be deleted."
 
 PUT {{base_url}}/workers/{{second_id}}
 X-CSRF-Token: {{csrf}}

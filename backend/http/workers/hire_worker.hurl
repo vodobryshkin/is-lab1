@@ -36,7 +36,7 @@ POST {{base_url}}/workers/1/hire
 }
 HTTP 403
 [Asserts]
-jsonpath "$.type" == "/problems/invalid-csrf-token"
+jsonpath "$.message" == "The X-CSRF-Token header is missing or does not match the current session."
 
 GET {{base_url}}/workers/1
 HTTP 200
@@ -101,9 +101,7 @@ X-CSRF-Token: {{csrf}}
 HTTP 404
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/worker-not-found"
-jsonpath "$.status" == 404
-jsonpath "$.worker_id" == 999
+jsonpath "$.message" == "Worker with id=999 does not exist."
 
 POST {{base_url}}/workers/3/hire
 X-CSRF-Token: {{csrf}}
@@ -113,9 +111,7 @@ X-CSRF-Token: {{csrf}}
 HTTP 404
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/organization-not-found"
-jsonpath "$.status" == 404
-jsonpath "$.organization_id" == 999
+jsonpath "$.message" == "Organization with id=999 does not exist."
 
 GET {{base_url}}/workers/3
 HTTP 200
@@ -131,7 +127,7 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 400
 [Asserts]
-jsonpath "$.type" == "/problems/invalid-worker-id"
+jsonpath "$.message" == "Parameter id must be an integer."
 
 POST {{base_url}}/workers/3/hire
 X-CSRF-Token: {{csrf}}
@@ -141,7 +137,7 @@ Content-Type: application/json
 ```
 HTTP 400
 [Asserts]
-jsonpath "$.type" == "/problems/malformed-json"
+jsonpath "$.message" == "The request body contains invalid JSON."
 
 POST {{base_url}}/workers/3/hire
 X-CSRF-Token: {{csrf}}
@@ -151,10 +147,8 @@ X-CSRF-Token: {{csrf}}
 HTTP 422
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.status" == 422
 jsonpath "$.errors[0].field" == "organization_id"
-jsonpath "$.errors[0].title" == "MUST_BE_POSITIVE"
+jsonpath "$.errors[0].code" == "MUST_BE_POSITIVE"
 
 POST {{base_url}}/workers/3/hire
 X-CSRF-Token: {{csrf}}
@@ -163,10 +157,8 @@ X-CSRF-Token: {{csrf}}
 HTTP 422
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.status" == 422
 jsonpath "$.errors[0].field" == "organization_id"
-jsonpath "$.errors[0].title" == "REQUIRED"
+jsonpath "$.errors[0].code" == "REQUIRED"
 
 POST {{base_url}}/workers/3/hire
 X-CSRF-Token: {{csrf}}
@@ -176,10 +168,8 @@ X-CSRF-Token: {{csrf}}
 HTTP 422
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.status" == 422
 jsonpath "$.errors[0].field" == "organization_id"
-jsonpath "$.errors[0].title" == "MUST_NOT_BE_NULL"
+jsonpath "$.errors[0].code" == "MUST_NOT_BE_NULL"
 
 POST {{base_url}}/workers/3/hire
 X-CSRF-Token: {{csrf}}
@@ -189,10 +179,8 @@ X-CSRF-Token: {{csrf}}
 HTTP 422
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.status" == 422
 jsonpath "$.errors[0].field" == "organization_id"
-jsonpath "$.errors[0].title" == "INVALID_TYPE"
+jsonpath "$.errors[0].code" == "INVALID_TYPE"
 
 POST {{base_url}}/workers/3/hire
 X-CSRF-Token: {{csrf}}
@@ -203,10 +191,8 @@ X-CSRF-Token: {{csrf}}
 HTTP 422
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.status" == 422
 jsonpath "$.errors[0].field" == "status"
-jsonpath "$.errors[0].title" == "UNKNOWN_FIELD"
+jsonpath "$.errors[0].code" == "UNKNOWN_FIELD"
 
 GET {{base_url}}/workers/3
 HTTP 200

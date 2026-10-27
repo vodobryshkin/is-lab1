@@ -65,7 +65,7 @@ POST {{base_url}}/auth/logout
 X-CSRF-Token: {{csrf}}
 HTTP 403
 [Asserts]
-jsonpath "$.type" == "/problems/invalid-csrf-token"
+jsonpath "$.message" == "The X-CSRF-Token header is missing or does not match the current session."
 
 GET {{base_url}}/auth/session
 HTTP 200
@@ -89,14 +89,13 @@ GET {{base_url}}/auth/session
 HTTP 401
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.status" == 401
-jsonpath "$.type" == "/problems/authentication-required"
+jsonpath "$.message" == "Log in to access this resource."
 
 POST {{base_url}}/auth/logout
 X-CSRF-Token: {{authenticated_csrf}}
 HTTP 403
 [Asserts]
-jsonpath "$.type" == "/problems/invalid-csrf-token"
+jsonpath "$.message" == "The X-CSRF-Token header is missing or does not match the current session."
 
 GET {{base_url}}/auth/session
 [Cookies]
@@ -108,4 +107,4 @@ GET {{base_url}}/auth/session
 JSESSIONID: {{authenticated_session}}
 HTTP 401
 [Asserts]
-jsonpath "$.type" == "/problems/authentication-required"
+jsonpath "$.message" == "Log in to access this resource."

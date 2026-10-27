@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 /**
@@ -65,33 +64,34 @@ public class PersonRepository {
     }
 
     /**
-     * Возвращает страницу персон. {@code null} при сортировке идёт последним,
+     * Возвращает страницу персон. null при сортировке идёт последним,
      * при равных значениях порядок задаёт ID по возрастанию.
      *
      * @param query проверенные параметры страницы
-     * @param filters параметры запроса; учитываются {@code eye_color}, {@code hair_color},
-     *     {@code nationality}
+     * @param filters параметры запроса; учитываются eye_color, hair_color,
+     *     nationality
      * @return персоны страницы; за концом списка — пустой список
      */
     public List<Person> findPage(ListQuery query, Map<String, List<String>> filters) {
         Map<String, List<Enum<?>>> matches = matches(filters);
-        long offset = (long) (query.page() - 1) * query.pageSize();
+        long offset = (long) (query.getPage() - 1) * query.getPageSize();
         if (offset > Integer.MAX_VALUE || matches.containsValue(List.of())) {
             return List.of();
         }
-        String order = SORT_COLUMNS.get(query.sortBy()) + (query.ascending() ? " ASC" : " DESC");
+        String order = SORT_COLUMNS.get(query.getSortBy())
+                + (query.isAscending() ? " ASC" : " DESC");
         return bind(entityManager.createQuery("SELECT p FROM Person p" + where(matches)
                         + " ORDER BY " + order + " NULLS LAST, p.id ASC", Person.class), matches)
                 .setFirstResult((int) offset)
-                .setMaxResults(query.pageSize())
+                .setMaxResults(query.getPageSize())
                 .getResultList();
     }
 
     /**
      * Считает персоны с учётом фильтров.
      *
-     * @param filters параметры запроса; учитываются {@code eye_color}, {@code hair_color},
-     *     {@code nationality}
+     * @param filters параметры запроса; учитываются eye_color, hair_color,
+     *     nationality
      * @return количество
      */
     public long count(Map<String, List<String>> filters) {
@@ -114,9 +114,9 @@ public class PersonRepository {
     }
 
     /**
-     * Отвязывает персону от работника и сразу отправляет UPDATE: ограничение
-     * уникальности {@code worker_id} не отложено, и иначе привязка другой персоны к тому
-     * же работнику в этой транзакции могла бы выполниться раньше.
+     * Отвязывает персону от работника и сразу отправляет UPDATE.
+     * Ограничение уникальности worker_id не отложено, поэтому отвязка должна дойти до БД раньше
+     * новой привязки.
      *
      * @param person сохранённая персона
      */
@@ -144,7 +144,7 @@ public class PersonRepository {
                 .collect(Collectors.toMap(name -> name, name -> FILTER_VALUES.get(name).stream()
                         .filter(value -> value.name().toLowerCase(Locale.ROOT)
                                 .contains(filter(filters, name)))
-                        .toList(), (first, second) -> first, TreeMap::new));
+                        .toList()));
     }
 
     private String filter(Map<String, List<String>> filters, String name) {

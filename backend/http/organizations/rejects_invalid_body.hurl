@@ -67,16 +67,15 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.errors[?(@.field == 'full_name')].title" contains "MUST_NOT_BE_EMPTY"
-jsonpath "$.errors[?(@.field == 'annual_turnover')].title" contains "MUST_BE_POSITIVE"
-jsonpath "$.errors[?(@.field == 'employees_count')].title" contains "MUST_BE_POSITIVE"
-jsonpath "$.errors[?(@.field == 'rating')].title" contains "INVALID_TYPE"
-jsonpath "$.errors[?(@.field == 'type')].title" contains "INVALID_ENUM_VALUE"
-jsonpath "$.errors[?(@.field == 'official_address')].title" contains "MUTUALLY_EXCLUSIVE"
-jsonpath "$.errors[?(@.field == 'official_address_id')].title" contains "MUTUALLY_EXCLUSIVE"
-jsonpath "$.errors[?(@.field == 'postal_address')].title" contains "REQUIRED"
-jsonpath "$.errors[?(@.field == 'flag')].title" contains "UNKNOWN_FIELD"
+jsonpath "$.errors[?(@.field == 'full_name')].code" contains "MUST_NOT_BE_EMPTY"
+jsonpath "$.errors[?(@.field == 'annual_turnover')].code" contains "MUST_BE_POSITIVE"
+jsonpath "$.errors[?(@.field == 'employees_count')].code" contains "MUST_BE_POSITIVE"
+jsonpath "$.errors[?(@.field == 'rating')].code" contains "INVALID_TYPE"
+jsonpath "$.errors[?(@.field == 'type')].code" contains "INVALID_ENUM_VALUE"
+jsonpath "$.errors[?(@.field == 'official_address')].code" contains "MUTUALLY_EXCLUSIVE"
+jsonpath "$.errors[?(@.field == 'official_address_id')].code" contains "MUTUALLY_EXCLUSIVE"
+jsonpath "$.errors[?(@.field == 'postal_address')].code" contains "REQUIRED"
+jsonpath "$.errors[?(@.field == 'flag')].code" contains "UNKNOWN_FIELD"
 jsonpath "$.errors" count == 9
 
 POST {{base_url}}/organizations
@@ -99,10 +98,10 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'annual_turnover')].title" contains "OUT_OF_RANGE"
-jsonpath "$.errors[?(@.field == 'official_address.street')].title" contains "MUST_NOT_BE_EMPTY"
-jsonpath "$.errors[?(@.field == 'official_address.town.x')].title" contains "MUST_NOT_BE_NULL"
-jsonpath "$.errors[?(@.field == 'postal_address_id')].title" contains "MUST_BE_POSITIVE"
+jsonpath "$.errors[?(@.field == 'annual_turnover')].code" contains "OUT_OF_RANGE"
+jsonpath "$.errors[?(@.field == 'official_address.street')].code" contains "MUST_NOT_BE_EMPTY"
+jsonpath "$.errors[?(@.field == 'official_address.town.x')].code" contains "MUST_NOT_BE_NULL"
+jsonpath "$.errors[?(@.field == 'postal_address_id')].code" contains "MUST_BE_POSITIVE"
 
 POST {{base_url}}/organizations
 X-CSRF-Token: {{csrf}}
@@ -124,9 +123,7 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 404
 [Asserts]
-jsonpath "$.status" == 404
-jsonpath "$.type" == "/problems/address-not-found"
-jsonpath "$.address_id" not exists
+jsonpath "$.message" == "Address with id=999 does not exist."
 
 POST {{base_url}}/organizations
 X-CSRF-Token: {{csrf}}
@@ -146,8 +143,7 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 404
 [Asserts]
-jsonpath "$.type" == "/problems/location-not-found"
-jsonpath "$.location_id" == 999
+jsonpath "$.message" == "Location with id=999 does not exist."
 
 PUT {{base_url}}/organizations/{{id}}
 X-CSRF-Token: {{csrf}}
@@ -165,7 +161,7 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 404
 [Asserts]
-jsonpath "$.type" == "/problems/address-not-found"
+jsonpath "$.message" == "Address with id=999 does not exist."
 
 GET {{base_url}}/organizations/{{id}}
 HTTP 200

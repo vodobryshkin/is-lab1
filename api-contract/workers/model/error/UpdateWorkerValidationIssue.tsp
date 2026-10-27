@@ -10,19 +10,19 @@ union UpdateWorkerValidationIssue {
 
     organization_id: {
         field: "organization_id";
-        title: "REQUIRED" | "INVALID_TYPE" | "MUST_BE_POSITIVE" | "OUT_OF_RANGE";
-        description: string;
+        code: "REQUIRED" | "INVALID_TYPE" | "MUST_BE_POSITIVE" | "OUT_OF_RANGE";
+        message: string;
     },
 
     body: {
         field: "$";
-        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE";
-        description: string;
+        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE";
+        message: string;
     },
 
     unknown_field: {
         field: string;
-        title: "UNKNOWN_FIELD";
-        description: string;
+        code: "UNKNOWN_FIELD";
+        message: string;
     },
 }

@@ -16,29 +16,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Собирает сущности из полей тела запроса по общим моделям контракта
- * ({@code LocationRequest}, {@code CoordinatesRequest}, {@code PersonRequest},
- * {@code OrganizationRequest} и формам работника). Вложенная ссылка {@code {id}}
- * возвращается объектом, у которого задан только ID; её поля нового объекта не проверяются.
+ * Собирает сущности из полей тела запроса.
+ * У вложенной ссылки по ID задан только ID, её поля нового объекта не проверяются.
  */
 @ApplicationScoped
 public class RequestEntities {
     private static final String ID = "id";
-    private static final String LOCATION_FIELD = "location";
     private static final String ORGANIZATION_FIELD = "organization";
     private static final String ORGANIZATION_ID_FIELD = "organization_id";
     private static final String RATING = "rating";
     private static final String MUTUALLY_EXCLUSIVE = "MUTUALLY_EXCLUSIVE";
     private static final List<String> PERSON_FIELDS = List.of("eye_color", "hair_color",
-            LOCATION_FIELD, "birthday", "weight", "nationality");
+            "location", "birthday", "weight", "nationality");
 
     /**
-     * Читает локацию: новую {@code {x, y, z}} или ссылку {@code {id}}.
+     * Читает локацию: новую {x, y, z} или ссылку {id}.
      *
      * @param fields поля родительского объекта
      * @param field имя поля
-     * @param nullable допускается ли {@code null}
-     * @return локация или {@code null}
+     * @param nullable допускается ли null
+     * @return локация или null
      */
     public Location location(RequestFields fields, String field, boolean nullable) {
         RequestFields location = fields.object(field, nullable);
@@ -52,11 +49,11 @@ public class RequestEntities {
     }
 
     /**
-     * Читает координаты: новые {@code {x, y}} или ссылку {@code {id}}.
+     * Читает координаты: новые {x, y} или ссылку {id}.
      *
      * @param fields поля родительского объекта
      * @param field имя поля
-     * @return координаты или {@code null}, если поле неверно
+     * @return координаты или null, если поле неверно
      */
     public Coordinates coordinates(RequestFields fields, String field) {
         RequestFields coordinates = fields.object(field, false);
@@ -70,13 +67,13 @@ public class RequestEntities {
     }
 
     /**
-     * Читает адрес в варианте «новый адрес в {@code objectField} или ID существующего
-     * в {@code idField}»; нужно ровно одно из двух полей.
+     * Читает адрес в варианте «новый адрес в objectField или ID существующего
+     * в idField»; нужно ровно одно из двух полей.
      *
      * @param fields поля родительского объекта
-     * @param objectField поле нового адреса {@code {street, town}}
+     * @param objectField поле нового адреса {street, town}
      * @param idField поле ID существующего адреса
-     * @return адрес или {@code null}, если поля неверны
+     * @return адрес или null, если поля неверны
      */
     public Address address(RequestFields fields, String objectField, String idField) {
         if (fields.has(objectField) && fields.has(idField)) {
@@ -98,7 +95,7 @@ public class RequestEntities {
     }
 
     /**
-     * Читает объект как организацию с вариантами адресов из {@link #address}.
+     * Читает объект как организацию с вариантами адресов из address.
      *
      * @param fields поля организации
      * @return организация без ID
@@ -125,18 +122,18 @@ public class RequestEntities {
         fields.allowOnly(PERSON_FIELDS.toArray(String[]::new));
         return new Person(null, fields.enumValue("eye_color", Color.class, true),
                 fields.enumValue("hair_color", Color.class, false),
-                location(fields, LOCATION_FIELD, false), fields.dateTime("birthday"),
+                location(fields, "location", false), fields.dateTime("birthday"),
                 fields.float32("weight"), fields.enumValue("nationality", Country.class, false),
                 null);
     }
 
     /**
-     * Читает персону: новую или ссылку {@code {id}}.
+     * Читает персону: новую или ссылку {id}.
      *
      * @param fields поля родительского объекта
      * @param field имя поля
-     * @param nullable допускается ли {@code null}
-     * @return персона или {@code null}
+     * @param nullable допускается ли null
+     * @return персона или null
      */
     public Person person(RequestFields fields, String field, boolean nullable) {
         RequestFields person = fields.object(field, nullable);
@@ -151,11 +148,11 @@ public class RequestEntities {
 
     /**
      * Читает объект как работника. ID, создателя, дату создания и привязку персоны задаёт
-     * сервер. Организация — {@code null}, ссылка (задан только ID) или новая без ID.
+     * сервер. Организация — null, ссылка (задан только ID) или новая без ID.
      *
      * @param fields поля работника
-     * @param update {@code true} для PUT: обязателен {@code organization_id}, допускающий
-     *     {@code null}, а новой организации нет; иначе — три формы создания
+     * @param update true для PUT: обязателен organization_id, допускающий
+     *     null, а новой организации нет; иначе — три формы создания
      * @return работник без ID, создателя и даты создания
      */
     public Worker worker(RequestFields fields, boolean update) {
@@ -173,7 +170,7 @@ public class RequestEntities {
                 fields.enumValue("status", Status.class, true), person(fields, "person", true));
     }
 
-    /** Создание: {@code organization_id}, {@code organization} или ни одного из них. */
+    /** Создание: organization_id, organization или ни одного из них. */
     private Organization newWorkerOrganization(RequestFields fields) {
         if (fields.has(ORGANIZATION_ID_FIELD) && fields.has(ORGANIZATION_FIELD)) {
             String description = "Use either organization_id or organization.";
@@ -191,7 +188,7 @@ public class RequestEntities {
         return organization == null ? null : organization(organization);
     }
 
-    /** PUT: ключ {@code organization_id} обязателен; {@code null} — без организации. */
+    /** PUT: ключ organization_id обязателен; null — без организации. */
     private Organization updatedOrganization(RequestFields fields) {
         return fields.hasNull(ORGANIZATION_ID_FIELD) ? null : organizationReference(fields);
     }

@@ -40,23 +40,17 @@ const indexSalariesValidationOperationExample = #{
         statusCode: 422,
         contentType: "application/json",
         body: #{
-            type: "/problems/validation-failed",
-            title: "Validation failed",
-            status: 422,
             errors: #[
                 #{
                     field: "coefficient",
-                    title: "MUST_BE_POSITIVE",
-                    description: "Coefficient must be greater than zero."
+                    code: "MUST_BE_POSITIVE",
+                    message: "coefficient must be greater than zero."
                 }
             ]
         }
     }
 };
 
-const indexSalariesConflictOperationExample = #{
-    returnType: salaryIndexationConflictErrorExample
-};
 
 @post
 @route("/{id}/index_salaries")
@@ -70,7 +64,7 @@ const indexSalariesConflictOperationExample = #{
 @opExample(unauthorizedOperationExample)
 @opExample(forbiddenOperationExample)
 @opExample(organizationNotFoundOperationExample)
-@opExample(indexSalariesConflictOperationExample)
+@opExample(salaryIndexationConflictOperationExample)
 @opExample(indexSalariesValidationOperationExample)
 op indexOrganizationSalaries(
     ...WorkersApi.Security.CsrfTokenHeader,
@@ -80,10 +74,9 @@ op indexOrganizationSalaries(
     @body body: IndexSalariesRequest
 ):
     WorkersApi.Ok.OkResponse<CountResponse>
-    | ValidationError<400, ParameterValidationIssue>
     | BadRequestError
     | UnauthorizedError
     | ForbiddenError
-    | OrganizationNotFoundError
-    | SalaryIndexationConflictError
-    | ValidationError<422, SpecialRequestValidationIssue>;
+    | NotFoundError
+    | ConflictError
+    | ValidationError<SpecialRequestValidationIssue>;

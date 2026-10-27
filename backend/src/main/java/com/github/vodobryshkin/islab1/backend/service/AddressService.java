@@ -45,7 +45,7 @@ public class AddressService {
     /**
      * Сохраняет адрес и новую локацию в одной транзакции.
      *
-     * @param address адрес; у {@code town} задан только ID, если это существующая локация
+     * @param address адрес; у town задан только ID, если это существующая локация
      * @return ID адреса или пустой результат, если локации с таким ID нет
      */
     @Transactional
@@ -72,7 +72,7 @@ public class AddressService {
      * Возвращает страницу адресов.
      *
      * @param query параметры страницы
-     * @param street подстрока улицы или {@code null}
+     * @param street подстрока улицы или null
      * @return адреса страницы
      */
     public List<Address> findPage(ListQuery query, String street) {
@@ -82,7 +82,7 @@ public class AddressService {
     /**
      * Считает адреса с учётом фильтра.
      *
-     * @param street подстрока улицы или {@code null}
+     * @param street подстрока улицы или null
      * @return количество
      */
     public long count(String street) {
@@ -94,7 +94,7 @@ public class AddressService {
      *
      * @param id ID адреса
      * @param values новые значения
-     * @return {@code DONE}, {@code NOT_FOUND} или {@code REFERENCE_NOT_FOUND}
+     * @return DONE, NOT_FOUND или REFERENCE_NOT_FOUND
      */
     @Transactional
     public Outcome update(long id, Address values) {
@@ -114,7 +114,7 @@ public class AddressService {
      * Удаляет адрес, если его не используют организации. Локацию адреса не удаляет.
      *
      * @param id ID адреса
-     * @return {@code DONE}, {@code NOT_FOUND} или {@code IN_USE}
+     * @return DONE, NOT_FOUND или IN_USE
      */
     @Transactional
     public Outcome delete(long id) {
@@ -131,9 +131,9 @@ public class AddressService {
     }
 
     /**
-     * Привязывает город: {@code null}, новую локацию или существующую по ID.
+     * Привязывает город: null, новую локацию или существующую по ID.
      *
-     * @return {@code false}, если локации с указанным ID нет; адрес тогда не меняется
+     * @return false, если локации с указанным ID нет; адрес тогда не меняется
      */
     private boolean attachTown(Address address, Location town) {
         if (town == null) {

@@ -1,4 +1,4 @@
-import "./ProblemResponse.tsp";
+import "./ErrorResponse.tsp";
 
 namespace WorkersApi.Errors;
 
@@ -6,11 +6,7 @@ const forbiddenExample: ForbiddenError = #{
     statusCode: 403,
     contentType: "application/json",
     body: #{
-        type: "/problems/invalid-csrf-token",
-        title: "Invalid CSRF token",
-        status: 403,
-        detail: "The X-CSRF-Token header is missing or does not match the current session.",
-        instance: "/problem-occurrences/example-403"
+        message: "The X-CSRF-Token header is missing or does not match the current session."
     }
 };
 
@@ -24,4 +20,4 @@ const forbiddenOperationExample = #{
     отсутствует или не совпадает с токеном текущей сессии. Операция не выполняется.
     """)
 @example(forbiddenExample)
-model ForbiddenError is ProblemResponse<403>;
+model ForbiddenError is ErrorResult<403>;

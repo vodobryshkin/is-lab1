@@ -46,7 +46,7 @@ POST {{base_url}}/workers
 }
 HTTP 403
 [Asserts]
-jsonpath "$.type" == "/problems/invalid-csrf-token"
+jsonpath "$.message" == "The X-CSRF-Token header is missing or does not match the current session."
 
 POST {{base_url}}/workers
 X-CSRF-Token: wrong-token

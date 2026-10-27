@@ -30,7 +30,7 @@ POST {{base_url}}/locations
 }
 HTTP 403
 [Asserts]
-jsonpath "$.type" == "/problems/invalid-csrf-token"
+jsonpath "$.message" == "The X-CSRF-Token header is missing or does not match the current session."
 
 GET {{base_url}}/locations
 HTTP 200

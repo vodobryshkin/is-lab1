@@ -1,12 +1,19 @@
 package com.github.vodobryshkin.islab1.backend.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
 /**
- * Проверенные параметры страницы списка.
- *
- * @param page номер страницы с 1
- * @param pageSize размер страницы от 1 до 100
- * @param sortBy поле сортировки из разрешённого набора ресурса
- * @param ascending {@code true} для порядка по возрастанию
+ * Проверенные параметры страницы списка: номер, размер, поле и направление сортировки.
  */
-public record ListQuery(int page, int pageSize, String sortBy, boolean ascending) {
+@Data
+@AllArgsConstructor
+public class ListQuery {
+    private int page;
+
+    private int pageSize;
+
+    private String sortBy;
+
+    private boolean ascending;
 }

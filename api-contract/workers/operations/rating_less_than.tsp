@@ -33,16 +33,7 @@ const workerRatingValidationOperationExample = #{
         statusCode: 400,
         contentType: "application/json",
         body: #{
-            type: "/problems/validation-failed",
-            title: "Invalid request parameters",
-            status: 400,
-            errors: #[
-                #{
-                    field: "rating",
-                    title: "INVALID_TYPE",
-                    description: "Rating must be an int32 value."
-                }
-            ]
+            message: "Parameter rating must be an integer."
         }
     }
 };
@@ -61,5 +52,5 @@ op getWorkersByRatingLessThan(
     @query rating: int32
 ):
     WorkersApi.Ok.OkResponse<GetSingleWorkerResponse[]>
-    | ValidationError<400, ParameterValidationIssue>
+    | BadRequestError
     | UnauthorizedError;

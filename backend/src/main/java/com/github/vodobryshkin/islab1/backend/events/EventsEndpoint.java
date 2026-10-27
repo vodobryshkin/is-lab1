@@ -15,10 +15,7 @@ import jakarta.websocket.server.ServerEndpointConfig;
 import java.nio.ByteBuffer;
 
 /**
- * Канал уведомлений {@code /api/v1/events}. Путь защищён ограничением
- * {@code web.xml}, поэтому Upgrade без входа получает 401 до открытия соединения;
- * {@code Origin} и параметры URL проверяет {@link HandshakeFilter}.
- * Клиент сообщений не отправляет.
+ * WebSocket-канал уведомлений /api/v1/events для вошедших пользователей.
  */
 @ServerEndpoint(value = "/api/v1/events", configurator = EventsEndpoint.Handshake.class)
 public class EventsEndpoint {
@@ -45,7 +42,7 @@ public class EventsEndpoint {
     }
 
     /**
-     * Регистрирует соединение и подтверждает вход сообщением {@code AUTHENTICATED}.
+     * Регистрирует соединение и подтверждает вход сообщением AUTHENTICATED.
      *
      * @param connection открытое соединение
      */
@@ -56,7 +53,7 @@ public class EventsEndpoint {
     }
 
     /**
-     * Отклоняет текстовое сообщение клиента: {@code INVALID_MESSAGE} и код 4002.
+     * Отклоняет текстовое сообщение клиента: INVALID_MESSAGE и код 4002.
      *
      * @param connection соединение
      * @param message сообщение клиента
@@ -102,10 +99,7 @@ public class EventsEndpoint {
     }
 
     /**
-     * Передаёт соединению HTTP-сессию Upgrade. Свойства в {@code modifyHandshake} — копия
-     * для одного соединения (Jakarta WebSocket 2.1, раздел 3.1.5), поэтому сессии
-     * клиентов не смешиваются. {@code Origin} и параметры URL раньше проверяет
-     * {@link HandshakeFilter}: при отказе {@code checkOrigin} Undertow ответил бы 404.
+     * Передаёт соединению HTTP-сессию запроса Upgrade.
      */
     public static class Handshake extends ServerEndpointConfig.Configurator {
         @Override

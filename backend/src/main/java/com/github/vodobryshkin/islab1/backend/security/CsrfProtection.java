@@ -1,6 +1,6 @@
 package com.github.vodobryshkin.islab1.backend.security;
 
-import com.github.vodobryshkin.islab1.backend.dto.ProblemDetails;
+import com.github.vodobryshkin.islab1.backend.dto.ErrorResponse;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,6 +9,8 @@ import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -17,12 +19,8 @@ import java.util.Base64;
 import java.util.Set;
 
 /**
- * CSRF-токены сессии и их проверка у всех изменяющих запросов, включая публичные
- * регистрацию, вход и выход.
- *
- * <p>Токен случаен и не связан с ID сессии; хранится в атрибуте сессии. Фильтр работает
- * до метода ресурса, а значит и до программного входа в login. Запрос без входа к
- * защищённому адресу сюда не доходит: механизм аутентификации раньше отвечает 401.
+ * Выдаёт CSRF-токены сессии и проверяет их у всех изменяющих запросов.
+ * Проверка выполняется до метода ресурса, в том числе до входа.
  */
 @Provider
 @ApplicationScoped
@@ -50,10 +48,11 @@ public class CsrfProtection implements ContainerRequestFilter {
                 && MessageDigest.isEqual(token.getBytes(StandardCharsets.UTF_8),
                         actual.getBytes(StandardCharsets.UTF_8));
         if (!valid) {
-            requestContext.abortWith(new ProblemDetails(403, "/problems/invalid-csrf-token",
-                    "Invalid CSRF token",
-                    "The X-CSRF-Token header is missing or does not match the current session.")
-                    .toResponse());
+            requestContext.abortWith(Response.status(Response.Status.FORBIDDEN)
+                    .type(MediaType.APPLICATION_JSON_TYPE)
+                    .entity(new ErrorResponse("The X-CSRF-Token header is missing or does not "
+                            + "match the current session."))
+                    .build());
         }
     }
 

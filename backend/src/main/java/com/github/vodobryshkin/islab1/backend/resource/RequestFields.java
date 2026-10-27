@@ -1,6 +1,6 @@
 package com.github.vodobryshkin.islab1.backend.resource;
 
-import com.github.vodobryshkin.islab1.backend.dto.ProblemDetails;
+import com.github.vodobryshkin.islab1.backend.dto.ValidationIssue;
 import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
@@ -16,31 +16,17 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Поля одного JSON-объекта тела запроса. Накапливает нарушения структуры
- * до {@link #validate}, который добавляет нарушения Jakarta Validation и завершает
- * запрос ответом 422, если что-то неверно. Нарушения вложенных объектов получают
- * имя с префиксом, например {@code location.x}. Сущности из полей собирает
- * {@link RequestEntities}.
- *
- *
- * <p>PMD считает класс слишком большим (GodClass). Все методы работают с общими
- * объектом JSON, префиксом, списком нарушений и набором ссылок; разделение по типам
- * значений разнесло бы это состояние по двум классам и не упростило бы код.
+ * Поля одного JSON-объекта тела запроса с накопленными нарушениями.
+ * Нарушения вложенных объектов получают имя с префиксом, например location.x.
  */
 @SuppressWarnings("PMD.GodClass")
 public final class RequestFields {
-    private static final String FIELD = "Field ";
-    private static final String INVALID_TYPE = "INVALID_TYPE";
-    private static final String OUT_OF_RANGE = "OUT_OF_RANGE";
-    private static final String ID_FIELD = "id";
-    private static final String MUTUALLY_EXCLUSIVE = "MUTUALLY_EXCLUSIVE";
-
     private final RequestReader reader;
     private final JsonObject json;
     private final String prefix;
-    private final List<ProblemDetails.Issue> issues;
+    private final List<ValidationIssue> issues;
 
-    /** Префиксы вложенных ссылок {@code {id}}: их поля нового объекта не проверяются. */
+    /** Префиксы вложенных ссылок {id}: их поля нового объекта не проверяются. */
     private final Set<String> references;
 
     RequestFields(RequestReader reader, JsonObject json) {
@@ -48,7 +34,7 @@ public final class RequestFields {
     }
 
     private RequestFields(RequestReader reader, JsonObject json, String prefix,
-            List<ProblemDetails.Issue> issues, Set<String> references) {
+            List<ValidationIssue> issues, Set<String> references) {
         this.reader = reader;
         this.json = json;
         this.prefix = prefix;
@@ -64,9 +50,11 @@ public final class RequestFields {
      */
     public RequestFields allowOnly(String... allowed) {
         Set<String> names = Set.of(allowed);
-        json.keySet().stream().filter(key -> !names.contains(key)).sorted()
-                .forEach(key -> add(key, "UNKNOWN_FIELD",
-                        FIELD + name(key) + " is not supported."));
+        for (String key : json.keySet()) {
+            if (!names.contains(key)) {
+                reject(key, "UNKNOWN_FIELD", name(key) + " is not supported.");
+            }
+        }
         return this;
     }
 
@@ -74,8 +62,8 @@ public final class RequestFields {
      * Читает вложенный объект.
      *
      * @param field имя поля
-     * @param nullable допускается ли {@code null}
-     * @return поля вложенного объекта или {@code null}, если значение null или неверно
+     * @param nullable допускается ли null
+     * @return поля вложенного объекта или null, если значение null или неверно
      */
     public RequestFields object(String field, boolean nullable) {
         JsonValue value = json.get(field);
@@ -85,27 +73,27 @@ public final class RequestFields {
         if (value == null || !nullable && isNull(value)) {
             present(field);
         } else if (!isNull(value)) {
-            add(field, INVALID_TYPE, FIELD + name(field) + " must be an object.");
+            reject(field, "INVALID_TYPE", name(field) + " must be an object.");
         }
         return null;
     }
 
     /**
-     * Различает варианты вложенного объекта «ссылка {@code {id}}» и «новый объект».
-     * У ссылки поля нового объекта запрещены ({@code MUTUALLY_EXCLUSIVE}) и не проверяются.
+     * Различает варианты вложенного объекта «ссылка {id}» и «новый объект».
+     * У ссылки поля нового объекта запрещены ("MUTUALLY_EXCLUSIVE") и не проверяются.
      *
      * @param newObjectFields поля варианта «новый объект»
-     * @return {@code true}, если это ссылка
+     * @return true, если это ссылка
      */
     boolean isReference(String... newObjectFields) {
         List<String> allowed = new ArrayList<>(List.of(newObjectFields));
-        allowed.add(ID_FIELD);
+        allowed.add("id");
         allowOnly(allowed.toArray(String[]::new));
-        if (!json.containsKey(ID_FIELD)) {
+        if (!json.containsKey("id")) {
             return false;
         }
         if (List.of(newObjectFields).stream().anyMatch(json::containsKey)) {
-            add(ID_FIELD, MUTUALLY_EXCLUSIVE, "Use either id or the fields of a new object.");
+            reject("id", "MUTUALLY_EXCLUSIVE", "Use either id or the fields of a new object.");
         }
         references.add(prefix);
         return true;
@@ -115,12 +103,12 @@ public final class RequestFields {
      * Читает положительный ID существующего объекта.
      *
      * @param field имя поля
-     * @return ID или {@code null}, если поле неверно
+     * @return ID или null, если поле неверно
      */
     public Long id(String field) {
         Long value = int64(field);
         if (value != null && value <= 0) {
-            add(field, "MUST_BE_POSITIVE", name(field) + " must be greater than zero.");
+            reject(field, "MUST_BE_POSITIVE", name(field) + " must be greater than zero.");
             return null;
         }
         return value;
@@ -130,7 +118,7 @@ public final class RequestFields {
      * Читает строку.
      *
      * @param field имя поля
-     * @return значение или {@code null}, если поле неверно
+     * @return значение или null, если поле неверно
      */
     public String string(String field) {
         JsonValue value = present(field);
@@ -146,9 +134,9 @@ public final class RequestFields {
      *
      * @param field имя поля
      * @param type тип перечисления
-     * @param nullable допускается ли {@code null}
+     * @param nullable допускается ли null
      * @param <E> тип перечисления
-     * @return значение или {@code null}
+     * @return значение или null
      */
     public <E extends Enum<E>> E enumValue(String field, Class<E> type, boolean nullable) {
         if (nullable && json.containsKey(field) && isNull(json.get(field))) {
@@ -161,16 +149,16 @@ public final class RequestFields {
         try {
             return Enum.valueOf(type, text);
         } catch (IllegalArgumentException exception) {
-            add(field, "INVALID_ENUM_VALUE", name(field) + " has an unsupported value.");
+            reject(field, "INVALID_ENUM_VALUE", name(field) + " has an unsupported value.");
             return null;
         }
     }
 
     /**
-     * Читает дату и время RFC 3339 со смещением, например {@code 2026-10-02T17:16:48Z}.
+     * Читает дату и время RFC 3339 со смещением, например 2026-10-02T17:16:48Z.
      *
      * @param field имя поля
-     * @return значение или {@code null}, если поле неверно
+     * @return значение или null, если поле неверно
      */
     public ZonedDateTime dateTime(String field) {
         String text = string(field);
@@ -180,7 +168,7 @@ public final class RequestFields {
         try {
             return OffsetDateTime.parse(text).toZonedDateTime();
         } catch (DateTimeParseException exception) {
-            add(field, "INVALID_DATE_TIME", name(field) + " must be an RFC 3339 date-time.");
+            reject(field, "INVALID_DATE_TIME", name(field) + " must be an RFC 3339 date-time.");
             return null;
         }
     }
@@ -189,7 +177,7 @@ public final class RequestFields {
      * Читает число типа float64.
      *
      * @param field имя поля
-     * @return значение или {@code null}, если поле неверно
+     * @return значение или null, если поле неверно
      */
     public Double float64(String field) {
         BigDecimal value = decimal(field, Double.MAX_VALUE, "float64");
@@ -200,7 +188,7 @@ public final class RequestFields {
      * Читает число типа float32.
      *
      * @param field имя поля
-     * @return значение или {@code null}, если поле неверно
+     * @return значение или null, если поле неверно
      */
     public Float float32(String field) {
         BigDecimal value = decimal(field, Float.MAX_VALUE, "float32");
@@ -211,12 +199,12 @@ public final class RequestFields {
      * Читает целое число типа int32.
      *
      * @param field имя поля
-     * @return значение или {@code null}, если поле неверно
+     * @return значение или null, если поле неверно
      */
     public Integer int32(String field) {
         Long value = int64(field);
         if (value != null && (value < Integer.MIN_VALUE || value > Integer.MAX_VALUE)) {
-            add(field, OUT_OF_RANGE, name(field) + " must fit into int32.");
+            reject(field, "OUT_OF_RANGE", name(field) + " must fit into int32.");
             return null;
         }
         return value == null ? null : value.intValue();
@@ -226,7 +214,7 @@ public final class RequestFields {
      * Читает целое число типа int64.
      *
      * @param field имя поля
-     * @return значение или {@code null}, если поле неверно
+     * @return значение или null, если поле неверно
      */
     public Long int64(String field) {
         JsonValue value = present(field);
@@ -237,22 +225,21 @@ public final class RequestFields {
         try {
             return number.longValueExact();
         } catch (ArithmeticException exception) {
-            add(field, OUT_OF_RANGE, name(field) + " must fit into int64.");
+            reject(field, "OUT_OF_RANGE", name(field) + " must fit into int64.");
             return null;
         }
     }
 
     /**
      * Проверяет собранный объект через Jakarta Validation. Поля с ошибкой структуры
-     * представлены только ею; поля ссылок {@code {id}} не проверяются как новый объект.
+     * представлены только ею; поля ссылок {id} не проверяются как новый объект.
      *
-     * @param value объект из прочитанных полей; {@code null}, если поле с ошибкой было
+     * @param value объект из прочитанных полей; null, если поле с ошибкой было
      *     единственным значением и проверять нечего, кроме ошибок самих полей
      * @param serverFields поля, которые заполняет сервер, а не клиент; их нарушения
      *     не относятся к запросу
      * @param <T> тип объекта
      * @return тот же объект
-     * @throws WebApplicationException 422 со всеми нарушениями полей
      */
     public <T> T validate(T value, String... serverFields) {
         Set<String> invalidFields = new HashSet<>(List.of(serverFields));
@@ -276,27 +263,27 @@ public final class RequestFields {
             return null;
         }
         if (number.bigDecimalValue().abs().compareTo(BigDecimal.valueOf(max)) > 0) {
-            add(field, OUT_OF_RANGE, name(field) + " must fit into " + type + ".");
+            reject(field, "OUT_OF_RANGE", name(field) + " must fit into " + type + ".");
             return null;
         }
         return number.bigDecimalValue();
     }
 
     /**
-     * Есть ли ключ в объекте, даже со значением {@code null}.
+     * Есть ли ключ в объекте, даже со значением null.
      *
      * @param field имя поля
-     * @return {@code true}, если ключ присутствует
+     * @return true, если ключ присутствует
      */
     boolean has(String field) {
         return json.containsKey(field);
     }
 
     /**
-     * Равно ли значение поля {@code null}.
+     * Равно ли значение поля null.
      *
      * @param field имя поля
-     * @return {@code true}, если ключ присутствует со значением {@code null}
+     * @return true, если ключ присутствует со значением null
      */
     boolean hasNull(String field) {
         return json.containsKey(field) && isNull(json.get(field));
@@ -311,30 +298,19 @@ public final class RequestFields {
         references.add(name(field) + ".");
     }
 
-    /**
-     * Добавляет нарушение, которое проверил вызывающий код.
-     *
-     * @param field имя поля
-     * @param title код из контракта
-     * @param description описание
-     */
-    void reject(String field, String title, String description) {
-        add(field, title, description);
-    }
-
     private JsonValue present(String field) {
         JsonValue value = json.get(field);
         if (value == null) {
-            add(field, "REQUIRED", FIELD + name(field) + " is required.");
+            reject(field, "REQUIRED", name(field) + " is required.");
         } else if (isNull(value)) {
-            add(field, "MUST_NOT_BE_NULL", FIELD + name(field) + " must not be null.");
+            reject(field, "MUST_NOT_BE_NULL", name(field) + " must not be null.");
         }
         return value;
     }
 
     private void invalidType(JsonValue value, String field, String expected) {
         if (value != null && !isNull(value)) {
-            add(field, INVALID_TYPE, FIELD + name(field) + " must be " + expected + ".");
+            reject(field, "INVALID_TYPE", name(field) + " must be " + expected + ".");
         }
     }
 
@@ -342,8 +318,15 @@ public final class RequestFields {
         return value.getValueType() == JsonValue.ValueType.NULL;
     }
 
-    private void add(String field, String title, String description) {
-        issues.add(reader.issue(name(field), title, description));
+    /**
+     * Добавляет нарушение поля.
+     *
+     * @param field имя поля
+     * @param code код нарушения
+     * @param message описание
+     */
+    void reject(String field, String code, String message) {
+        issues.add(new ValidationIssue(name(field), code, message));
     }
 
     private String name(String field) {

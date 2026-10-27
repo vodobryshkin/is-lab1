@@ -83,7 +83,7 @@ public class CoordinatesService {
      *
      * @param id ID координат
      * @param values новые значения
-     * @return {@code false}, если координат нет
+     * @return false, если координат нет
      */
     @Transactional
     public boolean update(long id, Coordinates values) {

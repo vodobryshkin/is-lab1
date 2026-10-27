@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -33,8 +32,8 @@ public class OrganizationRepository {
             "postal_address_street", "LOWER(o.postalAddress.street)");
 
     /**
-     * Текстовые фильтры: подстрока без учёта регистра. {@code LOCATE} ищет подстроку
-     * буквально, поэтому {@code %} и {@code _} не требуют экранирования.
+     * Текстовые фильтры: подстрока без учёта регистра. LOCATE ищет подстроку
+     * буквально, поэтому % и _ не требуют экранирования.
      */
     private static final Map<String, String> TEXT_FILTERS = Map.of(
             "full_name", "o.fullName",
@@ -71,33 +70,34 @@ public class OrganizationRepository {
     }
 
     /**
-     * Возвращает страницу организаций. {@code null} при сортировке идёт последним,
+     * Возвращает страницу организаций. null при сортировке идёт последним,
      * при равных значениях порядок задаёт ID по возрастанию.
      *
      * @param query проверенные параметры страницы
-     * @param filters параметры запроса; учитываются {@code full_name}, {@code type},
-     *     {@code official_address_street}, {@code postal_address_street}
+     * @param filters параметры запроса; учитываются full_name, type,
+     *     official_address_street, postal_address_street
      * @return организации страницы; за концом списка — пустой список
      */
     public List<Organization> findPage(ListQuery query, Map<String, List<String>> filters) {
         Map<String, Object> parameters = parameters(filters);
-        long offset = (long) (query.page() - 1) * query.pageSize();
+        long offset = (long) (query.getPage() - 1) * query.getPageSize();
         if (offset > Integer.MAX_VALUE || List.of().equals(parameters.get(TYPE))) {
             return List.of();
         }
-        String order = SORT_COLUMNS.get(query.sortBy()) + (query.ascending() ? " ASC" : " DESC");
+        String order = SORT_COLUMNS.get(query.getSortBy())
+                + (query.isAscending() ? " ASC" : " DESC");
         return bind(entityManager.createQuery("SELECT o FROM Organization o" + where(parameters)
                         + " ORDER BY " + order + " NULLS LAST, o.id ASC", Organization.class),
                 parameters)
                 .setFirstResult((int) offset)
-                .setMaxResults(query.pageSize())
+                .setMaxResults(query.getPageSize())
                 .getResultList();
     }
 
     /**
      * Считает организации с учётом фильтров.
      *
-     * @param filters параметры запроса, как в {@link #findPage}
+     * @param filters параметры запроса, как в findPage
      * @return количество
      */
     public long count(Map<String, List<String>> filters) {
@@ -114,7 +114,7 @@ public class OrganizationRepository {
      * Проверяет, ссылается ли на организацию хотя бы один работник.
      *
      * @param id ID организации
-     * @return {@code true}, если организация используется
+     * @return true, если организация используется
      */
     public boolean isUsed(long id) {
         return entityManager.createQuery(
@@ -125,7 +125,7 @@ public class OrganizationRepository {
 
     /**
      * Сохраняет новую организацию и сразу отправляет INSERT, чтобы нарушение уникальности
-     * {@code full_name} возникло внутри транзакции сервиса.
+     * full_name возникло внутри транзакции сервиса.
      *
      * @param organization организация без ID с сохранёнными адресами
      */
@@ -146,7 +146,7 @@ public class OrganizationRepository {
 
     /**
      * Значения непустых фильтров: строка в нижнем регистре для текстовых и список
-     * подходящих констант для {@code type}. Пустой список означает, что ничего не подходит.
+     * подходящих констант для type. Пустой список означает, что ничего не подходит.
      */
     private Map<String, Object> parameters(Map<String, List<String>> filters) {
         return Stream.concat(TEXT_FILTERS.keySet().stream(), Stream.of(TYPE))
@@ -156,7 +156,7 @@ public class OrganizationRepository {
                                 .filter(type -> type.name().toLowerCase(Locale.ROOT)
                                         .contains(filter(filters, name)))
                                 .toList()
-                        : filter(filters, name), (first, second) -> first, TreeMap::new));
+                        : filter(filters, name)));
     }
 
     private String filter(Map<String, List<String>> filters, String name) {

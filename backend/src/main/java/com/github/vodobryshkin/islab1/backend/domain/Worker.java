@@ -82,7 +82,6 @@ public class Worker {
 
     @Column(name = "salary", nullable = false)
     @Positive
-    // +∞ недопустима; NaN, 0 и отрицательные значения отклоняет @Positive.
     @DecimalMax("1.7976931348623157E308")
     private double salary; // Значение поля должно быть больше 0
 

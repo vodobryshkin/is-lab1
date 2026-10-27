@@ -100,7 +100,7 @@ public class PersonService {
      *
      * @param id ID персоны
      * @param values новые значения
-     * @return {@code DONE}, {@code NOT_FOUND} или {@code REFERENCE_NOT_FOUND}
+     * @return DONE, NOT_FOUND или REFERENCE_NOT_FOUND
      */
     @Transactional
     public Outcome update(long id, Person values) {
@@ -124,12 +124,11 @@ public class PersonService {
     }
 
     /**
-     * Удаляет персону, если она не связана с работником. Локацию не удаляет.
-     * Внешний ключ {@code persons.worker_id} направлен от персоны к работнику и такому
-     * удалению не мешает, поэтому запрет обеспечивает эта проверка.
+     * Удаляет персону, если она не связана с работником.
+     * Внешний ключ такому удалению не мешает, поэтому запрет обеспечивает эта проверка.
      *
      * @param id ID персоны
-     * @return {@code DONE}, {@code NOT_FOUND} или {@code IN_USE}
+     * @return DONE, NOT_FOUND или IN_USE
      */
     @Transactional
     public Outcome delete(long id) {

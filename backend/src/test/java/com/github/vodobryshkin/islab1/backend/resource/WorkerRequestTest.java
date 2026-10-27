@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.github.vodobryshkin.islab1.backend.domain.Status;
 import com.github.vodobryshkin.islab1.backend.domain.Worker;
-import com.github.vodobryshkin.islab1.backend.dto.ProblemDetails;
+import com.github.vodobryshkin.islab1.backend.dto.ValidationErrorResponse;
 import jakarta.validation.Validation;
 import jakarta.validation.ValidatorFactory;
 import jakarta.ws.rs.WebApplicationException;
@@ -243,9 +243,9 @@ class WorkerRequestTest {
     private List<String> issues(String fields, boolean update) {
         WebApplicationException exception =
                 catchThrowableOfType(WebApplicationException.class, () -> read(fields, update));
-        ProblemDetails problem = (ProblemDetails) exception.getResponse().getEntity();
-        return problem.getErrors().stream()
-                .map(issue -> issue.getField() + " " + issue.getTitle())
+        ValidationErrorResponse response = (ValidationErrorResponse) exception.getResponse().getEntity();
+        return response.getErrors().stream()
+                .map(issue -> issue.getField() + " " + issue.getCode())
                 .toList();
     }
 }

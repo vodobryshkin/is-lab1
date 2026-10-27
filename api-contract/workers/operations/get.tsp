@@ -5,8 +5,6 @@ import "../../common/model/PageResponse.tsp";
 import "../../common/error/ValidationError.tsp";
 
 import "../model/response/GetSingleWorkerResponse.tsp";
-import "../model/error/InvalidWorkerIdError.tsp";
-import "../model/error/WorkerNotFoundError.tsp";
 
 import "../../common/error/UnauthorizedError.tsp";
 import "../../common/ok/OkResponse.tsp";
@@ -47,12 +45,12 @@ const getWorkerMaxIdOperationExample = #{
 };
 
 const getWorkerInvalidIdOperationExample = #{
-    returnType: invalidWorkerIdErrorExample
+    returnType: invalidIdExample
 };
 
 const getWorkerNotFoundOperationExample = #{
     parameters: #{ id: 999 },
-    returnType: workerNotFoundErrorExample
+    returnType: workerNotFoundExample
 };
 
 @get
@@ -72,9 +70,9 @@ op getWorker(
     id: int32
 ):
     WorkersApi.Ok.OkResponse<GetSingleWorkerResponse>
-    | InvalidWorkerIdError
+    | BadRequestError
     | UnauthorizedError
-    | WorkerNotFoundError;
+    | NotFoundError;
 
 const listWorkersPageExample: PageResponse<GetSingleWorkerResponse> = #{
     items: #[getSingleWorkerExample],
@@ -184,5 +182,5 @@ op listWorkers(
     person_nationality?: SubstringFilter,
 ):
     WorkersApi.Ok.OkResponse<PageResponse<GetSingleWorkerResponse>>
-    | ValidationError<400, ParameterValidationIssue>
+    | BadRequestError
     | UnauthorizedError;

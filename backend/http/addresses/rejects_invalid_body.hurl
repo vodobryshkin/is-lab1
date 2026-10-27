@@ -42,10 +42,9 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.errors[?(@.field == 'street')].title" contains "MUST_NOT_BE_EMPTY"
-jsonpath "$.errors[?(@.field == 'town')].title" contains "REQUIRED"
-jsonpath "$.errors[?(@.field == 'flat')].title" contains "UNKNOWN_FIELD"
+jsonpath "$.errors[?(@.field == 'street')].code" contains "MUST_NOT_BE_EMPTY"
+jsonpath "$.errors[?(@.field == 'town')].code" contains "REQUIRED"
+jsonpath "$.errors[?(@.field == 'flat')].code" contains "UNKNOWN_FIELD"
 
 POST {{base_url}}/addresses
 X-CSRF-Token: {{csrf}}
@@ -54,8 +53,8 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'street')].title" contains "REQUIRED"
-jsonpath "$.errors[?(@.field == 'town')].title" contains "INVALID_TYPE"
+jsonpath "$.errors[?(@.field == 'street')].code" contains "REQUIRED"
+jsonpath "$.errors[?(@.field == 'town')].code" contains "INVALID_TYPE"
 
 POST {{base_url}}/addresses
 X-CSRF-Token: {{csrf}}
@@ -69,10 +68,10 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'town.x')].title" contains "MUST_NOT_BE_NULL"
-jsonpath "$.errors[?(@.field == 'town.y')].title" contains "INVALID_TYPE"
-jsonpath "$.errors[?(@.field == 'town.z')].title" contains "REQUIRED"
-jsonpath "$.errors[?(@.field == 'town.w')].title" contains "UNKNOWN_FIELD"
+jsonpath "$.errors[?(@.field == 'town.x')].code" contains "MUST_NOT_BE_NULL"
+jsonpath "$.errors[?(@.field == 'town.y')].code" contains "INVALID_TYPE"
+jsonpath "$.errors[?(@.field == 'town.z')].code" contains "REQUIRED"
+jsonpath "$.errors[?(@.field == 'town.w')].code" contains "UNKNOWN_FIELD"
 
 POST {{base_url}}/addresses
 X-CSRF-Token: {{csrf}}
@@ -85,7 +84,7 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'town.id')].title" contains "MUTUALLY_EXCLUSIVE"
+jsonpath "$.errors[?(@.field == 'town.id')].code" contains "MUTUALLY_EXCLUSIVE"
 
 POST {{base_url}}/addresses
 X-CSRF-Token: {{csrf}}
@@ -97,7 +96,7 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'town.id')].title" contains "MUST_BE_POSITIVE"
+jsonpath "$.errors[?(@.field == 'town.id')].code" contains "MUST_BE_POSITIVE"
 
 POST {{base_url}}/addresses
 X-CSRF-Token: {{csrf}}
@@ -109,9 +108,7 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 404
 [Asserts]
-jsonpath "$.status" == 404
-jsonpath "$.type" == "/problems/location-not-found"
-jsonpath "$.location_id" == 999
+jsonpath "$.message" == "Location with id=999 does not exist."
 
 PUT {{base_url}}/addresses/{{id}}
 X-CSRF-Token: {{csrf}}
@@ -123,7 +120,7 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 404
 [Asserts]
-jsonpath "$.location_id" == 999
+jsonpath "$.message" == "Location with id=999 does not exist."
 
 GET {{base_url}}/addresses/{{id}}
 HTTP 200

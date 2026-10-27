@@ -38,16 +38,17 @@ public class LocationRepository {
      * @return локации страницы; за концом списка — пустой список
      */
     public List<Location> findPage(ListQuery query) {
-        long offset = (long) (query.page() - 1) * query.pageSize();
+        long offset = (long) (query.getPage() - 1) * query.getPageSize();
         if (offset > Integer.MAX_VALUE) {
             return List.of();
         }
-        String order = SORT_COLUMNS.get(query.sortBy()) + (query.ascending() ? " ASC" : " DESC");
+        String order = SORT_COLUMNS.get(query.getSortBy())
+                + (query.isAscending() ? " ASC" : " DESC");
         return entityManager.createQuery(
                         "SELECT l FROM Location l ORDER BY " + order + ", l.id ASC",
                         Location.class)
                 .setFirstResult((int) offset)
-                .setMaxResults(query.pageSize())
+                .setMaxResults(query.getPageSize())
                 .getResultList();
     }
 
@@ -65,7 +66,7 @@ public class LocationRepository {
      * Проверяет, ссылается ли на локацию адрес или персона.
      *
      * @param id ID локации
-     * @return {@code true}, если локация используется
+     * @return true, если локация используется
      */
     public boolean isUsed(long id) {
         return entityManager.createQuery(
@@ -89,7 +90,7 @@ public class LocationRepository {
 
     /**
      * Удаляет локацию и сразу отправляет DELETE: внешний ключ БД отклонит удаление,
-     * если адрес или персона сослались на локацию после проверки {@link #isUsed}.
+     * если адрес или персона сослались на локацию после проверки isUsed.
      *
      * @param location сохранённая локация
      */

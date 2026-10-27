@@ -1,108 +1,26 @@
-import "./ProblemResponse.tsp";
+import "@typespec/http";
 import "./ValidationIssue.tsp";
-import "./ParameterValidationIssue.tsp";
+
+using TypeSpec.Http;
 
 namespace WorkersApi.Errors;
 
-const listParameterValidationExample:
-    ValidationError<400, ParameterValidationIssue> = #{
-        statusCode: 400,
-        contentType: "application/json",
-        body: #{
-            type: "/problems/validation-failed",
-            title: "Invalid request parameters",
-            status: 400,
-            errors: #[
-                #{
-                    field: "page",
-                    title: "MUST_BE_POSITIVE",
-                    description: "Page must be greater than zero."
-                },
-                #{
-                    field: "page_size",
-                    title: "OUT_OF_RANGE",
-                    description: "Page size must not exceed 100."
-                },
-                #{
-                    field: "sort_by",
-                    title: "INVALID_ENUM_VALUE",
-                    description: "The sort field is not supported."
-                },
-                #{
-                    field: "sort_order",
-                    title: "INVALID_ENUM_VALUE",
-                    description: "Sort order must be asc or desc."
-                }
-            ]
-        }
-    };
-
-const listParameterValidationOperationExample = #{
-    returnType: listParameterValidationExample
-};
-
-const invalidIdExample: ValidationError<400, ParameterValidationIssue> = #{
-    statusCode: 400,
-    contentType: "application/json",
-    body: #{
-        type: "/problems/validation-failed",
-        title: "Invalid request parameters",
-        status: 400,
-        errors: #[
-            #{
-                field: "id",
-                title: "MUST_BE_POSITIVE",
-                description: "ID must be greater than zero."
-            }
-        ]
-    }
-};
-
-const invalidIdOperationExample = #{
-    returnType: invalidIdExample
-};
-
-const parameterValidationErrorExample:
-    ValidationError<400, ParameterValidationIssue> = #{
-        statusCode: 400,
-        contentType: "application/json",
-        body: #{
-            type: "/problems/validation-failed",
-            title: "Invalid request parameters",
-            status: 400,
-            errors: #[parameterValidationIssueExample]
-        }
-    };
-
-const validationErrorExample: ValidationError<422, ValidationIssue> = #{
-    statusCode: 422,
-    contentType: "application/json",
-    body: #{
-        type: "/problems/validation-failed",
-        title: "Validation failed",
-        status: 422,
-        errors: #[
-            #{
-                field: "salary",
-                title: "MUST_BE_POSITIVE",
-                description: "Salary must be greater than zero."
-            }
-        ]
-    }
-};
+@doc("Нарушения полей тела запроса.")
+model ValidationErrorResponse<TIssue extends ValidationIssue = ValidationIssue> {
+    @doc("Все найденные нарушения; порядок не задан.")
+    @minItems(1)
+    errors: TIssue[];
+}
 
 @error
-@doc("Ошибка валидации запроса.")
-model ValidationError<Status extends 400 | 422, TIssue extends ValidationIssue> is
-    ProblemResponse<
-        Status,
-        {
-            ...OmitProperties<ProblemDetails<Status>, "type">;
+@doc("Ошибка валидации тела запроса.")
+model ValidationError<TIssue extends ValidationIssue = ValidationIssue> {
+    @statusCode
+    statusCode: 422;
 
-            type: "/problems/validation-failed";
+    @header("Content-Type")
+    contentType: "application/json";
 
-            @doc("Ошибки полей.")
-            @minItems(1)
-            errors: TIssue[];
-        }
-    >;
+    @body
+    body: ValidationErrorResponse<TIssue>;
+}

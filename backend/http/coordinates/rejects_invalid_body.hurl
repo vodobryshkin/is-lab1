@@ -42,10 +42,12 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.status" == 422
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.errors[?(@.field == 'x')].title" contains "MUST_BE_GREATER_THAN_MINUS_954"
+jsonpath "$.errors[?(@.field == 'x')].code" contains "MUST_BE_GREATER_THAN_MINUS_954"
 jsonpath "$.errors" count == 1
+jsonpath "$.type" not exists
+jsonpath "$.status" not exists
+jsonpath "$.errors[0].field" == "x"
+jsonpath "$.errors[0].message" == "x must be greater than -954."
 
 POST {{base_url}}/coordinates
 X-CSRF-Token: {{csrf}}
@@ -54,8 +56,8 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'x')].title" contains "REQUIRED"
-jsonpath "$.errors[?(@.field == 'y')].title" contains "MUST_BE_GREATER_THAN_MINUS_392"
+jsonpath "$.errors[?(@.field == 'x')].code" contains "REQUIRED"
+jsonpath "$.errors[?(@.field == 'y')].code" contains "MUST_BE_GREATER_THAN_MINUS_392"
 
 POST {{base_url}}/coordinates
 X-CSRF-Token: {{csrf}}
@@ -65,8 +67,8 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'x')].title" contains "MUST_NOT_BE_NULL"
-jsonpath "$.errors[?(@.field == 'y')].title" contains "INVALID_TYPE"
+jsonpath "$.errors[?(@.field == 'x')].code" contains "MUST_NOT_BE_NULL"
+jsonpath "$.errors[?(@.field == 'y')].code" contains "INVALID_TYPE"
 
 POST {{base_url}}/coordinates
 X-CSRF-Token: {{csrf}}
@@ -76,7 +78,7 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'x')].title" contains "INVALID_TYPE"
+jsonpath "$.errors[?(@.field == 'x')].code" contains "INVALID_TYPE"
 
 POST {{base_url}}/coordinates
 X-CSRF-Token: {{csrf}}
@@ -86,8 +88,8 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'x')].title" contains "OUT_OF_RANGE"
-jsonpath "$.errors[?(@.field == 'y')].title" contains "OUT_OF_RANGE"
+jsonpath "$.errors[?(@.field == 'x')].code" contains "OUT_OF_RANGE"
+jsonpath "$.errors[?(@.field == 'y')].code" contains "OUT_OF_RANGE"
 
 POST {{base_url}}/coordinates
 X-CSRF-Token: {{csrf}}
@@ -98,7 +100,7 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'z')].title" contains "UNKNOWN_FIELD"
+jsonpath "$.errors[?(@.field == 'z')].code" contains "UNKNOWN_FIELD"
 
 POST {{base_url}}/coordinates
 X-CSRF-Token: {{csrf}}
@@ -106,7 +108,7 @@ Content-Type: application/json
 `[1, 2]`
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == '$')].title" contains "INVALID_TYPE"
+jsonpath "$.errors[?(@.field == '$')].code" contains "INVALID_TYPE"
 
 POST {{base_url}}/coordinates
 X-CSRF-Token: {{csrf}}
@@ -114,14 +116,14 @@ Content-Type: application/json
 `null`
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == '$')].title" contains "MUST_NOT_BE_NULL"
+jsonpath "$.errors[?(@.field == '$')].code" contains "MUST_NOT_BE_NULL"
 
 POST {{base_url}}/coordinates
 X-CSRF-Token: {{csrf}}
 Content-Type: application/json
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == '$')].title" contains "REQUIRED"
+jsonpath "$.errors[?(@.field == '$')].code" contains "REQUIRED"
 
 POST {{base_url}}/coordinates
 X-CSRF-Token: {{csrf}}
@@ -129,7 +131,7 @@ Content-Type: application/json
 `{"x": 1,`
 HTTP 400
 [Asserts]
-jsonpath "$.type" == "/problems/malformed-json"
+jsonpath "$.message" == "The request body contains invalid JSON."
 
 PUT {{base_url}}/coordinates/{{id}}
 X-CSRF-Token: {{csrf}}

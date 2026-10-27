@@ -31,10 +31,10 @@ public class DatabaseIdentityStore implements IdentityStore {
     }
 
     /**
-     * Проверяет учётные данные; вызывается {@link IdentityStore#validate} по их типу.
+     * Проверяет учётные данные; вызывается IdentityStore.validate по их типу.
      *
      * @param credential логин и пароль
-     * @return {@code VALID} с логином или {@code INVALID}
+     * @return VALID с логином или INVALID
      */
     public CredentialValidationResult validate(UsernamePasswordCredential credential) {
         return userService

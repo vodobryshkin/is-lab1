@@ -85,9 +85,7 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 409
 [Asserts]
-jsonpath "$.status" == 409
-jsonpath "$.type" == "/problems/organization-name-already-exists"
-jsonpath "$.full_name" == "Магистраль"
+jsonpath "$.message" == "Another organization with this full_name already exists."
 
 GET {{base_url}}/addresses
 HTTP 200
@@ -107,7 +105,7 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 409
 [Asserts]
-jsonpath "$.type" == "/problems/organization-name-already-exists"
+jsonpath "$.message" == "Another organization with this full_name already exists."
 
 GET {{base_url}}/organizations/{{second}}
 HTTP 200

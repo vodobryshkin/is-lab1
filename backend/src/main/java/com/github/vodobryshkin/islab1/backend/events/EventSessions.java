@@ -15,10 +15,9 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Открытые WebSocket-соединения вошедших пользователей и HTTP-сессии, в которых они
- * открыты, и уведомление {@code DATA_CHANGED} после фиксации изменяющей транзакции.
- * Отправки в одно соединение идут по очереди под его блокировкой: стандартный
- * {@code RemoteEndpoint.Basic} не допускает одновременных отправок.
+ * Открытые WebSocket-соединения и рассылка DATA_CHANGED после фиксации транзакции.
+ * Отправки в одно соединение идут под блокировкой: RemoteEndpoint.Basic не допускает параллельных
+ * отправок.
  */
 @ApplicationScoped
 public class EventSessions {
@@ -41,10 +40,7 @@ public class EventSessions {
     private TransactionSynchronizationRegistry transactions;
 
     /**
-     * Отмечает, что текущая транзакция изменила данные. После её фиксации все
-     * соединения получат одно {@code DATA_CHANGED}, сколько бы раз метод ни вызвали
-     * в этой транзакции; при откате уведомления нет. Вызывается сервисом, когда
-     * бизнес-сценарий действительно изменил данные.
+     * Планирует одно уведомление DATA_CHANGED после фиксации текущей транзакции.
      */
     public void changed() {
         if (transactions.getResource(PENDING) != null) {
@@ -87,9 +83,7 @@ public class EventSessions {
     }
 
     /**
-     * Завершает соединения HTTP-сессии при выходе или повторном входе: отправляет
-     * {@code SESSION_ENDED} и закрывает их кодом 4001. При истечении тайм-аута соединения
-     * закрывает сам контейнер кодом 1008 (Jakarta WebSocket 2.1, WSC-7.2-3).
+     * Отправляет SESSION_ENDED и закрывает соединения HTTP-сессии при выходе или повторном входе.
      *
      * @param httpSession HTTP-сессия
      */
@@ -126,7 +120,7 @@ public class EventSessions {
      *
      * @param connection WebSocket-соединение
      * @param code код закрытия
-     * @param message текстовый JSON перед закрытием или {@code null}
+     * @param message текстовый JSON перед закрытием или null
      * @param reason причина закрытия
      */
     void close(Session connection, short code, String message, String reason) {

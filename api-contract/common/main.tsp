@@ -1,3 +1,4 @@
+import "./error/ErrorResponse.tsp";
 import "./error/BadRequestError.tsp";
 import "./error/UnauthorizedError.tsp";
 import "./error/ForbiddenError.tsp";
@@ -5,10 +6,7 @@ import "./security/SessionCookieAuth.tsp";
 import "./security/CsrfTokenHeader.tsp";
 import "./error/NotFoundError.tsp";
 import "./error/ConflictError.tsp";
-import "./error/UnprocessableContentError.tsp";
 import "./error/ValidationError.tsp";
-import "./error/ParameterValidationIssue.tsp";
-import "./error/AddressNotFoundError.tsp";
 
 import "./ok/OkResponse.tsp";
 import "./ok/CreatedResponse.tsp";

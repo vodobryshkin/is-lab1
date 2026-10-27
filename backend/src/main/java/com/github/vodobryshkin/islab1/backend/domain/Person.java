@@ -68,7 +68,6 @@ public class Person {
     @Column(name = "weight", nullable = false)
     @NotNull
     @Positive
-    // +∞ недопустима; NaN, 0 и отрицательные значения отклоняет @Positive.
     @DecimalMax("3.4028235E38")
     private Float weight;                     // Поле не может быть null,
     // Значение поля должно быть больше 0

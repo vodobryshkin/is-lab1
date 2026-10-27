@@ -33,8 +33,8 @@ op deleteOrganization(
     id: int64
 ):
     WorkersApi.Ok.NoContentResponse
-    | ValidationError<400, ParameterValidationIssue>
+    | BadRequestError
     | UnauthorizedError
     | ForbiddenError
-    | OrganizationNotFoundError
-    | DeleteOrganizationConflictError;
+    | NotFoundError
+    | ConflictError;

@@ -25,7 +25,7 @@
         </web-resource-collection>
     </security-constraint>
 
-    <!-- Ответ 401 без входа в формате Problem Details, а не HTML-страница контейнера. -->
+    <!-- Ответ 401 без входа в JSON, а не HTML-страница контейнера. -->
     <error-page>
         <error-code>401</error-code>
         <location>/WEB-INF/errors/401.json</location>

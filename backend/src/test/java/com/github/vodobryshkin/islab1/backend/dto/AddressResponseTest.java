@@ -7,7 +7,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Проверяет адрес ответа: непустую улицу, город и JSON с {@code town: null}.
+ * Проверяет адрес ответа: непустую улицу, город и JSON с town: null.
  */
 class AddressResponseTest {
     private final ConstraintViolations violations = new ConstraintViolations();

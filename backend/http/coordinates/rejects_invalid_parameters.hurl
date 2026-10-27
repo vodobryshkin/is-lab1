@@ -27,43 +27,58 @@ csrf: jsonpath "$.csrf_token"
 GET {{base_url}}/coordinates/0
 HTTP 400
 [Asserts]
-jsonpath "$.status" == 400
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.title" == "Invalid request parameters"
-jsonpath "$.errors[?(@.field == 'id')].title" contains "MUST_BE_POSITIVE"
+jsonpath "$.message" == "Parameter id must be greater than zero."
 
 GET {{base_url}}/coordinates/abc
 HTTP 400
 [Asserts]
-jsonpath "$.errors[?(@.field == 'id')].title" contains "INVALID_TYPE"
+jsonpath "$.message" == "Parameter id must be an integer."
 
 DELETE {{base_url}}/coordinates/99999999999999999999
 X-CSRF-Token: {{csrf}}
 HTTP 400
 [Asserts]
-jsonpath "$.errors[?(@.field == 'id')].title" contains "OUT_OF_RANGE"
+jsonpath "$.message" == "Parameter id must not exceed 9223372036854775807."
 
 GET {{base_url}}/coordinates/999
 HTTP 404
 [Asserts]
-jsonpath "$.coordinates_id" == 999
+jsonpath "$.message" == "Coordinates with id=999 do not exist."
+jsonpath "$.type" not exists
+jsonpath "$.status" not exists
+jsonpath "$.coordinates_id" not exists
 
-GET {{base_url}}/coordinates?page=0&page_size=101&sort_by=z&sort_order=up
+GET {{base_url}}/coordinates?sort_by=z
 HTTP 400
 [Asserts]
-jsonpath "$.errors" count == 4
-jsonpath "$.errors[?(@.field == 'page')].title" contains "MUST_BE_POSITIVE"
-jsonpath "$.errors[?(@.field == 'page_size')].title" contains "OUT_OF_RANGE"
-jsonpath "$.errors[?(@.field == 'sort_by')].title" contains "INVALID_ENUM_VALUE"
-jsonpath "$.errors[?(@.field == 'sort_order')].title" contains "INVALID_ENUM_VALUE"
+jsonpath "$.message" == "Parameter sort_by has an unsupported value."
 
-GET {{base_url}}/coordinates?page=abc&page_size=0
+GET {{base_url}}/coordinates?sort_order=up
 HTTP 400
 [Asserts]
-jsonpath "$.errors[?(@.field == 'page')].title" contains "INVALID_TYPE"
-jsonpath "$.errors[?(@.field == 'page_size')].title" contains "MUST_BE_POSITIVE"
+jsonpath "$.message" == "Parameter sort_order must be asc or desc."
+
+GET {{base_url}}/coordinates?page=0
+HTTP 400
+[Asserts]
+jsonpath "$.message" == "Parameter page must be greater than zero."
+
+GET {{base_url}}/coordinates?page_size=101
+HTTP 400
+[Asserts]
+jsonpath "$.message" == "Parameter page_size must not exceed 100."
+
+GET {{base_url}}/coordinates?page=abc
+HTTP 400
+[Asserts]
+jsonpath "$.message" == "Parameter page must be an integer."
+
+GET {{base_url}}/coordinates?page_size=0
+HTTP 400
+[Asserts]
+jsonpath "$.message" == "Parameter page_size must be greater than zero."
 
 GET {{base_url}}/coordinates?page=2147483648
 HTTP 400
 [Asserts]
-jsonpath "$.errors[?(@.field == 'page')].title" contains "OUT_OF_RANGE"
+jsonpath "$.message" == "Parameter page must not exceed 2147483647."

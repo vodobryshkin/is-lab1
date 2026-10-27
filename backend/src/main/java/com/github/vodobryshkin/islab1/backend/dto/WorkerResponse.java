@@ -44,7 +44,6 @@ public class WorkerResponse {
     private OrganizationResponse organization;
 
     @Positive
-    // +∞ недопустима; NaN, 0 и отрицательные значения отклоняет @Positive.
     @DecimalMax("1.7976931348623157E308")
     private double salary;
 

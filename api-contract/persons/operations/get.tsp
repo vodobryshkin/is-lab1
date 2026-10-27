@@ -39,9 +39,9 @@ op getPerson(
     id: int64
 ):
     WorkersApi.Ok.OkResponse<GetSinglePersonResponse>
-    | ValidationError<400, ParameterValidationIssue>
+    | BadRequestError
     | UnauthorizedError
-    | NotFoundError<PersonNotFoundDetails>;
+    | NotFoundError;
 
 const listPersonsPageExample: PageResponse<GetSinglePersonResponse> = #{
     items: #[getSinglePersonExample],
@@ -119,5 +119,5 @@ op listPersons(
     nationality?: SubstringFilter,
 ):
     WorkersApi.Ok.OkResponse<PageResponse<GetSinglePersonResponse>>
-    | ValidationError<400, ParameterValidationIssue>
+    | BadRequestError
     | UnauthorizedError;

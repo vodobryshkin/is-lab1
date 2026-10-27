@@ -14,19 +14,16 @@ const coordinatesValidationErrorExample: CoordinatesValidationError = #{
     statusCode: 422,
     contentType: "application/json",
     body: #{
-        type: "/problems/validation-failed",
-        title: "Validation failed",
-        status: 422,
         errors: #[
             #{
                 field: "x",
-                title: "MUST_BE_GREATER_THAN_MINUS_954",
-                description: "X must be greater than -954."
+                code: "MUST_BE_GREATER_THAN_MINUS_954",
+                message: "x must be greater than -954."
             },
             #{
                 field: "y",
-                title: "MUST_BE_GREATER_THAN_MINUS_392",
-                description: "Y must be greater than -392."
+                code: "MUST_BE_GREATER_THAN_MINUS_392",
+                message: "y must be greater than -392."
             }
         ]
     }
@@ -36,15 +33,11 @@ const coordinatesValidationOperationExample = #{
     returnType: coordinatesValidationErrorExample
 };
 
-const deleteCoordinatesConflictErrorExample: DeleteCoordinatesConflictError = #{
+const deleteCoordinatesConflictErrorExample: ConflictError = #{
     statusCode: 409,
     contentType: "application/json",
     body: #{
-        type: "/problems/coordinates-are-in-use",
-        title: "Coordinates are in use",
-        status: 409,
-        detail: "The coordinates cannot be deleted while workers reference them.",
-        coordinates_id: 5
+        message: "The coordinates cannot be deleted while workers reference them."
     }
 };
 
@@ -58,14 +51,14 @@ union CoordinatesRequestValidationIssue {
 
     body: {
         field: "$";
-        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE";
-        description: string;
+        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE";
+        message: string;
     },
 
     unknown_field: {
         field: string;
-        title: "UNKNOWN_FIELD";
-        description: string;
+        code: "UNKNOWN_FIELD";
+        message: string;
     },
 }
 
@@ -73,19 +66,4 @@ union CoordinatesRequestValidationIssue {
 @doc("Ошибка валидации координат.")
 @example(coordinatesValidationErrorExample)
 model CoordinatesValidationError is
-    ValidationError<422, CoordinatesRequestValidationIssue>;
-
-@error
-@doc("Координаты используются связанными объектами.")
-@example(deleteCoordinatesConflictErrorExample)
-model DeleteCoordinatesConflictError is ConflictError<
-    {
-        ...OmitProperties<ProblemDetails<409>, "type">;
-
-        type: "/problems/coordinates-are-in-use";
-
-        @doc("ID координат.")
-        @minValue(1)
-        coordinates_id: int64;
-    }
->;
+    ValidationError<CoordinatesRequestValidationIssue>;

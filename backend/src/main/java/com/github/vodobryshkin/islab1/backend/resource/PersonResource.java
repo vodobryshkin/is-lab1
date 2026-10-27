@@ -1,7 +1,10 @@
 package com.github.vodobryshkin.islab1.backend.resource;
 
 import com.github.vodobryshkin.islab1.backend.domain.Person;
+import com.github.vodobryshkin.islab1.backend.dto.ErrorResponse;
+import com.github.vodobryshkin.islab1.backend.dto.IdResponse;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
+import com.github.vodobryshkin.islab1.backend.dto.PageResponse;
 import com.github.vodobryshkin.islab1.backend.dto.PersonResponse;
 import com.github.vodobryshkin.islab1.backend.service.PersonService;
 import jakarta.enterprise.context.RequestScoped;
@@ -16,25 +19,23 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 /**
- * Операции {@code /persons}. Вход и CSRF проверяются до вызова методов.
+ * Операции /persons. Вход и CSRF проверяются до вызова методов.
  */
 @Path("/persons")
 @RequestScoped
 @Produces(MediaType.APPLICATION_JSON)
 public class PersonResource {
-    private static final String EYE_COLOR = "eye_color";
-    private static final String HAIR_COLOR = "hair_color";
-    private static final String NATIONALITY = "nationality";
     private static final Set<String> SORT_FIELDS =
-            Set.of("id", EYE_COLOR, HAIR_COLOR, NATIONALITY, "birthday", "weight");
+            Set.of("id", "eye_color", "hair_color", "nationality", "birthday", "weight");
+    private static final String NOT_FOUND = "Person with id=%d does not exist.";
+    private static final String LOCATION_NOT_FOUND = "Location with id=%d does not exist.";
 
     private final PersonService service;
     private final RequestReader requestReader;
@@ -64,7 +65,7 @@ public class PersonResource {
      * Создаёт персону без работника с новой или существующей локацией.
      *
      * @param body тело запроса
-     * @param uriInfo адрес запроса для заголовка {@code Location}
+     * @param uriInfo адрес запроса для заголовка Location
      * @return 201 с ID или 404, если локации нет
      */
     @POST
@@ -74,12 +75,12 @@ public class PersonResource {
         Long locationId = person.getLocation().getId();
         Optional<Long> id = service.create(person);
         if (id.isEmpty()) {
-            return problem(404, "/problems/location-not-found", "Location not found",
-                    "Location with id=" + locationId + " does not exist.", "location_id",
-                    locationId);
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(LOCATION_NOT_FOUND.formatted(locationId)))
+                    .build();
         }
         return Response.created(uriInfo.getAbsolutePathBuilder().path(id.get().toString()).build())
-                .entity(Map.of("id", id.get()))
+                .entity(new IdResponse(id.get()))
                 .build();
     }
 
@@ -93,9 +94,13 @@ public class PersonResource {
     @Path("/{id}")
     public Response get(@PathParam("id") String rawId) {
         long id = requestReader.id(rawId);
-        return service.find(id)
-                .map(person -> Response.ok(new PersonResponse(person)).build())
-                .orElseGet(() -> notFound(id));
+        Optional<Person> person = service.find(id);
+        if (person.isEmpty()) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
+                    .build();
+        }
+        return Response.ok().entity(new PersonResponse(person.get())).build();
     }
 
     /**
@@ -106,12 +111,12 @@ public class PersonResource {
      */
     @GET
     public Response list(@Context UriInfo uriInfo) {
-        Map<String, List<String>> filters = uriInfo.getQueryParameters();
-        ListQuery query = requestReader.listQuery(uriInfo.getQueryParameters(), SORT_FIELDS);
-        List<PersonResponse> items =
-                service.findPage(query, filters).stream().map(PersonResponse::new).toList();
-        return Response.ok(Map.of("items", items, "page", query.page(),
-                "page_size", query.pageSize(), "total_items", service.count(filters))).build();
+        MultivaluedMap<String, String> filters = uriInfo.getQueryParameters();
+        ListQuery query = requestReader.listQuery(filters, SORT_FIELDS);
+        PageResponse<PersonResponse> page = new PageResponse<>(
+                service.findPage(query, filters).stream().map(PersonResponse::new).toList(),
+                query.getPage(), query.getPageSize(), service.count(filters));
+        return Response.ok().entity(page).build();
     }
 
     /**
@@ -130,10 +135,12 @@ public class PersonResource {
         Long locationId = values.getLocation().getId();
         return switch (service.update(id, values)) {
             case DONE -> Response.noContent().build();
-            case REFERENCE_NOT_FOUND -> problem(404, "/problems/location-not-found",
-                    "Location not found", "Location with id=" + locationId + " does not exist.",
-                    "location_id", locationId);
-            default -> notFound(id);
+            case REFERENCE_NOT_FOUND -> Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(LOCATION_NOT_FOUND.formatted(locationId)))
+                    .build();
+            default -> Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
+                    .build();
         };
     }
 
@@ -149,29 +156,18 @@ public class PersonResource {
         long id = requestReader.id(rawId);
         return switch (service.delete(id)) {
             case DONE -> Response.noContent().build();
-            case IN_USE -> problem(409, "/problems/person-is-in-use", "Person is in use",
-                    "The person cannot be deleted while a worker references it.", "person_id", id);
-            default -> notFound(id);
+            case IN_USE -> Response.status(Response.Status.CONFLICT)
+                    .entity(new ErrorResponse(
+                            "The person cannot be deleted while a worker references it."))
+                    .build();
+            default -> Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
+                    .build();
         };
     }
 
     private Person readPerson(String body) {
         RequestFields fields = requestReader.read(body);
         return fields.validate(entities.person(fields));
-    }
-
-    /** Дата рождения отдаётся в UTC, как {@code utcDateTime} контракта. */
-    private Response notFound(long id) {
-        return problem(404, "/problems/person-not-found", "Person not found",
-                "Person with id=" + id + " does not exist.", "person_id", id);
-    }
-
-    private Response problem(int status, String type, String title, String detail,
-            String idField, long id) {
-        return Response.status(status)
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(Map.of("type", type, "title", title, "status", status, "detail", detail,
-                        idField, id))
-                .build();
     }
 }

@@ -2,16 +2,17 @@ package com.github.vodobryshkin.islab1.backend.resource;
 
 import com.github.vodobryshkin.islab1.backend.domain.Status;
 import com.github.vodobryshkin.islab1.backend.domain.Worker;
+import com.github.vodobryshkin.islab1.backend.dto.CountResponse;
+import com.github.vodobryshkin.islab1.backend.dto.CreateWorkerResponse;
+import com.github.vodobryshkin.islab1.backend.dto.ErrorResponse;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
-import com.github.vodobryshkin.islab1.backend.dto.ProblemDetails;
+import com.github.vodobryshkin.islab1.backend.dto.PageResponse;
 import com.github.vodobryshkin.islab1.backend.dto.WorkerResponse;
 import com.github.vodobryshkin.islab1.backend.service.Change;
 import com.github.vodobryshkin.islab1.backend.service.SpecialOperationService;
 import com.github.vodobryshkin.islab1.backend.service.WorkerService;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
-import jakarta.json.bind.annotation.JsonbNillable;
-import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -21,38 +22,27 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
-import java.util.List;
-import java.util.Map;
+import java.math.BigInteger;
 import java.util.Set;
 
 /**
- * Операции {@code /workers}. Вход и CSRF проверяются до вызова методов.
+ * Операции /workers. Вход и CSRF проверяются до вызова методов.
  */
 @Path("/workers")
 @RequestScoped
 @Produces(MediaType.APPLICATION_JSON)
 public class WorkerResource {
-    private static final String STATUS = "status";
     private static final Set<String> SORT_FIELDS = Set.of("id", "name", "salary", "rating",
-            "start_date", "creation_date", "position", STATUS, "organization_full_name",
+            "start_date", "creation_date", "position", "status", "organization_full_name",
             "organization_type", "organization_official_address_street",
             "organization_postal_address_street", "person_eye_color", "person_hair_color",
             "person_nationality");
-
-    private static final String ORGANIZATION = "organization";
-    private static final String ORGANIZATION_ID = "organization_id";
-    private static final String PERSON = "person";
-    private static final String MISSING = " does not exist.";
-    private static final String RATING_PARAMETER = "rating";
-    private static final String COUNT = "count";
-    private static final String NOT_INT32 = "Rating must be an int32 value.";
-    private static final String REQUIRED = "REQUIRED";
-    private static final String NULL = "null";
+    private static final String NOT_FOUND = "Worker with id=%d does not exist.";
 
     private final WorkerService service;
     private final SpecialOperationService specialOperations;
@@ -83,11 +73,10 @@ public class WorkerResource {
 
     /**
      * Создаёт работника; новые вложенные объекты создаются в той же транзакции.
-     * Создатель — вошедший пользователь.
      *
      * @param body тело запроса
-     * @param request текущий запрос с principal
-     * @param uriInfo адрес запроса для заголовка {@code Location}
+     * @param request текущий запрос с вошедшим пользователем
+     * @param uriInfo адрес запроса для заголовка Location
      * @return 201 с ID работника и организации, 404 при ненайденной ссылке или 409
      */
     @POST
@@ -96,15 +85,16 @@ public class WorkerResource {
             @Context UriInfo uriInfo) {
         Worker worker = readWorker(body, false);
         Change change = service.create(worker, request.getUserPrincipal().getName());
-        return switch (change.outcome()) {
-            case DONE -> Response.created(
-                            uriInfo.getAbsolutePathBuilder().path(change.id().toString()).build())
-                    .entity(new Created(change.id(), worker.getOrganization() == null
-                            ? null
-                            : worker.getOrganization().getId()))
+        return switch (change.getOutcome()) {
+            case DONE -> Response.created(uriInfo.getAbsolutePathBuilder()
+                            .path(change.getId().toString()).build())
+                    .entity(new CreateWorkerResponse(change.getId().intValue(),
+                            worker.getOrganization() == null
+                                    ? null
+                                    : worker.getOrganization().getId()))
                     .build();
-            case CONFLICT -> conflict(change, worker);
-            default -> referenceNotFound(change.subject(), change.subjectId());
+            case CONFLICT -> conflict(change);
+            default -> referenceNotFound(change.getSubject(), change.getSubjectId());
         };
     }
 
@@ -119,8 +109,10 @@ public class WorkerResource {
     public Response get(@PathParam("id") String rawId) {
         int id = requestReader.workerId(rawId);
         return service.find(id)
-                .map(worker -> Response.ok(new WorkerResponse(worker)).build())
-                .orElseGet(() -> notFound(id));
+                .map(worker -> Response.ok().entity(new WorkerResponse(worker)).build())
+                .orElseGet(() -> Response.status(Response.Status.NOT_FOUND)
+                        .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
+                        .build());
     }
 
     /**
@@ -131,57 +123,69 @@ public class WorkerResource {
      */
     @GET
     public Response list(@Context UriInfo uriInfo) {
-        Map<String, List<String>> filters = uriInfo.getQueryParameters();
-        ListQuery query = requestReader.listQuery(uriInfo.getQueryParameters(), SORT_FIELDS);
-        List<WorkerResponse> items =
-                service.findPage(query, filters).stream().map(WorkerResponse::new).toList();
-        return Response.ok(Map.of("items", items, "page", query.page(),
-                "page_size", query.pageSize(), "total_items", service.count(filters))).build();
+        MultivaluedMap<String, String> filters = uriInfo.getQueryParameters();
+        ListQuery query = requestReader.listQuery(filters, SORT_FIELDS);
+        PageResponse<WorkerResponse> page = new PageResponse<>(
+                service.findPage(query, filters).stream().map(WorkerResponse::new).toList(),
+                query.getPage(), query.getPageSize(), service.count(filters));
+        return Response.ok().entity(page).build();
     }
 
     /**
-     * Считает работников с указанным статусом; {@code status=null} — без статуса.
+     * Считает работников с указанным статусом; status=null — работников без статуса.
      *
-     * @param uriInfo параметр {@code status}
+     * @param uriInfo параметр status
      * @return 200 с количеством или 400 при неверном параметре
      */
     @GET
     @Path("/count_by_status")
     public Response countByStatus(@Context UriInfo uriInfo) {
-        String raw = uriInfo.getQueryParameters().getFirst(STATUS);
-        Status status = NULL.equals(raw) ? null : statusParameter(raw);
-        return Response.ok(Map.of(COUNT, specialOperations.countByStatus(status))).build();
+        String raw = uriInfo.getQueryParameters().getFirst("status");
+        Status status = "null".equals(raw) ? null : statusParameter(raw);
+        CountResponse count = new CountResponse(specialOperations.countByStatus(status));
+        return Response.ok().entity(count).build();
     }
 
     /**
      * Считает работников со статусом выше заданного; работники без статуса не учитываются.
      *
-     * @param uriInfo параметр {@code status}
+     * @param uriInfo параметр status
      * @return 200 с количеством или 400 при неверном параметре
      */
     @GET
     @Path("/count_by_status_greater_than")
     public Response countByStatusGreaterThan(@Context UriInfo uriInfo) {
-        Status status =
-                statusParameter(uriInfo.getQueryParameters().getFirst(STATUS));
-        return Response.ok(Map.of(COUNT, specialOperations.countByStatusGreaterThan(status)))
-                .build();
+        Status status = statusParameter(uriInfo.getQueryParameters().getFirst("status"));
+        CountResponse count =
+                new CountResponse(specialOperations.countByStatusGreaterThan(status));
+        return Response.ok().entity(count).build();
     }
 
     /**
      * Возвращает всех работников с рейтингом строго меньше порога, без страниц.
      *
-     * @param uriInfo параметр {@code rating}
+     * @param uriInfo параметр rating
      * @return 200 с массивом работников или 400 при неверном параметре
      */
     @GET
     @Path("/rating_less_than")
     public Response ratingLessThan(@Context UriInfo uriInfo) {
-        int rating = ratingParameter(uriInfo.getQueryParameters().getFirst(RATING_PARAMETER));
-        List<WorkerResponse> workers = specialOperations.findByRatingLessThan(rating).stream()
-                .map(WorkerResponse::new)
-                .toList();
-        return Response.ok(workers).build();
+        String raw = uriInfo.getQueryParameters().getFirst("rating");
+        if (raw == null) {
+            throw requestReader.badRequest("Parameter rating is required.");
+        }
+        if (!raw.matches("-?\\d+")) {
+            throw requestReader.badRequest("Parameter rating must be an integer.");
+        }
+        if (new BigInteger(raw).bitLength() >= Integer.SIZE) {
+            throw requestReader.badRequest("Parameter rating must fit into int32.");
+        }
+        int rating = Integer.parseInt(raw);
+        return Response.ok()
+                .entity(specialOperations.findByRatingLessThan(rating).stream()
+                        .map(WorkerResponse::new)
+                        .toList())
+                .build();
     }
 
     /**
@@ -196,21 +200,22 @@ public class WorkerResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("id") String rawId, String body) {
         int id = requestReader.workerId(rawId);
-        Worker values = readWorker(body, true);
-        Change change = service.update(id, values);
-        return switch (change.outcome()) {
+        Change change = service.update(id, readWorker(body, true));
+        return switch (change.getOutcome()) {
             case DONE -> Response.noContent().build();
-            case NOT_FOUND -> notFound(id);
-            case CONFLICT -> conflict(change, values);
-            default -> referenceNotFound(change.subject(), change.subjectId());
+            case NOT_FOUND -> Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
+                    .build();
+            case CONFLICT -> conflict(change);
+            default -> referenceNotFound(change.getSubject(), change.getSubjectId());
         };
     }
 
     /**
-     * Принимает работника в существующую организацию со статусом {@code HIRED}.
+     * Принимает работника в существующую организацию со статусом HIRED.
      *
      * @param rawId ID из пути
-     * @param body тело запроса с {@code organization_id}
+     * @param body тело запроса с organization_id
      * @return 204 или 404 без работника либо организации
      */
     @POST
@@ -218,17 +223,19 @@ public class WorkerResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response hire(@PathParam("id") String rawId, String body) {
         int id = requestReader.workerId(rawId);
-        RequestFields fields = requestReader.read(body).allowOnly(ORGANIZATION_ID);
-        long organizationId = fields.validate(fields.id(ORGANIZATION_ID));
+        RequestFields fields = requestReader.read(body).allowOnly("organization_id");
+        long organizationId = fields.validate(fields.id("organization_id"));
         return switch (specialOperations.hire(id, organizationId)) {
             case DONE -> Response.noContent().build();
-            case NOT_FOUND -> notFound(id);
-            default -> referenceNotFound(ORGANIZATION, organizationId);
+            case NOT_FOUND -> Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
+                    .build();
+            default -> referenceNotFound("organization", organizationId);
         };
     }
 
     /**
-     * Удаляет работника, если на него не ссылается персона.
+     * Удаляет работника, если с ним не связана персона.
      *
      * @param rawId ID из пути
      * @return 204, 404 или 409
@@ -239,52 +246,26 @@ public class WorkerResource {
         int id = requestReader.workerId(rawId);
         return switch (service.delete(id)) {
             case DONE -> Response.noContent().build();
-            case IN_USE -> problem(409, "/problems/worker-has-linked-objects",
-                    "Worker has linked objects",
-                    "Worker with id=" + id + " is referenced by a person and cannot be deleted.",
-                    "worker_id", id);
-            default -> notFound(id);
+            case IN_USE -> Response.status(Response.Status.CONFLICT)
+                    .entity(new ErrorResponse("Worker with id=" + id
+                            + " is referenced by a person and cannot be deleted."))
+                    .build();
+            default -> Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
+                    .build();
         };
     }
 
-    /** Ответ создания; {@code organization_id} равен {@code null} без организации. */
-    public record Created(long id,
-            @JsonbNillable @JsonbProperty(ORGANIZATION_ID) Long organizationId) {}
-
     private Status statusParameter(String raw) {
         if (raw == null) {
-            throw invalidParameter(STATUS, REQUIRED, "status is required.");
+            throw requestReader.badRequest("Parameter status is required.");
         }
         for (Status status : Status.values()) {
             if (status.name().equals(raw)) {
                 return status;
             }
         }
-        throw invalidParameter(STATUS, "INVALID_ENUM_VALUE",
-                "The status value is not supported by this operation.");
-    }
-
-    /** Целое вне диапазона int32 — {@code OUT_OF_RANGE}, остальное нечисловое — тип. */
-    private int ratingParameter(String raw) {
-        if (raw == null) {
-            throw invalidParameter(RATING_PARAMETER, REQUIRED, "rating is required.");
-        }
-        if (!raw.matches("-?\\d+")) {
-            throw invalidParameter(RATING_PARAMETER, "INVALID_TYPE", NOT_INT32);
-        }
-        try {
-            return Integer.parseInt(raw);
-        } catch (NumberFormatException exception) {
-            throw new WebApplicationException(exception,
-                    invalidParameter(RATING_PARAMETER, "OUT_OF_RANGE", NOT_INT32).getResponse());
-        }
-    }
-
-    private WebApplicationException invalidParameter(String field, String title,
-            String description) {
-        return new WebApplicationException(new ProblemDetails("/problems/validation-failed",
-                "Invalid request parameters", 400, null,
-                List.of(new ProblemDetails.Issue(field, title, description))).toResponse());
+        throw requestReader.badRequest("Parameter status has an unsupported value.");
     }
 
     private Worker readWorker(String body, boolean update) {
@@ -292,52 +273,26 @@ public class WorkerResource {
         return fields.validate(entities.worker(fields, update), "user", "creation_date");
     }
 
-    private Response conflict(Change change, Worker worker) {
-        if (PERSON.equals(change.subject())) {
-            return problem(409, "/problems/person-already-assigned", "Person already assigned",
-                    "Person with id=" + change.subjectId()
-                            + " is already assigned to another worker.",
-                    "person_id", change.subjectId());
-        }
-        return Response.status(409)
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(Map.of("type", "/problems/organization-name-already-exists",
-                        "title", "Organization name already exists", STATUS, 409,
-                        "detail", "Another organization with this full_name already exists.",
-                        "full_name", worker.getOrganization().getFullName()))
+    private Response conflict(Change change) {
+        String message = "person".equals(change.getSubject())
+                ? "Person with id=" + change.getSubjectId()
+                        + " is already assigned to another worker."
+                : "Another organization with this full_name already exists.";
+        return Response.status(Response.Status.CONFLICT)
+                .entity(new ErrorResponse(message))
                 .build();
     }
 
-    /** У {@code address-not-found} в контракте нет поля с ID, у остальных ссылок есть. */
     private Response referenceNotFound(String subject, long id) {
-        return switch (subject) {
-            case "address" -> new ProblemDetails(404, "/problems/address-not-found",
-                    "Address not found", "Address with id=" + id + MISSING)
-                    .toResponse();
-            case "coordinates" -> problem(404, "/problems/coordinates-not-found",
-                    "Coordinates not found", "Coordinates with id=" + id + " do not exist.",
-                    "coordinates_id", id);
-            case ORGANIZATION -> problem(404, "/problems/organization-not-found",
-                    "Organization not found", "Organization with id=" + id + MISSING,
-                    ORGANIZATION_ID, id);
-            case PERSON -> problem(404, "/problems/person-not-found", "Person not found",
-                    "Person with id=" + id + MISSING, "person_id", id);
-            default -> problem(404, "/problems/location-not-found", "Location not found",
-                    "Location with id=" + id + MISSING, "location_id", id);
+        String message = switch (subject) {
+            case "address" -> "Address with id=%d does not exist.";
+            case "coordinates" -> "Coordinates with id=%d do not exist.";
+            case "organization" -> "Organization with id=%d does not exist.";
+            case "person" -> "Person with id=%d does not exist.";
+            default -> "Location with id=%d does not exist.";
         };
-    }
-
-    private Response notFound(int id) {
-        return problem(404, "/problems/worker-not-found", "Worker not found",
-                "Worker with id=" + id + MISSING, "worker_id", id);
-    }
-
-    private Response problem(int status, String type, String title, String detail,
-            String idField, long id) {
-        return Response.status(status)
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(Map.of("type", type, "title", title, STATUS, status, "detail", detail,
-                        idField, id))
+        return Response.status(Response.Status.NOT_FOUND)
+                .entity(new ErrorResponse(message.formatted(id)))
                 .build();
     }
 }

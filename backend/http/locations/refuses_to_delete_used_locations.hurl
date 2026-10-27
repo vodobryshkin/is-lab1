@@ -28,15 +28,13 @@ DELETE {{base_url}}/locations/1
 X-CSRF-Token: {{csrf}}
 HTTP 409
 [Asserts]
-jsonpath "$.status" == 409
-jsonpath "$.type" == "/problems/location-is-in-use"
-jsonpath "$.location_id" == 1
+jsonpath "$.message" == "The location cannot be deleted while addresses or persons reference it."
 
 DELETE {{base_url}}/locations/2
 X-CSRF-Token: {{csrf}}
 HTTP 409
 [Asserts]
-jsonpath "$.location_id" == 2
+jsonpath "$.message" == "The location cannot be deleted while addresses or persons reference it."
 
 PUT {{base_url}}/locations/2
 X-CSRF-Token: {{csrf}}

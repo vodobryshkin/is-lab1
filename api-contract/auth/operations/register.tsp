@@ -29,10 +29,7 @@ const registerUsernameConflictExample: ConflictError = #{
     statusCode: 409,
     contentType: "application/json",
     body: #{
-        type: "/problems/username-already-exists",
-        title: "Username already exists",
-        status: 409,
-        detail: "A user with this username already exists."
+        message: "A user with this username already exists."
     }
 };
 
@@ -61,4 +58,4 @@ op register(
     | BadRequestError
     | ForbiddenError
     | ConflictError
-    | ValidationError<422, AuthValidationIssue>;
+    | ValidationError<AuthValidationIssue>;

@@ -111,6 +111,13 @@ HTTP 200
 jsonpath "$.items[0].street" == "a_b lane"
 jsonpath "$.items[1].street" == "axb lane"
 
+GET {{base_url}}/addresses?sort_by=street&sort_order=desc&street=lane
+HTTP 200
+[Asserts]
+jsonpath "$.items" count == 2
+jsonpath "$.items[0].street" == "axb lane"
+jsonpath "$.items[1].street" == "a_b lane"
+
 GET {{base_url}}/addresses
 [Query]
 sort_by: street

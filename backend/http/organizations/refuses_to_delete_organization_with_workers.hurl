@@ -28,9 +28,7 @@ DELETE {{base_url}}/organizations/1
 X-CSRF-Token: {{csrf}}
 HTTP 409
 [Asserts]
-jsonpath "$.status" == 409
-jsonpath "$.type" == "/problems/organization-has-workers"
-jsonpath "$.organization_id" == 1
+jsonpath "$.message" == "The organization cannot be deleted while workers reference it."
 
 GET {{base_url}}/organizations/1
 HTTP 200

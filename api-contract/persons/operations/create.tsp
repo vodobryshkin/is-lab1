@@ -52,5 +52,5 @@ op createPerson(
     | BadRequestError
     | UnauthorizedError
     | ForbiddenError
-    | NotFoundError<LocationNotFoundDetails>
+    | NotFoundError
     | PersonValidationError;

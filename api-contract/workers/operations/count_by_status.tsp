@@ -54,16 +54,7 @@ const workerStatusValidationOperationExample = #{
         statusCode: 400,
         contentType: "application/json",
         body: #{
-            type: "/problems/validation-failed",
-            title: "Invalid request parameters",
-            status: 400,
-            errors: #[
-                #{
-                    field: "status",
-                    title: "INVALID_ENUM_VALUE",
-                    description: "The status value is not supported by this operation."
-                }
-            ]
+            message: "Parameter status has an unsupported value."
         }
     }
 };
@@ -82,7 +73,7 @@ op countWorkersByStatus(
     @query status: Status | "null"
 ):
     WorkersApi.Ok.OkResponse<CountResponse>
-    | ValidationError<400, ParameterValidationIssue>
+    | BadRequestError
     | UnauthorizedError;
 
 @get
@@ -99,5 +90,5 @@ op countWorkersByStatusGreaterThan(
     @query status: Status
 ):
     WorkersApi.Ok.OkResponse<CountResponse>
-    | ValidationError<400, ParameterValidationIssue>
+    | BadRequestError
     | UnauthorizedError;

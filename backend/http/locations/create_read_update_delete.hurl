@@ -69,9 +69,7 @@ HTTP 204
 GET {{base_url}}/locations/{{id}}
 HTTP 404
 [Asserts]
-jsonpath "$.status" == 404
-jsonpath "$.type" == "/problems/location-not-found"
-jsonpath "$.location_id" == {{id}}
+jsonpath "$.message" == "Location with id={{id}} does not exist."
 
 PUT {{base_url}}/locations/{{id}}
 X-CSRF-Token: {{csrf}}
@@ -89,4 +87,4 @@ HTTP 404
 GET {{base_url}}/locations/0
 HTTP 400
 [Asserts]
-jsonpath "$.errors[?(@.field == 'id')].title" contains "MUST_BE_POSITIVE"
+jsonpath "$.message" == "Parameter id must be greater than zero."

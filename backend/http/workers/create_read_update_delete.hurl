@@ -161,15 +161,13 @@ GET {{base_url}}/workers/{{id}}
 HTTP 404
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/worker-not-found"
-jsonpath "$.status" == 404
-jsonpath "$.worker_id" == {{id}}
+jsonpath "$.message" == "Worker with id={{id}} does not exist."
 
 DELETE {{base_url}}/workers/{{id}}
 X-CSRF-Token: {{csrf}}
 HTTP 404
 [Asserts]
-jsonpath "$.type" == "/problems/worker-not-found"
+jsonpath "$.message" == "Worker with id={{id}} does not exist."
 
 PUT {{base_url}}/workers/{{id}}
 X-CSRF-Token: {{csrf}}
@@ -188,5 +186,4 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 404
 [Asserts]
-jsonpath "$.type" == "/problems/worker-not-found"
-jsonpath "$.worker_id" == {{id}}
+jsonpath "$.message" == "Worker with id={{id}} does not exist."

@@ -60,7 +60,7 @@ X-CSRF-Token: {{second_csrf}}
 }
 HTTP 400
 [Asserts]
-jsonpath "$.type" == "/problems/invalid-credentials"
+jsonpath "$.message" == "Username or password is incorrect."
 
 GET {{base_url}}/auth/session
 HTTP 401

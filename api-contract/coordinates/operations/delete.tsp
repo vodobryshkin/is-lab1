@@ -33,8 +33,8 @@ op deleteCoordinates(
     id: int64
 ):
     WorkersApi.Ok.NoContentResponse
-    | ValidationError<400, ParameterValidationIssue>
+    | BadRequestError
     | UnauthorizedError
     | ForbiddenError
-    | NotFoundError<CoordinatesNotFoundDetails>
-    | DeleteCoordinatesConflictError;
+    | NotFoundError
+    | ConflictError;

@@ -14,24 +14,21 @@ const locationValidationErrorExample: LocationValidationError = #{
     statusCode: 422,
     contentType: "application/json",
     body: #{
-        type: "/problems/validation-failed",
-        title: "Validation failed",
-        status: 422,
         errors: #[
             #{
                 field: "x",
-                title: "OUT_OF_RANGE",
-                description: "X must be within the int32 range."
+                code: "OUT_OF_RANGE",
+                message: "x must fit into int32."
             },
             #{
                 field: "y",
-                title: "OUT_OF_RANGE",
-                description: "Y must be within the int32 range."
+                code: "OUT_OF_RANGE",
+                message: "y must fit into int32."
             },
             #{
                 field: "z",
-                title: "OUT_OF_RANGE",
-                description: "Z must be within the int64 range."
+                code: "OUT_OF_RANGE",
+                message: "z must fit into int64."
             }
         ]
     }
@@ -41,15 +38,11 @@ const locationValidationOperationExample = #{
     returnType: locationValidationErrorExample
 };
 
-const deleteLocationConflictErrorExample: DeleteLocationConflictError = #{
+const deleteLocationConflictErrorExample: ConflictError = #{
     statusCode: 409,
     contentType: "application/json",
     body: #{
-        type: "/problems/location-is-in-use",
-        title: "Location is in use",
-        status: 409,
-        detail: "The location cannot be deleted while addresses or persons reference it.",
-        location_id: 7
+        message: "The location cannot be deleted while addresses or persons reference it."
     }
 };
 
@@ -63,14 +56,14 @@ union LocationRequestValidationIssue {
 
     body: {
         field: "$";
-        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE";
-        description: string;
+        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE";
+        message: string;
     },
 
     unknown_field: {
         field: string;
-        title: "UNKNOWN_FIELD";
-        description: string;
+        code: "UNKNOWN_FIELD";
+        message: string;
     },
 }
 
@@ -78,19 +71,4 @@ union LocationRequestValidationIssue {
 @doc("Ошибка валидации локации.")
 @example(locationValidationErrorExample)
 model LocationValidationError is
-    ValidationError<422, LocationRequestValidationIssue>;
-
-@error
-@doc("Локация используется связанными объектами.")
-@example(deleteLocationConflictErrorExample)
-model DeleteLocationConflictError is ConflictError<
-    {
-        ...OmitProperties<ProblemDetails<409>, "type">;
-
-        type: "/problems/location-is-in-use";
-
-        @doc("ID локации.")
-        @minValue(1)
-        location_id: int64;
-    }
->;
+    ValidationError<LocationRequestValidationIssue>;

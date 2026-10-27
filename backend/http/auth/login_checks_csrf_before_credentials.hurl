@@ -19,8 +19,7 @@ POST {{base_url}}/auth/login
 HTTP 403
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.status" == 403
-jsonpath "$.type" == "/problems/invalid-csrf-token"
+jsonpath "$.message" == "The X-CSRF-Token header is missing or does not match the current session."
 
 POST {{base_url}}/auth/login
 X-CSRF-Token: wrong-token
@@ -30,7 +29,7 @@ X-CSRF-Token: wrong-token
 }
 HTTP 403
 [Asserts]
-jsonpath "$.type" == "/problems/invalid-csrf-token"
+jsonpath "$.message" == "The X-CSRF-Token header is missing or does not match the current session."
 
 GET {{base_url}}/auth/session
 HTTP 401
@@ -51,4 +50,4 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 400
 [Asserts]
-jsonpath "$.type" == "/problems/invalid-credentials"
+jsonpath "$.message" == "Username or password is incorrect."

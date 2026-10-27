@@ -54,14 +54,13 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.errors[?(@.field == 'eye_color')].title" contains "REQUIRED"
-jsonpath "$.errors[?(@.field == 'hair_color')].title" contains "MUST_NOT_BE_NULL"
-jsonpath "$.errors[?(@.field == 'location')].title" contains "MUST_NOT_BE_NULL"
-jsonpath "$.errors[?(@.field == 'birthday')].title" contains "INVALID_DATE_TIME"
-jsonpath "$.errors[?(@.field == 'weight')].title" contains "MUST_BE_POSITIVE"
-jsonpath "$.errors[?(@.field == 'nationality')].title" contains "INVALID_ENUM_VALUE"
-jsonpath "$.errors[?(@.field == 'age')].title" contains "UNKNOWN_FIELD"
+jsonpath "$.errors[?(@.field == 'eye_color')].code" contains "REQUIRED"
+jsonpath "$.errors[?(@.field == 'hair_color')].code" contains "MUST_NOT_BE_NULL"
+jsonpath "$.errors[?(@.field == 'location')].code" contains "MUST_NOT_BE_NULL"
+jsonpath "$.errors[?(@.field == 'birthday')].code" contains "INVALID_DATE_TIME"
+jsonpath "$.errors[?(@.field == 'weight')].code" contains "MUST_BE_POSITIVE"
+jsonpath "$.errors[?(@.field == 'nationality')].code" contains "INVALID_ENUM_VALUE"
+jsonpath "$.errors[?(@.field == 'age')].code" contains "UNKNOWN_FIELD"
 jsonpath "$.errors" count == 7
 
 POST {{base_url}}/persons
@@ -78,12 +77,12 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'eye_color')].title" contains "INVALID_ENUM_VALUE"
-jsonpath "$.errors[?(@.field == 'hair_color')].title" contains "INVALID_TYPE"
-jsonpath "$.errors[?(@.field == 'location.y')].title" contains "REQUIRED"
-jsonpath "$.errors[?(@.field == 'location.z')].title" contains "REQUIRED"
-jsonpath "$.errors[?(@.field == 'birthday')].title" contains "INVALID_DATE_TIME"
-jsonpath "$.errors[?(@.field == 'weight')].title" contains "OUT_OF_RANGE"
+jsonpath "$.errors[?(@.field == 'eye_color')].code" contains "INVALID_ENUM_VALUE"
+jsonpath "$.errors[?(@.field == 'hair_color')].code" contains "INVALID_TYPE"
+jsonpath "$.errors[?(@.field == 'location.y')].code" contains "REQUIRED"
+jsonpath "$.errors[?(@.field == 'location.z')].code" contains "REQUIRED"
+jsonpath "$.errors[?(@.field == 'birthday')].code" contains "INVALID_DATE_TIME"
+jsonpath "$.errors[?(@.field == 'weight')].code" contains "OUT_OF_RANGE"
 
 POST {{base_url}}/persons
 X-CSRF-Token: {{csrf}}
@@ -100,8 +99,8 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'location.id')].title" contains "MUTUALLY_EXCLUSIVE"
-jsonpath "$.errors[?(@.field == 'weight')].title" contains "MUST_BE_POSITIVE"
+jsonpath "$.errors[?(@.field == 'location.id')].code" contains "MUTUALLY_EXCLUSIVE"
+jsonpath "$.errors[?(@.field == 'weight')].code" contains "MUST_BE_POSITIVE"
 
 POST {{base_url}}/persons
 X-CSRF-Token: {{csrf}}
@@ -117,8 +116,7 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 404
 [Asserts]
-jsonpath "$.type" == "/problems/location-not-found"
-jsonpath "$.location_id" == 999
+jsonpath "$.message" == "Location with id=999 does not exist."
 
 PUT {{base_url}}/persons/{{id}}
 X-CSRF-Token: {{csrf}}
@@ -134,7 +132,7 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 404
 [Asserts]
-jsonpath "$.location_id" == 999
+jsonpath "$.message" == "Location with id=999 does not exist."
 
 GET {{base_url}}/persons/{{id}}
 HTTP 200

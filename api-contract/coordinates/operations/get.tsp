@@ -39,9 +39,9 @@ op getCoordinates(
     id: int64
 ):
     WorkersApi.Ok.OkResponse<GetSingleCoordinatesResponse>
-    | ValidationError<400, ParameterValidationIssue>
+    | BadRequestError
     | UnauthorizedError
-    | NotFoundError<CoordinatesNotFoundDetails>;
+    | NotFoundError;
 
 const listCoordinatesPageExample: PageResponse<GetSingleCoordinatesResponse> = #{
     items: #[getSingleCoordinatesExample],
@@ -95,5 +95,5 @@ op listCoordinates(
         "id" | "x" | "y" = "id",
 ):
     WorkersApi.Ok.OkResponse<PageResponse<GetSingleCoordinatesResponse>>
-    | ValidationError<400, ParameterValidationIssue>
+    | BadRequestError
     | UnauthorizedError;

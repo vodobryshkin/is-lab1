@@ -1,112 +1,48 @@
-import "./ProblemResponse.tsp";
+import "./ErrorResponse.tsp";
 
 namespace WorkersApi.Errors;
 
-const notFoundExample: NotFoundError = #{
+const workerNotFoundExample: NotFoundError = #{
     statusCode: 404,
     contentType: "application/json",
     body: #{
-        type: "/problems/worker-not-found",
-        title: "Worker not found",
-        status: 404,
-        detail: "Worker with id=42 does not exist.",
-        instance: "/problem-occurrences/example-404"
+        message: "Worker with id=999 does not exist."
     }
 };
 
-@error
-@doc("Ошибка: ресурс не найден либо его существование скрыто.")
-model NotFoundError<TBody = ProblemDetails<404>> is ProblemResponse<404, TBody>;
+const workerNotFoundOperationExample = #{
+    returnType: workerNotFoundExample
+};
 
-@doc("Работник не найден.")
-model WorkerNotFoundDetails {
-    ...OmitProperties<ProblemDetails<404>, "type">;
-    type: "/problems/worker-not-found";
-
-    @doc("ID работника.")
-    @minValue(1)
-    worker_id: int32;
-}
-
-@doc("Организация не найдена.")
-model OrganizationNotFoundDetails {
-    ...OmitProperties<ProblemDetails<404>, "type">;
-    type: "/problems/organization-not-found";
-
-    @doc("ID организации.")
-    @minValue(1)
-    organization_id: int64;
-}
-
-@doc("Адрес не найден.")
-model AddressNotFoundDetails {
-    ...OmitProperties<ProblemDetails<404>, "type">;
-    type: "/problems/address-not-found";
-}
-
-@doc("Координаты не найдены.")
-model CoordinatesNotFoundDetails {
-    ...OmitProperties<ProblemDetails<404>, "type">;
-    type: "/problems/coordinates-not-found";
-
-    @doc("ID координат.")
-    @minValue(1)
-    coordinates_id: int64;
-}
-
-@doc("Локация не найдена.")
-model LocationNotFoundDetails {
-    ...OmitProperties<ProblemDetails<404>, "type">;
-    type: "/problems/location-not-found";
-
-    @doc("ID локации.")
-    @minValue(1)
-    location_id: int64;
-}
-
-@doc("Персона не найдена.")
-model PersonNotFoundDetails {
-    ...OmitProperties<ProblemDetails<404>, "type">;
-    type: "/problems/person-not-found";
-
-    @doc("ID персоны.")
-    @minValue(1)
-    person_id: int64;
-}
-
-const coordinatesNotFoundExample: NotFoundError<CoordinatesNotFoundDetails> = #{
+const organizationNotFoundExample: NotFoundError = #{
     statusCode: 404,
     contentType: "application/json",
     body: #{
-        type: "/problems/coordinates-not-found",
-        title: "Coordinates not found",
-        status: 404,
-        detail: "Coordinates with id=999 do not exist.",
-        coordinates_id: 999
+        message: "Organization with id=999 does not exist."
     }
 };
 
-const locationNotFoundExample: NotFoundError<LocationNotFoundDetails> = #{
+const organizationNotFoundOperationExample = #{
+    returnType: organizationNotFoundExample
+};
+
+const addressNotFoundExample: NotFoundError = #{
     statusCode: 404,
     contentType: "application/json",
     body: #{
-        type: "/problems/location-not-found",
-        title: "Location not found",
-        status: 404,
-        detail: "Location with id=999 does not exist.",
-        location_id: 999
+        message: "Address with id=999 does not exist."
     }
 };
 
-const personNotFoundExample: NotFoundError<PersonNotFoundDetails> = #{
+const addressNotFoundOperationExample = #{
+    returnType: addressNotFoundExample
+};
+
+const coordinatesNotFoundExample: NotFoundError = #{
     statusCode: 404,
     contentType: "application/json",
     body: #{
-        type: "/problems/person-not-found",
-        title: "Person not found",
-        status: 404,
-        detail: "Person with id=999 does not exist.",
-        person_id: 999
+        message: "Coordinates with id=999 do not exist."
     }
 };
 
@@ -114,10 +50,31 @@ const coordinatesNotFoundOperationExample = #{
     returnType: coordinatesNotFoundExample
 };
 
+const locationNotFoundExample: NotFoundError = #{
+    statusCode: 404,
+    contentType: "application/json",
+    body: #{
+        message: "Location with id=999 does not exist."
+    }
+};
+
 const locationNotFoundOperationExample = #{
     returnType: locationNotFoundExample
+};
+
+const personNotFoundExample: NotFoundError = #{
+    statusCode: 404,
+    contentType: "application/json",
+    body: #{
+        message: "Person with id=999 does not exist."
+    }
 };
 
 const personNotFoundOperationExample = #{
     returnType: personNotFoundExample
 };
+
+@error
+@doc("Ошибка: объект из пути или объект, на который ссылается запрос, не найден.")
+@example(workerNotFoundExample)
+model NotFoundError is ErrorResult<404>;

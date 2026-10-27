@@ -22,8 +22,7 @@ X-CSRF-Token: {{csrf}}
 HTTP 409
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.status" == 409
-jsonpath "$.type" == "/problems/username-already-exists"
+jsonpath "$.message" == "A user with this username already exists."
 
 POST {{base_url}}/auth/login
 X-CSRF-Token: {{csrf}}

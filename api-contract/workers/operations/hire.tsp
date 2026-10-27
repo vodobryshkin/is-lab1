@@ -27,7 +27,7 @@ const hireWorkerNotFoundOperationExample = #{
         id: 999,
         body: hireWorkerExample
     },
-    returnType: workerNotFoundErrorExample
+    returnType: workerNotFoundExample
 };
 
 const hireWorkerOrganizationNotFoundOperationExample = #{
@@ -36,7 +36,7 @@ const hireWorkerOrganizationNotFoundOperationExample = #{
         id: 42,
         body: #{ organization_id: 999 }
     },
-    returnType: organizationNotFoundErrorExample
+    returnType: organizationNotFoundExample
 };
 
 const hireWorkerValidationOperationExample = #{
@@ -44,14 +44,11 @@ const hireWorkerValidationOperationExample = #{
         statusCode: 422,
         contentType: "application/json",
         body: #{
-            type: "/problems/validation-failed",
-            title: "Validation failed",
-            status: 422,
             errors: #[
                 #{
                     field: "organization_id",
-                    title: "MUST_BE_POSITIVE",
-                    description: "Organization ID must be greater than zero."
+                    code: "MUST_BE_POSITIVE",
+                    message: "organization_id must be greater than zero."
                 }
             ]
         }
@@ -80,9 +77,8 @@ op hireWorker(
     @body body: HireWorkerRequest
 ):
     WorkersApi.Ok.NoContentResponse
-    | InvalidWorkerIdError
     | BadRequestError
     | UnauthorizedError
     | ForbiddenError
-    | HireWorkerNotFoundError
-    | ValidationError<422, SpecialRequestValidationIssue>;
+    | NotFoundError
+    | ValidationError<SpecialRequestValidationIssue>;

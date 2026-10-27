@@ -1,8 +1,10 @@
 package com.github.vodobryshkin.islab1.backend.resource;
 
-import com.github.vodobryshkin.islab1.backend.domain.User;
 import com.github.vodobryshkin.islab1.backend.dto.CredentialsRequest;
-import com.github.vodobryshkin.islab1.backend.dto.ProblemDetails;
+import com.github.vodobryshkin.islab1.backend.dto.CsrfTokenResponse;
+import com.github.vodobryshkin.islab1.backend.dto.CurrentUserResponse;
+import com.github.vodobryshkin.islab1.backend.dto.ErrorResponse;
+import com.github.vodobryshkin.islab1.backend.dto.IdResponse;
 import com.github.vodobryshkin.islab1.backend.events.EventSessions;
 import com.github.vodobryshkin.islab1.backend.security.CsrfProtection;
 import com.github.vodobryshkin.islab1.backend.service.UserService;
@@ -27,11 +29,10 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.sql.SQLException;
-import java.util.Map;
 
 /**
- * Операции {@code /auth}: CSRF-токен, регистрация, вход, текущий пользователь и выход.
- * CSRF изменяющих запросов проверяет {@link CsrfProtection} до вызова методов ресурса.
+ * Операции /auth: CSRF-токен, регистрация, вход, текущий пользователь и выход.
+ * CSRF изменяющих запросов проверяет CsrfProtection до вызова методов ресурса.
  */
 @Path("/auth")
 @RequestScoped
@@ -81,7 +82,7 @@ public class AuthResource {
     @Path("/csrf")
     public Response getCsrfToken(@Context HttpServletRequest request) {
         String token = csrfProtection.tokenOf(request.getSession(true));
-        return Response.ok(Map.of("csrf_token", token)).cacheControl(noStore()).build();
+        return Response.ok().entity(new CsrfTokenResponse(token)).cacheControl(noStore()).build();
     }
 
     /**
@@ -97,31 +98,25 @@ public class AuthResource {
         CredentialsRequest credentials = readCredentials(body);
         try {
             Long id = userService.register(credentials.getUsername(), credentials.getPassword());
-            return Response.status(Response.Status.CREATED).entity(Map.of("id", id)).build();
+            return Response.status(Response.Status.CREATED).entity(new IdResponse(id)).build();
         } catch (PersistenceException exception) {
             if (!isUniqueViolation(exception)) {
                 throw exception;
             }
-            return new ProblemDetails(409, "/problems/username-already-exists",
-                    "Username already exists", "A user with this username already exists.")
-                    .toResponse();
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(new ErrorResponse("A user with this username already exists."))
+                    .build();
         }
     }
 
     /**
-     * Проверяет логин и пароль через Jakarta Security и связывает вход с сессией.
-     * После успеха меняет ID сессии, чтобы прежний ID не давал доступа, и CSRF-токен.
-     *
-     * <p>Прежний вход сессии завершается до проверки: {@code @AutoApplySession} в Soteria
-     * восстанавливает сохранённого пользователя без вызова механизма даже при
-     * {@code newAuthentication(true)}, и тогда любой пароль считался бы верным.
-     * WebSocket-соединения прежнего входа закрываются с {@code SESSION_ENDED}.
+     * Выполняет вход, меняет ID сессии и CSRF-токен.
+     * Прежний вход завершается до проверки: иначе AutoApplySession принял бы любой пароль.
      *
      * @param body тело запроса
      * @param request текущий запрос
      * @param response текущий ответ
      * @return 200 с пользователем или 400 при неверных данных
-     * @throws ServletException если контейнер не смог завершить прежний вход
      */
     @POST
     @Path("/login")
@@ -139,8 +134,9 @@ public class AuthResource {
                         .credential(new UsernamePasswordCredential(credentials.getUsername(),
                                 new Password(credentials.getPassword()))));
         if (status != AuthenticationStatus.SUCCESS) {
-            return new ProblemDetails(400, "/problems/invalid-credentials", "Invalid credentials",
-                    "Username or password is incorrect.").toResponse();
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorResponse("Username or password is incorrect."))
+                    .build();
         }
         request.changeSessionId();
         csrfProtection.replace(request.getSession());
@@ -149,7 +145,7 @@ public class AuthResource {
 
     /**
      * Возвращает пользователя текущей сессии. Без входа запрос сюда не доходит:
-     * адрес защищён в {@code web.xml}, и механизм аутентификации отвечает 401 раньше.
+     * адрес защищён в web.xml, и механизм аутентификации отвечает 401 раньше.
      *
      * @param request текущий запрос
      * @return 200 с пользователем
@@ -161,14 +157,11 @@ public class AuthResource {
     }
 
     /**
-     * Завершает вход и инвалидирует сессию вместе с CSRF-токеном. Cookie с
-     * {@code Max-Age=0} при инвалидации отправляет сам контейнер. WebSocket-соединения
-     * сессии закрываются с {@code SESSION_ENDED} до сброса входа: иначе контейнер закрыл
-     * бы их сам кодом 1008 без сообщения контракта.
+     * Завершает вход и инвалидирует сессию вместе с CSRF-токеном.
+     * WebSocket-соединения закрываются заранее, чтобы клиент получил SESSION_ENDED.
      *
      * @param request текущий запрос
      * @return 204
-     * @throws ServletException если контейнер не смог завершить вход
      */
     @POST
     @Path("/logout")
@@ -180,9 +173,10 @@ public class AuthResource {
     }
 
     private Response currentUser(String username) {
-        User user = userService.findByUsername(username).orElseThrow();
-        Map<String, Object> body = Map.of("id", user.getId(), "username", user.getUsername());
-        return Response.ok(body).cacheControl(noStore()).build();
+        CurrentUserResponse body = userService.findByUsername(username)
+                .map(user -> new CurrentUserResponse(user.getId(), user.getUsername()))
+                .orElseThrow();
+        return Response.ok().entity(body).cacheControl(noStore()).build();
     }
 
     private CredentialsRequest readCredentials(String body) {

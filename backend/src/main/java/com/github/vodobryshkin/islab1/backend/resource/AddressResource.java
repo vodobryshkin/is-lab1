@@ -2,8 +2,10 @@ package com.github.vodobryshkin.islab1.backend.resource;
 
 import com.github.vodobryshkin.islab1.backend.domain.Address;
 import com.github.vodobryshkin.islab1.backend.dto.AddressResponse;
+import com.github.vodobryshkin.islab1.backend.dto.ErrorResponse;
+import com.github.vodobryshkin.islab1.backend.dto.IdResponse;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
-import com.github.vodobryshkin.islab1.backend.dto.ProblemDetails;
+import com.github.vodobryshkin.islab1.backend.dto.PageResponse;
 import com.github.vodobryshkin.islab1.backend.service.AddressService;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
@@ -19,13 +21,11 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 /**
- * Операции {@code /addresses}. Вход и CSRF проверяются до вызова методов.
+ * Операции /addresses. Вход и CSRF проверяются до вызова методов.
  */
 @Path("/addresses")
 @RequestScoped
@@ -33,6 +33,8 @@ import java.util.Set;
 public class AddressResource {
     private static final String STREET = "street";
     private static final Set<String> SORT_FIELDS = Set.of("id", STREET);
+    private static final String NOT_FOUND = "Address with id=%d does not exist.";
+    private static final String TOWN_NOT_FOUND = "Location with id=%d does not exist.";
 
     private final AddressService service;
     private final RequestReader requestReader;
@@ -62,7 +64,7 @@ public class AddressResource {
      * Создаёт адрес вместе с новой локацией или со ссылкой на существующую.
      *
      * @param body тело запроса
-     * @param uriInfo адрес запроса для заголовка {@code Location}
+     * @param uriInfo адрес запроса для заголовка Location
      * @return 201 с ID или 404, если локации нет
      */
     @POST
@@ -71,10 +73,12 @@ public class AddressResource {
         Address address = readAddress(body);
         Optional<Long> id = service.create(address);
         if (id.isEmpty()) {
-            return townNotFound(address);
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(TOWN_NOT_FOUND.formatted(address.getTown().getId())))
+                    .build();
         }
         return Response.created(uriInfo.getAbsolutePathBuilder().path(id.get().toString()).build())
-                .entity(Map.of("id", id.get()))
+                .entity(new IdResponse(id.get()))
                 .build();
     }
 
@@ -88,25 +92,29 @@ public class AddressResource {
     @Path("/{id}")
     public Response get(@PathParam("id") String rawId) {
         long id = requestReader.id(rawId);
-        return service.find(id)
-                .map(address -> Response.ok(new AddressResponse(address)).build())
-                .orElseGet(() -> notFound(id));
+        Optional<Address> address = service.find(id);
+        if (address.isEmpty()) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
+                    .build();
+        }
+        return Response.ok().entity(new AddressResponse(address.get())).build();
     }
 
     /**
      * Возвращает страницу адресов с фильтром по подстроке улицы.
      *
-     * @param uriInfo параметры страницы, сортировки и фильтр {@code street}
+     * @param uriInfo параметры страницы, сортировки и фильтр street
      * @return 200 со страницей
      */
     @GET
     public Response list(@Context UriInfo uriInfo) {
         ListQuery query = requestReader.listQuery(uriInfo.getQueryParameters(), SORT_FIELDS);
         String street = uriInfo.getQueryParameters().getFirst(STREET);
-        List<AddressResponse> items =
-                service.findPage(query, street).stream().map(AddressResponse::new).toList();
-        return Response.ok(Map.of("items", items, "page", query.page(),
-                "page_size", query.pageSize(), "total_items", service.count(street))).build();
+        PageResponse<AddressResponse> page = new PageResponse<>(
+                service.findPage(query, street).stream().map(AddressResponse::new).toList(),
+                query.getPage(), query.getPageSize(), service.count(street));
+        return Response.ok().entity(page).build();
     }
 
     /**
@@ -124,8 +132,12 @@ public class AddressResource {
         Address values = readAddress(body);
         return switch (service.update(id, values)) {
             case DONE -> Response.noContent().build();
-            case REFERENCE_NOT_FOUND -> townNotFound(values);
-            default -> notFound(id);
+            case REFERENCE_NOT_FOUND -> Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(TOWN_NOT_FOUND.formatted(values.getTown().getId())))
+                    .build();
+            default -> Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
+                    .build();
         };
     }
 
@@ -141,38 +153,19 @@ public class AddressResource {
         long id = requestReader.id(rawId);
         return switch (service.delete(id)) {
             case DONE -> Response.noContent().build();
-            case IN_USE -> Response.status(409).type(MediaType.APPLICATION_JSON_TYPE)
-                    .entity(Map.of("type", "/problems/address-is-in-use",
-                            "title", "Address is in use", "status", 409,
-                            "detail", "The address cannot be deleted while organizations "
-                                    + "reference it.", "address_id", id))
+            case IN_USE -> Response.status(Response.Status.CONFLICT)
+                    .entity(new ErrorResponse(
+                            "The address cannot be deleted while organizations reference it."))
                     .build();
-            default -> notFound(id);
+            default -> Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
+                    .build();
         };
     }
 
-    /**
-     * Читает адрес. Город — новая локация, ссылка {@code {id}} или {@code null};
-     * у ссылки в возвращаемом адресе задан только ID локации.
-     */
     private Address readAddress(String body) {
         RequestFields fields = requestReader.read(body).allowOnly(STREET, "town");
-        return fields.validate(
-                new Address(null, fields.string(STREET), entities.location(fields, "town", true)));
-    }
-
-    private Response notFound(long id) {
-        return new ProblemDetails(404, "/problems/address-not-found", "Address not found",
-                "Address with id=" + id + " does not exist.").toResponse();
-    }
-
-    private Response townNotFound(Address address) {
-        long locationId = address.getTown().getId();
-        return Response.status(404).type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(Map.of("type", "/problems/location-not-found",
-                        "title", "Location not found", "status", 404,
-                        "detail", "Location with id=" + locationId + " does not exist.",
-                        "location_id", locationId))
-                .build();
+        return fields.validate(new Address(null, fields.string(STREET),
+                entities.location(fields, "town", true)));
     }
 }

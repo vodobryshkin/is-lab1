@@ -1,7 +1,9 @@
 package com.github.vodobryshkin.islab1.backend.resource;
 
+import com.github.vodobryshkin.islab1.backend.dto.ErrorResponse;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
-import com.github.vodobryshkin.islab1.backend.dto.ProblemDetails;
+import com.github.vodobryshkin.islab1.backend.dto.ValidationErrorResponse;
+import com.github.vodobryshkin.islab1.backend.dto.ValidationIssue;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.json.Json;
@@ -13,39 +15,30 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import jakarta.validation.constraints.Min;
 import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
 import java.io.StringReader;
-import java.util.ArrayList;
+import java.math.BigInteger;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Читает тело, ID пути и параметры списка и переводит ошибки в коды контракта.
- * Поля тела разбирает {@link RequestFields}.
- *
- * <p>Тело разбирается через JSON-P: так различаются отсутствие поля, {@code null},
- * неверный тип и выход за диапазон типа, которые после привязки к объекту неотличимы.
- * Правила значений проверяет Jakarta Validation. Ошибка сразу завершает запрос
- * ответом 400 или 422 через {@link WebApplicationException} с готовым ответом.
+ * Читает тело, ID пути и параметры списка и отклоняет неверный запрос ответом 400 или 422.
+ * Тело разбирается через JSON-P, чтобы различать отсутствие поля, null и неверный тип.
  */
 @ApplicationScoped
 public class RequestReader {
-    private static final int UNPROCESSABLE_CONTENT = 422;
-    private static final String BODY = "$";
     private static final int MAX_PAGE_SIZE = 100;
-    private static final String OUT_OF_RANGE = "OUT_OF_RANGE";
-    private static final String INVALID_TYPE = "INVALID_TYPE";
     private static final Pattern SNAKE_CASE_BOUNDARY = Pattern.compile("([a-z0-9])([A-Z])");
 
-    /** Код контракта и окончание описания для ограничений Jakarta Validation. */
+    /** Код и окончание сообщения для ограничений Jakarta Validation. */
     private static final Map<String, List<String>> RULES = Map.of(
             "NotNull", List.of("MUST_NOT_BE_NULL", " must not be null."),
             "NotEmpty", List.of("MUST_NOT_BE_EMPTY", " must not be empty."),
@@ -53,7 +46,7 @@ public class RequestReader {
             "Positive", List.of("MUST_BE_POSITIVE", " must be greater than zero."),
             "Pattern", List.of("MUST_MATCH_PATTERN", " has an invalid format."));
 
-    /** Для каждого поля в ответ попадает первое нарушение в этом порядке. */
+    /** Если у поля несколько нарушений, в ответ попадает первое в этом порядке. */
     private static final List<String> CONSTRAINTS = List.of("NotNull", "NotEmpty", "NotBlank",
             "Size", "Min", "Positive", "DecimalMax", "Pattern");
 
@@ -79,26 +72,25 @@ public class RequestReader {
      *
      * @param body тело запроса
      * @return поля тела
-     * @throws WebApplicationException 400, если JSON некорректен; 422, если это не объект
      */
     public RequestFields read(String body) {
         if (body == null || body.isBlank()) {
-            throw invalid(List.of(issue(BODY, "REQUIRED", "Request body is required.")));
+            throw invalid(List.of(
+                    new ValidationIssue("$", "REQUIRED", "Request body is required.")));
         }
         JsonValue json;
         try (JsonReader reader = Json.createReader(new StringReader(body))) {
             json = reader.readValue();
         } catch (JsonException exception) {
-            throw new WebApplicationException(exception, new ProblemDetails(400,
-                    "/problems/malformed-json", "Malformed JSON",
-                    "The request body contains invalid JSON.").toResponse());
+            throw new WebApplicationException(exception,
+                    badRequest("The request body contains invalid JSON.").getResponse());
         }
         if (json.getValueType() == JsonValue.ValueType.NULL) {
-            throw invalid(List.of(issue(BODY, "MUST_NOT_BE_NULL",
+            throw invalid(List.of(new ValidationIssue("$", "MUST_NOT_BE_NULL",
                     "Request body must not be null.")));
         }
         if (!(json instanceof JsonObject object)) {
-            throw invalid(List.of(issue(BODY, INVALID_TYPE,
+            throw invalid(List.of(new ValidationIssue("$", "INVALID_TYPE",
                     "Request body must be a JSON object.")));
         }
         return new RequestFields(this, object);
@@ -109,139 +101,82 @@ public class RequestReader {
      *
      * @param raw значение из пути
      * @return положительный ID
-     * @throws WebApplicationException 400 с нарушением параметра {@code id}
      */
     public long id(String raw) {
-        return checkedId(raw, Long.MAX_VALUE, "/problems/validation-failed",
-                "Invalid request parameters");
+        return positive("id", raw, Long.MAX_VALUE);
     }
 
     /**
-     * Проверяет ID работника из пути: в контракте это int32 с отдельным типом ошибки.
+     * Проверяет ID работника из пути: в контракте это int32.
      *
      * @param raw значение из пути
      * @return положительный ID
-     * @throws WebApplicationException 400 {@code /problems/invalid-worker-id}
      */
     public int workerId(String raw) {
-        return (int) checkedId(raw, Integer.MAX_VALUE, "/problems/invalid-worker-id",
-                "Invalid worker ID");
-    }
-
-    private long checkedId(String raw, long max, String type, String title) {
-        List<ProblemDetails.Issue> issues = new ArrayList<>();
-        Long id = positiveLong(raw, "id", max, issues);
-        if (!issues.isEmpty()) {
-            throw new WebApplicationException(
-                    new ProblemDetails(type, title, 400, null, issues).toResponse());
-        }
-        return id;
+        return (int) positive("id", raw, Integer.MAX_VALUE);
     }
 
     /**
-     * Проверяет параметры списка {@code page}, {@code page_size}, {@code sort_by} и
-     * {@code sort_order}; отсутствующий параметр получает значение по умолчанию.
+     * Проверяет параметры списка; отсутствующий параметр получает значение по умолчанию.
      *
      * @param parameters параметры запроса
-     * @param sortFields разрешённые поля сортировки ресурса
+     * @param sortFields разрешённые поля сортировки записей
      * @return проверенные параметры
-     * @throws WebApplicationException 400 со всеми нарушениями параметров
      */
     public ListQuery listQuery(MultivaluedMap<String, String> parameters, Set<String> sortFields) {
-        List<ProblemDetails.Issue> issues = new ArrayList<>();
-        long page = number(parameters, "page", 1, Integer.MAX_VALUE, issues);
-        long pageSize = number(parameters, "page_size", 20, MAX_PAGE_SIZE, issues);
-        String sortBy = choice(parameters, "sort_by", "id", sortFields, issues);
-        String sortOrder = choice(parameters, "sort_order", "asc", Set.of("asc", "desc"), issues);
-        if (!issues.isEmpty()) {
-            throw invalidParameters(issues);
+        String page = parameters.getFirst("page");
+        String pageSize = parameters.getFirst("page_size");
+        String sortBy = parameters.getFirst("sort_by");
+        String sortOrder = parameters.getFirst("sort_order");
+        if (sortBy != null && !sortFields.contains(sortBy)) {
+            throw badRequest("Parameter sort_by has an unsupported value.");
         }
-        return new ListQuery((int) page, (int) pageSize, sortBy, "asc".equals(sortOrder));
-    }
-
-    private long number(MultivaluedMap<String, String> parameters, String name, long fallback,
-            long max, List<ProblemDetails.Issue> issues) {
-        String raw = parameters.getFirst(name);
-        Long value = raw == null ? Long.valueOf(fallback) : positiveLong(raw, name, max, issues);
-        return value == null ? fallback : value;
-    }
-
-    private String choice(MultivaluedMap<String, String> parameters, String name, String fallback,
-            Set<String> allowed, List<ProblemDetails.Issue> issues) {
-        String value = parameters.getFirst(name);
-        if (value == null) {
-            return fallback;
+        if (sortOrder != null && !"asc".equals(sortOrder) && !"desc".equals(sortOrder)) {
+            throw badRequest("Parameter sort_order must be asc or desc.");
         }
-        if (!allowed.contains(value)) {
-            issues.add(issue(name, "INVALID_ENUM_VALUE",
-                    name + " must be one of " + new TreeSet<>(allowed) + "."));
-        }
-        return value;
-    }
-
-    private Long positiveLong(String raw, String name, long max,
-            List<ProblemDetails.Issue> issues) {
-        if (!raw.matches("-?\\d+")) {
-            issues.add(issue(name, INVALID_TYPE, name + " must be an integer."));
-            return null;
-        }
-        long value;
-        try {
-            value = Long.parseLong(raw);
-        } catch (NumberFormatException exception) {
-            issues.add(issue(name, OUT_OF_RANGE, name + " is too large."));
-            return null;
-        }
-        if (value <= 0) {
-            issues.add(issue(name, "MUST_BE_POSITIVE", name + " must be greater than zero."));
-            return null;
-        }
-        if (value > max) {
-            issues.add(issue(name, OUT_OF_RANGE, name + " must not exceed " + max + "."));
-            return null;
-        }
-        return value;
-    }
-
-    private WebApplicationException invalidParameters(List<ProblemDetails.Issue> issues) {
-        return new WebApplicationException(new ProblemDetails("/problems/validation-failed",
-                "Invalid request parameters", 400, null, issues).toResponse());
+        return new ListQuery(
+                page == null ? 1 : (int) positive("page", page, Integer.MAX_VALUE),
+                pageSize == null ? 20 : (int) positive("page_size", pageSize, MAX_PAGE_SIZE),
+                sortBy == null ? "id" : sortBy,
+                !"desc".equals(sortOrder));
     }
 
     /**
-     * Ошибка 422 со списком нарушений полей.
+     * Создаёт ошибку 400 с готовым ответом.
+     *
+     * @param message описание ошибки
+     * @return исключение, которое завершает запрос
+     */
+    WebApplicationException badRequest(String message) {
+        return new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(new ErrorResponse(message))
+                .build());
+    }
+
+    /**
+     * Создаёт ошибку 422 со списком нарушений полей.
      *
      * @param issues нарушения
-     * @return исключение с готовым ответом
+     * @return исключение, которое завершает запрос
      */
-    WebApplicationException invalid(List<ProblemDetails.Issue> issues) {
-        return new WebApplicationException(new ProblemDetails("/problems/validation-failed",
-                "Validation failed", UNPROCESSABLE_CONTENT, null, issues).toResponse());
+    WebApplicationException invalid(List<ValidationIssue> issues) {
+        return new WebApplicationException(Response.status(422)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(new ValidationErrorResponse(issues))
+                .build());
     }
 
     /**
-     * Создаёт нарушение поля.
-     *
-     * @param field имя поля
-     * @param title код из контракта
-     * @param description описание
-     * @return нарушение
-     */
-    ProblemDetails.Issue issue(String field, String title, String description) {
-        return new ProblemDetails.Issue(field, title, description);
-    }
-
-    /**
-     * Проверяет объект через Jakarta Validation и переводит нарушения в коды контракта;
-     * для каждого поля остаётся первое нарушение по порядку {@code CONSTRAINTS}.
+     * Проверяет объект через Jakarta Validation и переводит нарушения в коды контракта.
      *
      * @param value проверяемый объект
-     * @return нарушения, упорядоченные по имени поля
+     * @return по одному нарушению на каждое неверное поле
      */
-    List<ProblemDetails.Issue> violations(Object value) {
+    List<ValidationIssue> violations(Object value) {
         return validator.validate(value).stream()
                 .collect(Collectors.groupingBy(this::fieldOf,
-                        TreeMap::new, Collectors.minBy(Comparator.comparingInt(this::orderOf))))
+                        Collectors.minBy(Comparator.comparingInt(this::orderOf))))
                 .values()
                 .stream()
                 .flatMap(Optional::stream)
@@ -249,36 +184,47 @@ public class RequestReader {
                 .toList();
     }
 
+    private long positive(String name, String raw, long max) {
+        if (!raw.matches("-?\\d+")) {
+            throw badRequest("Parameter %s must be an integer.".formatted(name));
+        }
+        BigInteger value = new BigInteger(raw);
+        if (value.signum() <= 0) {
+            throw badRequest("Parameter %s must be greater than zero.".formatted(name));
+        }
+        if (value.compareTo(BigInteger.valueOf(max)) > 0) {
+            throw badRequest("Parameter %s must not exceed %d.".formatted(name, max));
+        }
+        return value.longValue();
+    }
+
     private int orderOf(ConstraintViolation<?> violation) {
         return CONSTRAINTS.indexOf(constraintOf(violation));
     }
 
-    /**
-     * Имя поля нарушения в JSON: путь свойств Java переводится в snake_case контракта,
-     * например {@code officialAddress.town.x} в {@code official_address.town.x}.
-     */
+    /** Путь свойств Java переводится в snake_case контракта, например official_address.town.x. */
     private String fieldOf(ConstraintViolation<?> violation) {
         return SNAKE_CASE_BOUNDARY.matcher(violation.getPropertyPath().toString())
                 .replaceAll("$1_$2").toLowerCase(Locale.ROOT);
     }
 
-    private ProblemDetails.Issue toIssue(ConstraintViolation<?> violation) {
+    private ValidationIssue toIssue(ConstraintViolation<?> violation) {
         String field = fieldOf(violation);
         String constraint = constraintOf(violation);
         List<String> rule =
-                RULES.getOrDefault(constraint, List.of(OUT_OF_RANGE, " is out of range."));
-        String title = "Min".equals(constraint)
+                RULES.getOrDefault(constraint, List.of("OUT_OF_RANGE", " is out of range."));
+        String code = "Min".equals(constraint)
                 ? "MUST_BE_GREATER_THAN_" + boundName(violation)
                 : rule.get(0);
-        String description = "Min".equals(constraint)
+        String message = "Min".equals(constraint)
                 ? field + " must be greater than " + bound(violation) + "."
                 : field + rule.get(1);
         boolean defaultMessage =
                 violation.getConstraintDescriptor().getMessageTemplate().startsWith("{");
-        return issue(field, title, defaultMessage ? description : violation.getMessage());
+        return new ValidationIssue(field, code, defaultMessage ? message : violation.getMessage());
     }
 
-    /** {@code @Min(-953)} означает «больше -954», как в ТЗ и контракте. */
+    /** Граница из ТЗ: ограничение Min(-953) означает «больше -954». */
     private long bound(ConstraintViolation<?> violation) {
         return ((Min) violation.getConstraintDescriptor().getAnnotation()).value() - 1;
     }

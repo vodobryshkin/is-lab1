@@ -6,14 +6,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Нарушения Jakarta Validation в виде строк «поле Ограничение», например {@code "x Min"}:
+ * Нарушения Jakarta Validation в виде строк «поле Ограничение», например "x Min":
  * тест проверяет и поле, и тип нарушения, не завися от порядка в наборе.
  */
 public final class ConstraintViolations implements AutoCloseable {
     private final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
 
     /**
-     * Проверяет объект вместе с вложенными объектами {@code @Valid}.
+     * Проверяет объект вместе с вложенными объектами @Valid.
      *
      * @param object проверяемый объект
      * @return нарушения в виде «поле Ограничение»

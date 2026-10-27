@@ -28,9 +28,7 @@ DELETE {{base_url}}/coordinates/1
 X-CSRF-Token: {{csrf}}
 HTTP 409
 [Asserts]
-jsonpath "$.status" == 409
-jsonpath "$.type" == "/problems/coordinates-are-in-use"
-jsonpath "$.coordinates_id" == 1
+jsonpath "$.message" == "The coordinates cannot be deleted while workers reference them."
 
 GET {{base_url}}/coordinates/1
 HTTP 200

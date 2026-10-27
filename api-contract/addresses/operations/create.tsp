@@ -62,5 +62,5 @@ op createAddress(
     | BadRequestError
     | UnauthorizedError
     | ForbiddenError
-    | NotFoundError<LocationNotFoundDetails>
+    | NotFoundError
     | AddressValidationError;

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Специальные операции ТЗ над работниками. Отделены от {@link WorkerService}, чтобы
+ * Специальные операции ТЗ над работниками. Отделены от WorkerService, чтобы
  * CRUD и операции ТЗ не собирались в одном классе.
  */
 @ApplicationScoped
@@ -47,15 +47,12 @@ public class SpecialOperationService {
     }
 
     /**
-     * Принимает работника в организацию: в одной транзакции назначает её и статус
-     * {@code HIRED}, заменяя прежнюю привязку. Повторный вызов с той же организацией
-     * ничего не меняет и тоже успешен. {@code employees_count} не пересчитывается:
-     * контракт этого не требует.
+     * Назначает работнику существующую организацию и статус HIRED.
      *
      * @param workerId ID работника
      * @param organizationId ID существующей организации
-     * @return {@code DONE}, {@code NOT_FOUND} без работника или
-     *     {@code REFERENCE_NOT_FOUND} без организации; при отказе ничего не меняется
+     * @return DONE, NOT_FOUND без работника или
+     *     REFERENCE_NOT_FOUND без организации; при отказе ничего не меняется
      */
     @Transactional
     public Outcome hire(int workerId, long organizationId) {
@@ -78,15 +75,13 @@ public class SpecialOperationService {
     }
 
     /**
-     * Умножает зарплаты всех работников организации на коэффициент в одной транзакции.
-     * Сначала вычисляются все новые зарплаты; если хотя бы одна перестала быть
-     * конечной и положительной (переполнение или потеря точности до нуля), ни одна
-     * зарплата не меняется.
+     * Умножает зарплаты работников организации на коэффициент.
+     * Если хотя бы одна зарплата перестала бы быть конечной и положительной, ни одна не меняется.
      *
      * @param organizationId ID организации
      * @param coefficient положительный конечный коэффициент
-     * @return {@code DONE} с числом проиндексированных работников в {@code id} (0 для
-     *     организации без работников), {@code NOT_FOUND} или {@code CONFLICT}
+     * @return DONE с числом проиндексированных работников в id (0 для
+     *     организации без работников), NOT_FOUND или CONFLICT
      */
     @Transactional
     public Change indexSalaries(long organizationId, double coefficient) {
@@ -113,7 +108,7 @@ public class SpecialOperationService {
     /**
      * Считает работников с указанным статусом.
      *
-     * @param status статус; {@code null} — работники без статуса
+     * @param status статус; null — работники без статуса
      * @return количество
      */
     public long countByStatus(Status status) {
@@ -122,7 +117,7 @@ public class SpecialOperationService {
 
     /**
      * Считает работников со статусом выше заданного в порядке
-     * {@code HIRED < RECOMMENDED_FOR_PROMOTION < REGULAR}; без статуса не учитываются.
+     * HIRED < RECOMMENDED_FOR_PROMOTION < REGULAR; без статуса не учитываются.
      *
      * @param status статус для сравнения
      * @return количество

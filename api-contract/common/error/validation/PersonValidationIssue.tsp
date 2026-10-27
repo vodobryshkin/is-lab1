@@ -6,45 +6,45 @@ namespace WorkersApi.Errors;
 union PersonValidationIssue<path extends string, separator extends string = "."> {
     id: {
         field: "${path}${separator}id";
-        title: "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "MUST_BE_POSITIVE"
+        code: "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "MUST_BE_POSITIVE"
             | "OUT_OF_RANGE" | "MUTUALLY_EXCLUSIVE";
-        description: string;
+        message: string;
     },
 
     eye_color: {
         field: "${path}${separator}eye_color";
-        title: "REQUIRED" | "INVALID_TYPE" | "INVALID_ENUM_VALUE";
-        description: string;
+        code: "REQUIRED" | "INVALID_TYPE" | "INVALID_ENUM_VALUE";
+        message: string;
     },
 
     hair_color: {
         field: "${path}${separator}hair_color";
-        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "INVALID_ENUM_VALUE";
-        description: string;
+        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "INVALID_ENUM_VALUE";
+        message: string;
     },
 
     location: {
         field: "${path}${separator}location";
-        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE";
-        description: string;
+        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE";
+        message: string;
     },
 
     birthday: {
         field: "${path}${separator}birthday";
-        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "INVALID_DATE_TIME";
-        description: string;
+        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "INVALID_DATE_TIME";
+        message: string;
     },
 
     weight: {
         field: "${path}${separator}weight";
-        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "MUST_BE_POSITIVE" | "OUT_OF_RANGE";
-        description: string;
+        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "MUST_BE_POSITIVE" | "OUT_OF_RANGE";
+        message: string;
     },
 
     nationality: {
         field: "${path}${separator}nationality";
-        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "INVALID_ENUM_VALUE";
-        description: string;
+        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "INVALID_ENUM_VALUE";
+        message: string;
     },
 
     location_fields: LocationValidationIssue<"${path}${separator}location">,

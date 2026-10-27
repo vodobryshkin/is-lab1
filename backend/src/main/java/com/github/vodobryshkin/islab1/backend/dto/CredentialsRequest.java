@@ -5,15 +5,14 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
- * Логин и пароль из запросов регистрации и входа.
- *
- * <p>Ограничения повторяют {@code RegisterRequest} контракта. Класс намеренно не имеет
- * {@code toString}, {@code equals} и {@code hashCode}, чтобы пароль не попал в журналы.
+ * DTO с логином и паролем из запросов регистрации и входа.
  */
-@Getter
+@Data
 @AllArgsConstructor
 public class CredentialsRequest {
     @NotNull(message = "Username must not be null.")
@@ -21,12 +20,14 @@ public class CredentialsRequest {
     @Size(min = 3, max = 64, message = "Username must contain between 3 and 64 characters.")
     @Pattern(regexp = "^[a-zA-Z0-9_]{3,64}$",
             message = "Username may contain only Latin letters, digits and underscores.")
-    private final String username;
+    private String username;
 
     @NotNull(message = "Password must not be null.")
     @NotEmpty(message = "Password must not be empty.")
     @Size(min = 6, max = 32, message = "Password must contain between 6 and 32 characters.")
     @Pattern(regexp = "^[a-zA-Z0-9_]{6,32}$",
             message = "Password may contain only Latin letters, digits and underscores.")
-    private final String password;
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private String password;
 }

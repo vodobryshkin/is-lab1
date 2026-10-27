@@ -33,8 +33,8 @@ op deletePerson(
     id: int64
 ):
     WorkersApi.Ok.NoContentResponse
-    | ValidationError<400, ParameterValidationIssue>
+    | BadRequestError
     | UnauthorizedError
     | ForbiddenError
-    | NotFoundError<PersonNotFoundDetails>
-    | DeletePersonConflictError;
+    | NotFoundError
+    | ConflictError;

@@ -4,8 +4,6 @@ import "../../common/error/NotFoundError.tsp";
 import "../../common/error/ConflictError.tsp";
 
 import "../model/request/UpdateWorkerRequest.tsp";
-import "../model/error/InvalidWorkerIdError.tsp";
-import "../model/error/UpdateWorkerNotFoundError.tsp";
 import "../model/error/UpdateWorkerValidationError.tsp";
 
 import "../../common/error/BadRequestError.tsp";
@@ -39,27 +37,24 @@ const updateWorkerWithoutOrganizationOperationExample = #{
 };
 
 const updateWorkerInvalidIdOperationExample = #{
-    returnType: invalidWorkerIdErrorExample
+    returnType: invalidIdExample
 };
 
 const updateWorkerBadRequestOperationExample = #{
     returnType: #{
         ...badRequestExample,
         body: #{
-            type: "/problems/malformed-json",
-            status: 400,
-            title: "Malformed JSON",
-            detail: "The request body contains malformed JSON."
+            message: "The request body contains invalid JSON."
         }
     }
 };
 
 const updateWorkerNotFoundOperationExample = #{
-    returnType: workerNotFoundErrorExample
+    returnType: workerNotFoundExample
 };
 
 const updateWorkerOrganizationNotFoundOperationExample = #{
-    returnType: createWorkerOrganizationNotFoundErrorExample
+    returnType: organizationNotFoundExample
 };
 
 const updateWorkerValidationOperationExample = #{
@@ -118,10 +113,9 @@ op updateWorker(
     @body body: UpdateWorkerRequest
 ):
     WorkersApi.Ok.NoContentResponse
-    | InvalidWorkerIdError
     | BadRequestError
     | UnauthorizedError
     | ForbiddenError
-    | UpdateWorkerNotFoundError
-    | ConflictError<PersonAlreadyAssignedDetails>
+    | NotFoundError
+    | ConflictError
     | UpdateWorkerValidationError;

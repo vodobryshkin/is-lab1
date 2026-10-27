@@ -16,16 +16,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Хранилище работников в БД. Транзакциями управляет вызывающий сервис.
- *
- * <p>Организация и персона работника могут отсутствовать, поэтому сортировка и фильтры
- * по их полям используют явные {@code LEFT JOIN}: путь {@code w.organization.fullName}
- * дал бы внутреннее соединение и исключил бы работников без организации.
+ * Хранилище работников в БД.
+ * Сортировка и фильтры по организации и персоне используют LEFT JOIN, чтобы не терять работников
+ * без них.
  */
 @ApplicationScoped
 public class WorkerRepository {
@@ -51,8 +48,8 @@ public class WorkerRepository {
             Map.entry("person_nationality", "p.nationality"));
 
     /**
-     * Текстовые фильтры: подстрока без учёта регистра. {@code LOCATE} ищет подстроку
-     * буквально, а {@code null} в колонке не проходит фильтр.
+     * Текстовые фильтры: подстрока без учёта регистра. LOCATE ищет подстроку
+     * буквально, а null в колонке не проходит фильтр.
      */
     private static final Map<String, String> TEXT_FILTERS = Map.of(
             "name", "w.name",
@@ -90,7 +87,7 @@ public class WorkerRepository {
     }
 
     /**
-     * Возвращает страницу работников. {@code null}, в том числе отсутствующая организация
+     * Возвращает страницу работников. null, в том числе отсутствующая организация
      * или персона, при сортировке идёт последним; при равных значениях — ID по возрастанию.
      *
      * @param query проверенные параметры страницы
@@ -99,23 +96,24 @@ public class WorkerRepository {
      */
     public List<Worker> findPage(ListQuery query, Map<String, List<String>> filters) {
         Map<String, Object> parameters = parameters(filters);
-        long offset = (long) (query.page() - 1) * query.pageSize();
+        long offset = (long) (query.getPage() - 1) * query.getPageSize();
         if (offset > Integer.MAX_VALUE || parameters.containsValue(List.of())) {
             return List.of();
         }
-        String order = SORT_COLUMNS.get(query.sortBy()) + (query.ascending() ? " ASC" : " DESC");
+        String order = SORT_COLUMNS.get(query.getSortBy())
+                + (query.isAscending() ? " ASC" : " DESC");
         return bind(entityManager.createQuery("SELECT w" + FROM + where(parameters)
                         + " ORDER BY " + order + " NULLS LAST, w.id ASC", Worker.class),
                 parameters)
                 .setFirstResult((int) offset)
-                .setMaxResults(query.pageSize())
+                .setMaxResults(query.getPageSize())
                 .getResultList();
     }
 
     /**
      * Считает работников с учётом фильтров.
      *
-     * @param filters параметры запроса, как в {@link #findPage}
+     * @param filters параметры запроса, как в findPage
      * @return количество
      */
     public long count(Map<String, List<String>> filters) {
@@ -130,7 +128,7 @@ public class WorkerRepository {
     /**
      * Считает работников с указанным статусом.
      *
-     * @param status статус; {@code null} — работники без статуса
+     * @param status статус; null — работники без статуса
      * @return количество
      */
     public long countByStatus(Status status) {
@@ -173,9 +171,8 @@ public class WorkerRepository {
     }
 
     /**
-     * Возвращает работников организации и блокирует их строки до конца транзакции,
-     * чтобы одновременное изменение не потерялось. Порядок по ID одинаков для всех
-     * транзакций и не даёт им заблокировать друг друга по кругу.
+     * Возвращает работников организации, блокируя их строки до конца транзакции.
+     * Порядок по ID одинаков для всех транзакций и исключает взаимную блокировку.
      *
      * @param organizationId ID организации
      * @return работники организации; без работников — пустой список
@@ -193,7 +190,7 @@ public class WorkerRepository {
      * Проверяет, ссылается ли на работника персона.
      *
      * @param id ID работника
-     * @return {@code true}, если с работником связана персона
+     * @return true, если с работником связана персона
      */
     public boolean isReferencedByPerson(int id) {
         return entityManager.createQuery(
@@ -234,7 +231,7 @@ public class WorkerRepository {
                                 .filter(value -> value.name().toLowerCase(Locale.ROOT)
                                         .contains(filter(filters, name)))
                                 .toList()
-                        : filter(filters, name), (first, second) -> first, TreeMap::new));
+                        : filter(filters, name)));
     }
 
     private String filter(Map<String, List<String>> filters, String name) {

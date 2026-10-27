@@ -53,9 +53,8 @@ op updatePerson(
     @body body: PersonWriteRequest
 ):
     WorkersApi.Ok.NoContentResponse
-    | ValidationError<400, ParameterValidationIssue>
     | BadRequestError
     | UnauthorizedError
     | ForbiddenError
-    | NotFoundError<PersonNotFoundDetails | LocationNotFoundDetails>
+    | NotFoundError
     | PersonValidationError;

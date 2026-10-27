@@ -40,9 +40,7 @@ X-CSRF-Token: {{csrf}}
 HTTP 404
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/coordinates-not-found"
-jsonpath "$.status" == 404
-jsonpath "$.coordinates_id" == 999
+jsonpath "$.message" == "Coordinates with id=999 do not exist."
 
 POST {{base_url}}/workers
 X-CSRF-Token: {{csrf}}
@@ -60,9 +58,7 @@ X-CSRF-Token: {{csrf}}
 HTTP 404
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/organization-not-found"
-jsonpath "$.status" == 404
-jsonpath "$.organization_id" == 999
+jsonpath "$.message" == "Organization with id=999 does not exist."
 
 POST {{base_url}}/workers
 X-CSRF-Token: {{csrf}}
@@ -80,9 +76,7 @@ X-CSRF-Token: {{csrf}}
 HTTP 404
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/person-not-found"
-jsonpath "$.status" == 404
-jsonpath "$.person_id" == 999
+jsonpath "$.message" == "Person with id=999 does not exist."
 
 POST {{base_url}}/workers
 X-CSRF-Token: {{csrf}}
@@ -100,9 +94,7 @@ X-CSRF-Token: {{csrf}}
 HTTP 404
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/location-not-found"
-jsonpath "$.status" == 404
-jsonpath "$.location_id" == 999
+jsonpath "$.message" == "Location with id=999 does not exist."
 
 POST {{base_url}}/workers
 X-CSRF-Token: {{csrf}}
@@ -120,8 +112,7 @@ X-CSRF-Token: {{csrf}}
 HTTP 404
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/address-not-found"
-jsonpath "$.status" == 404
+jsonpath "$.message" == "Address with id=999 does not exist."
 
 GET {{base_url}}/workers
 HTTP 200
@@ -188,9 +179,7 @@ X-CSRF-Token: {{csrf}}
 HTTP 409
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/organization-name-already-exists"
-jsonpath "$.status" == 409
-jsonpath "$.full_name" == "Taken Name"
+jsonpath "$.message" == "Another organization with this full_name already exists."
 
 GET {{base_url}}/workers
 HTTP 200
@@ -238,8 +227,7 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 404
 [Asserts]
-jsonpath "$.type" == "/problems/organization-not-found"
-jsonpath "$.organization_id" == 999
+jsonpath "$.message" == "Organization with id=999 does not exist."
 
 PUT {{base_url}}/workers/{{id}}
 X-CSRF-Token: {{csrf}}
@@ -256,8 +244,7 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 404
 [Asserts]
-jsonpath "$.type" == "/problems/person-not-found"
-jsonpath "$.person_id" == 999
+jsonpath "$.message" == "Person with id=999 does not exist."
 
 GET {{base_url}}/workers/{{id}}
 HTTP 200

@@ -2,8 +2,10 @@ package com.github.vodobryshkin.islab1.backend.resource;
 
 import com.github.vodobryshkin.islab1.backend.domain.Coordinates;
 import com.github.vodobryshkin.islab1.backend.dto.CoordinatesResponse;
+import com.github.vodobryshkin.islab1.backend.dto.ErrorResponse;
+import com.github.vodobryshkin.islab1.backend.dto.IdResponse;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
-import com.github.vodobryshkin.islab1.backend.dto.ProblemDetails;
+import com.github.vodobryshkin.islab1.backend.dto.PageResponse;
 import com.github.vodobryshkin.islab1.backend.service.CoordinatesService;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
@@ -19,18 +21,18 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
-import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
- * Операции {@code /coordinates}. Вход и CSRF проверяются до вызова методов.
+ * Операции /coordinates. Вход и CSRF проверяются до вызова методов.
  */
 @Path("/coordinates")
 @RequestScoped
 @Produces(MediaType.APPLICATION_JSON)
 public class CoordinatesResource {
     private static final Set<String> SORT_FIELDS = Set.of("id", "x", "y");
+    private static final String NOT_FOUND = "Coordinates with id=%d do not exist.";
 
     private final CoordinatesService service;
     private final RequestReader requestReader;
@@ -56,7 +58,7 @@ public class CoordinatesResource {
      * Создаёт координаты.
      *
      * @param body тело запроса
-     * @param uriInfo адрес запроса для заголовка {@code Location}
+     * @param uriInfo адрес запроса для заголовка Location
      * @return 201 с ID
      */
     @POST
@@ -64,7 +66,7 @@ public class CoordinatesResource {
     public Response create(String body, @Context UriInfo uriInfo) {
         Long id = service.create(readCoordinates(body));
         return Response.created(uriInfo.getAbsolutePathBuilder().path(id.toString()).build())
-                .entity(Map.of("id", id))
+                .entity(new IdResponse(id))
                 .build();
     }
 
@@ -78,24 +80,28 @@ public class CoordinatesResource {
     @Path("/{id}")
     public Response get(@PathParam("id") String rawId) {
         long id = requestReader.id(rawId);
-        return service.find(id)
-                .map(coordinates -> Response.ok(new CoordinatesResponse(coordinates)).build())
-                .orElseGet(() -> notFound(id));
+        Optional<Coordinates> coordinates = service.find(id);
+        if (coordinates.isEmpty()) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
+                    .build();
+        }
+        return Response.ok().entity(new CoordinatesResponse(coordinates.get())).build();
     }
 
     /**
      * Возвращает страницу координат.
      *
-     * @param uriInfo параметры {@code page}, {@code page_size}, {@code sort_by}, {@code sort_order}
+     * @param uriInfo параметры страницы и сортировки
      * @return 200 со страницей
      */
     @GET
     public Response list(@Context UriInfo uriInfo) {
         ListQuery query = requestReader.listQuery(uriInfo.getQueryParameters(), SORT_FIELDS);
-        List<CoordinatesResponse> items =
-                service.findPage(query).stream().map(CoordinatesResponse::new).toList();
-        return Response.ok(Map.of("items", items, "page", query.page(),
-                "page_size", query.pageSize(), "total_items", service.count())).build();
+        PageResponse<CoordinatesResponse> page = new PageResponse<>(
+                service.findPage(query).stream().map(CoordinatesResponse::new).toList(),
+                query.getPage(), query.getPageSize(), service.count());
+        return Response.ok().entity(page).build();
     }
 
     /**
@@ -110,9 +116,12 @@ public class CoordinatesResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("id") String rawId, String body) {
         long id = requestReader.id(rawId);
-        return service.update(id, readCoordinates(body))
-                ? Response.noContent().build()
-                : notFound(id);
+        if (!service.update(id, readCoordinates(body))) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
+                    .build();
+        }
+        return Response.noContent().build();
     }
 
     /**
@@ -127,28 +136,18 @@ public class CoordinatesResource {
         long id = requestReader.id(rawId);
         return switch (service.delete(id)) {
             case DONE -> Response.noContent().build();
-            case IN_USE -> problem(409, "/problems/coordinates-are-in-use",
-                    "Coordinates are in use",
-                    "The coordinates cannot be deleted while workers reference them.", id);
-            default -> notFound(id);
+            case IN_USE -> Response.status(Response.Status.CONFLICT)
+                    .entity(new ErrorResponse(
+                            "The coordinates cannot be deleted while workers reference them."))
+                    .build();
+            default -> Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
+                    .build();
         };
     }
 
     private Coordinates readCoordinates(String body) {
         RequestFields fields = requestReader.read(body).allowOnly("x", "y");
         return fields.validate(new Coordinates(null, fields.int32("x"), fields.int64("y")));
-    }
-
-    private Response notFound(long id) {
-        return problem(404, "/problems/coordinates-not-found", "Coordinates not found",
-                "Coordinates with id=" + id + " do not exist.", id);
-    }
-
-    private Response problem(int status, String type, String title, String detail, long id) {
-        return Response.status(status)
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(Map.of("type", type, "title", title, "status", status, "detail", detail,
-                        "coordinates_id", id))
-                .build();
     }
 }

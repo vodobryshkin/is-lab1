@@ -4,26 +4,26 @@ namespace WorkersApi.Errors;
 union LocationValidationIssue<path extends string, separator extends string = "."> {
     id: {
         field: "${path}${separator}id";
-        title: "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "MUST_BE_POSITIVE"
+        code: "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "MUST_BE_POSITIVE"
             | "OUT_OF_RANGE" | "MUTUALLY_EXCLUSIVE";
-        description: string;
+        message: string;
     },
 
     x: {
         field: "${path}${separator}x";
-        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "OUT_OF_RANGE";
-        description: string;
+        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "OUT_OF_RANGE";
+        message: string;
     },
 
     y: {
         field: "${path}${separator}y";
-        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "OUT_OF_RANGE";
-        description: string;
+        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "OUT_OF_RANGE";
+        message: string;
     },
 
     z: {
         field: "${path}${separator}z";
-        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "OUT_OF_RANGE";
-        description: string;
+        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "OUT_OF_RANGE";
+        message: string;
     },
 }

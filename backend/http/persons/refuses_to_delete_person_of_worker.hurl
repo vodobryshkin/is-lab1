@@ -28,9 +28,7 @@ DELETE {{base_url}}/persons/1
 X-CSRF-Token: {{csrf}}
 HTTP 409
 [Asserts]
-jsonpath "$.status" == 409
-jsonpath "$.type" == "/problems/person-is-in-use"
-jsonpath "$.person_id" == 1
+jsonpath "$.message" == "The person cannot be deleted while a worker references it."
 
 PUT {{base_url}}/persons/1
 X-CSRF-Token: {{csrf}}

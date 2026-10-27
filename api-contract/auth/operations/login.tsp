@@ -33,10 +33,7 @@ const loginInvalidCredentialsExample: BadRequestError = #{
     statusCode: 400,
     contentType: "application/json",
     body: #{
-        type: "/problems/invalid-credentials",
-        title: "Invalid credentials",
-        status: 400,
-        detail: "Username or password is incorrect."
+        message: "Username or password is incorrect."
     }
 };
 
@@ -79,4 +76,4 @@ op login(
     }
     | BadRequestError
     | ForbiddenError
-    | ValidationError<422, AuthValidationIssue>;
+    | ValidationError<AuthValidationIssue>;

@@ -7,29 +7,23 @@ namespace WorkersApi.Auth.Errors;
 
 const authValidationIssueExample = #{
     field: "password",
-    title: "OUT_OF_RANGE",
-    description: "Password must contain between 6 and 32 characters."
+    code: "OUT_OF_RANGE",
+    message: "Password must contain between 6 and 32 characters."
 };
 
 const authBadRequestExample: BadRequestError = #{
     statusCode: 400,
     contentType: "application/json",
     body: #{
-        type: "/problems/malformed-json",
-        title: "Malformed JSON",
-        status: 400,
-        detail: "The request body contains invalid JSON."
+        message: "The request body contains invalid JSON."
     }
 };
 
 const credentialsValidationErrorExample:
-    ValidationError<422, AuthValidationIssue> = #{
+    ValidationError<AuthValidationIssue> = #{
         statusCode: 422,
         contentType: "application/json",
         body: #{
-            type: "/problems/validation-failed",
-            title: "Validation failed",
-            status: 422,
             errors: #[authValidationIssueExample]
         }
     };
@@ -47,21 +41,21 @@ const credentialsValidationOperationExample = #{
 union AuthValidationIssue {
     username: {
         field: "username";
-        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE"
+        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE"
             | "MUST_NOT_BE_EMPTY" | "OUT_OF_RANGE" | "MUST_MATCH_PATTERN";
-        description: string;
+        message: string;
     },
 
     password: {
         field: "password";
-        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE"
+        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE"
             | "MUST_NOT_BE_EMPTY" | "OUT_OF_RANGE" | "MUST_MATCH_PATTERN";
-        description: string;
+        message: string;
     },
 
     body: {
         field: "$";
-        title: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE";
-        description: string;
+        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE";
+        message: string;
     },
 }

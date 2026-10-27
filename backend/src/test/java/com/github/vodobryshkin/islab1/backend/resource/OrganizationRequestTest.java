@@ -6,7 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.github.vodobryshkin.islab1.backend.domain.Organization;
 import com.github.vodobryshkin.islab1.backend.domain.OrganizationType;
-import com.github.vodobryshkin.islab1.backend.dto.ProblemDetails;
+import com.github.vodobryshkin.islab1.backend.dto.ErrorResponse;
+import com.github.vodobryshkin.islab1.backend.dto.ValidationErrorResponse;
 import jakarta.validation.Validation;
 import jakarta.validation.ValidatorFactory;
 import jakarta.ws.rs.WebApplicationException;
@@ -16,7 +17,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Проверяет чтение организации из JSON по контракту: варианты адресов, обязательные
- * поля, nullable {@code type}, конечный положительный оборот и имена нарушений.
+ * поля, nullable type, конечный положительный оборот и имена нарушений.
  */
 class OrganizationRequestTest {
     private static final String FIELDS =
@@ -174,7 +175,11 @@ class OrganizationRequestTest {
                 () -> reader.read("{\"full_name\":"));
 
         // Assert
-        assertThat(actual.getResponse().getStatus()).isEqualTo(400);
+        assertAll(
+                () -> assertThat(actual.getResponse().getStatus()).isEqualTo(400),
+                () -> assertThat(actual.getResponse().getEntity())
+                        .isEqualTo(new ErrorResponse("The request body contains invalid JSON."))
+        );
     }
 
     private Organization read(String fields) {
@@ -185,9 +190,9 @@ class OrganizationRequestTest {
     private List<String> issues(String fields) {
         WebApplicationException exception =
                 catchThrowableOfType(WebApplicationException.class, () -> read(fields));
-        ProblemDetails problem = (ProblemDetails) exception.getResponse().getEntity();
-        return problem.getErrors().stream()
-                .map(issue -> issue.getField() + " " + issue.getTitle())
+        ValidationErrorResponse response = (ValidationErrorResponse) exception.getResponse().getEntity();
+        return response.getErrors().stream()
+                .map(issue -> issue.getField() + " " + issue.getCode())
                 .toList();
     }
 }

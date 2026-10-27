@@ -17,9 +17,8 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
- * Операции с организациями. Каждый адрес — новый (с новой, существующей или без
- * локации) либо существующий по ID. Все ссылки проверяются до сохранения, поэтому
- * при отказе не остаётся частично созданных адресов и локаций.
+ * Операции с организациями.
+ * Все ссылки проверяются до записи, поэтому при отказе не остаётся частично созданных адресов.
  */
 @ApplicationScoped
 public class OrganizationService {
@@ -58,8 +57,8 @@ public class OrganizationService {
      * Сохраняет организацию вместе с новыми адресами и локациями в одной транзакции.
      *
      * @param organization организация; у ссылки на адрес или локацию задан только ID
-     * @return {@code DONE} с ID, {@code REFERENCE_NOT_FOUND} с недостающей ссылкой
-     *     или {@code CONFLICT}, если полное название занято
+     * @return DONE с ID, REFERENCE_NOT_FOUND с недостающей ссылкой
+     *     или CONFLICT, если полное название занято
      */
     @Transactional
     public Change create(Organization organization) {
@@ -110,8 +109,8 @@ public class OrganizationService {
      *
      * @param id ID организации
      * @param values новые значения
-     * @return {@code DONE}, {@code NOT_FOUND}, {@code REFERENCE_NOT_FOUND} с недостающей
-     *     ссылкой или {@code CONFLICT}, если название занято другой организацией
+     * @return DONE, NOT_FOUND, REFERENCE_NOT_FOUND с недостающей
+     *     ссылкой или CONFLICT, если название занято другой организацией
      */
     @Transactional
     public Change update(long id, Organization values) {
@@ -145,7 +144,7 @@ public class OrganizationService {
      * Удаляет организацию, если на неё не ссылаются работники. Адреса не удаляет.
      *
      * @param id ID организации
-     * @return {@code DONE}, {@code NOT_FOUND} или {@code IN_USE}
+     * @return DONE, NOT_FOUND или IN_USE
      */
     @Transactional
     public Outcome delete(long id) {
@@ -166,8 +165,8 @@ public class OrganizationService {
      * и занятость полного названия.
      *
      * @param organization новая организация
-     * @return {@code REFERENCE_NOT_FOUND} с недостающей ссылкой, {@code CONFLICT}
-     *     с видом {@code "organization"} или пустой результат, если создать можно
+     * @return REFERENCE_NOT_FOUND с недостающей ссылкой, CONFLICT
+     *     с видом "organization" или пустой результат, если создать можно
      */
     public Optional<Change> refusal(Organization organization) {
         Optional<Change> missing = missingReference(organization);
@@ -205,7 +204,7 @@ public class OrganizationService {
         return new Change(Outcome.REFERENCE_NOT_FOUND, null, type, id);
     }
 
-    /** Ссылки уже проверены {@link #missingReference(Organization)} в этой транзакции. */
+    /** Ссылки уже проверены missingReference в этой транзакции. */
     private Address persistOrFind(Address address) {
         if (address.getId() != null) {
             return addressRepository.findById(address.getId()).orElseThrow();

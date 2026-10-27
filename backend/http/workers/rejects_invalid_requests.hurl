@@ -28,34 +28,25 @@ GET {{base_url}}/workers/abc
 HTTP 400
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/invalid-worker-id"
-jsonpath "$.status" == 400
-jsonpath "$.errors[0].field" == "id"
-jsonpath "$.errors[0].title" == "INVALID_TYPE"
+jsonpath "$.message" == "Parameter id must be an integer."
 
 GET {{base_url}}/workers/0
 HTTP 400
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/invalid-worker-id"
-jsonpath "$.status" == 400
-jsonpath "$.errors[0].field" == "id"
-jsonpath "$.errors[0].title" == "MUST_BE_POSITIVE"
+jsonpath "$.message" == "Parameter id must be greater than zero."
 
 GET {{base_url}}/workers/2147483648
 HTTP 400
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/invalid-worker-id"
-jsonpath "$.status" == 400
-jsonpath "$.errors[0].field" == "id"
-jsonpath "$.errors[0].title" == "OUT_OF_RANGE"
+jsonpath "$.message" == "Parameter id must not exceed 2147483647."
 
 DELETE {{base_url}}/workers/0
 X-CSRF-Token: {{csrf}}
 HTTP 400
 [Asserts]
-jsonpath "$.type" == "/problems/invalid-worker-id"
+jsonpath "$.message" == "Parameter id must be greater than zero."
 
 POST {{base_url}}/workers
 X-CSRF-Token: {{csrf}}
@@ -65,8 +56,7 @@ Content-Type: application/json
 ```
 HTTP 400
 [Asserts]
-jsonpath "$.type" == "/problems/malformed-json"
-jsonpath "$.status" == 400
+jsonpath "$.message" == "The request body contains invalid JSON."
 
 POST {{base_url}}/workers
 X-CSRF-Token: {{csrf}}
@@ -89,16 +79,14 @@ X-CSRF-Token: {{csrf}}
 HTTP 422
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.status" == 422
-jsonpath "$.errors[?(@.field == 'name')].title" exists
-jsonpath "$.errors[?(@.field == 'coordinates.x')].title" == "MUST_BE_GREATER_THAN_MINUS_954"
-jsonpath "$.errors[?(@.field == 'salary')].title" == "MUST_BE_POSITIVE"
-jsonpath "$.errors[?(@.field == 'rating')].title" == "MUST_BE_POSITIVE"
-jsonpath "$.errors[?(@.field == 'start_date')].title" == "INVALID_DATE_TIME"
-jsonpath "$.errors[?(@.field == 'position')].title" == "INVALID_ENUM_VALUE"
-jsonpath "$.errors[?(@.field == 'organization_id')].title" == "MUTUALLY_EXCLUSIVE"
-jsonpath "$.errors[?(@.field == 'creator_id')].title" == "UNKNOWN_FIELD"
+jsonpath "$.errors[?(@.field == 'name')].code" exists
+jsonpath "$.errors[?(@.field == 'coordinates.x')].code" == "MUST_BE_GREATER_THAN_MINUS_954"
+jsonpath "$.errors[?(@.field == 'salary')].code" == "MUST_BE_POSITIVE"
+jsonpath "$.errors[?(@.field == 'rating')].code" == "MUST_BE_POSITIVE"
+jsonpath "$.errors[?(@.field == 'start_date')].code" == "INVALID_DATE_TIME"
+jsonpath "$.errors[?(@.field == 'position')].code" == "INVALID_ENUM_VALUE"
+jsonpath "$.errors[?(@.field == 'organization_id')].code" == "MUTUALLY_EXCLUSIVE"
+jsonpath "$.errors[?(@.field == 'creator_id')].code" == "UNKNOWN_FIELD"
 
 POST {{base_url}}/workers
 X-CSRF-Token: {{csrf}}
@@ -107,8 +95,8 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'person')].title" == "REQUIRED"
-jsonpath "$.errors[?(@.field == 'coordinates')].title" == "REQUIRED"
+jsonpath "$.errors[?(@.field == 'person')].code" == "REQUIRED"
+jsonpath "$.errors[?(@.field == 'coordinates')].code" == "REQUIRED"
 
 PUT {{base_url}}/workers/1
 X-CSRF-Token: {{csrf}}
@@ -127,7 +115,7 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'organization_id')].title" == "REQUIRED"
+jsonpath "$.errors[?(@.field == 'organization_id')].code" == "REQUIRED"
 
 PUT {{base_url}}/workers/1
 X-CSRF-Token: {{csrf}}
@@ -148,7 +136,7 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'organization')].title" == "UNKNOWN_FIELD"
+jsonpath "$.errors[?(@.field == 'organization')].code" == "UNKNOWN_FIELD"
 
 GET {{base_url}}/workers
 HTTP 200

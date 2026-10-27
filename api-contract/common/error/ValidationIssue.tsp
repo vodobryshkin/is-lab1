@@ -2,19 +2,19 @@ namespace WorkersApi.Errors;
 
 const validationIssueExample: ValidationIssue = #{
     field: "salary",
-    title: "MUST_BE_POSITIVE",
-    description: "Salary must be greater than zero."
+    code: "MUST_BE_POSITIVE",
+    message: "salary must be greater than zero."
 };
 
-@doc("Отдельное нарушение правила валидации.")
+@doc("Нарушение правила в одном поле тела запроса.")
 @example(validationIssueExample)
 model ValidationIssue {
-    @doc("Название поля, в котором возникла ошибка валидации.")
+    @doc("Имя поля; у вложенного поля — путь через точку, у всего тела — `$`.")
     field: string;
 
-    @doc("Короткое enum-обозначение ошибки")
-    title: string;
+    @doc("Машинный код нарушения.")
+    code: string;
 
-    @doc("Описание ошибки валидации в конкретном поле.")
-    description: string;
+    @doc("Понятное описание нарушения.")
+    message: string;
 }

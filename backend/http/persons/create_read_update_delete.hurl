@@ -115,9 +115,7 @@ HTTP 204
 GET {{base_url}}/persons/{{second_id}}
 HTTP 404
 [Asserts]
-jsonpath "$.status" == 404
-jsonpath "$.type" == "/problems/person-not-found"
-jsonpath "$.person_id" == {{second_id}}
+jsonpath "$.message" == "Person with id={{second_id}} does not exist."
 
 GET {{base_url}}/locations/{{location_id}}
 HTTP 200

@@ -1,8 +1,5 @@
 import "@typespec/http";
 
-import "../model/error/InvalidWorkerIdError.tsp";
-import "../model/error/WorkerNotFoundError.tsp";
-import "../model/error/DeleteWorkerConflictError.tsp";
 
 import "../../common/error/UnauthorizedError.tsp";
 import "../../common/error/ForbiddenError.tsp";
@@ -20,15 +17,21 @@ const deleteWorkerSuccessOperationExample = #{
 };
 
 const deleteWorkerInvalidIdOperationExample = #{
-    returnType: invalidWorkerIdErrorExample
+    returnType: invalidIdExample
 };
 
 const deleteWorkerNotFoundOperationExample = #{
-    returnType: workerNotFoundErrorExample
+    returnType: workerNotFoundExample
 };
 
 const deleteWorkerConflictOperationExample = #{
-    returnType: deleteWorkerConflictExample
+    returnType: #{
+        statusCode: 409,
+        contentType: "application/json",
+        body: #{
+            message: "Worker with id=42 is referenced by a person and cannot be deleted."
+        }
+    }
 };
 
 @delete
@@ -49,8 +52,8 @@ op deleteWorker(
     id: int32
 ):
     WorkersApi.Ok.NoContentResponse
-    | InvalidWorkerIdError
+    | BadRequestError
     | UnauthorizedError
     | ForbiddenError
-    | WorkerNotFoundError
-    | DeleteWorkerConflictError;
+    | NotFoundError
+    | ConflictError;

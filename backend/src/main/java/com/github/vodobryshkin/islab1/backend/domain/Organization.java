@@ -53,7 +53,6 @@ public class Organization {
 
     @Column(name = "annual_turnover", nullable = false)
     @Positive
-    // +∞ недопустима; NaN, 0 и отрицательные значения отклоняет @Positive.
     @DecimalMax("3.4028235E38")
     private float annualTurnover;    // Значение поля должно быть больше 0
 

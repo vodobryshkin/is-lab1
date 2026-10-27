@@ -20,9 +20,7 @@ X-CSRF-Token: {{csrf}}
 HTTP 400
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.status" == 400
-jsonpath "$.type" == "/problems/invalid-credentials"
-jsonpath "$.detail" == "Username or password is incorrect."
+jsonpath "$.message" == "Username or password is incorrect."
 
 POST {{base_url}}/auth/login
 X-CSRF-Token: {{csrf}}
@@ -32,8 +30,7 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 400
 [Asserts]
-jsonpath "$.type" == "/problems/invalid-credentials"
-jsonpath "$.detail" == "Username or password is incorrect."
+jsonpath "$.message" == "Username or password is incorrect."
 
 POST {{base_url}}/auth/login
 X-CSRF-Token: {{csrf}}

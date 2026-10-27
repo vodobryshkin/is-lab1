@@ -20,13 +20,12 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Операции с работниками. Координаты, персона и организация — новые объекты или
- * существующие по ID. Все ссылки и конфликты проверяются до первой записи, поэтому при
- * отказе не остаётся частично созданных объектов.
+ * Операции с работниками.
+ * Все ссылки и конфликты проверяются до первой записи, поэтому при отказе не остаётся частично
+ * созданных объектов.
  */
 @ApplicationScoped
 public class WorkerService {
-    private static final String PERSON = "person";
 
     private final WorkerRepository repository;
     private final UserRepository userRepository;
@@ -72,9 +71,9 @@ public class WorkerService {
      *
      * @param worker работник; у ссылок на координаты, персону и организацию задан только ID
      * @param username логин вошедшего пользователя
-     * @return {@code DONE} с ID работника; {@code REFERENCE_NOT_FOUND} с недостающей
-     *     ссылкой; {@code CONFLICT} с видом {@code "organization"} (название занято)
-     *     или {@code "person"} (персона уже связана с работником)
+     * @return DONE с ID работника; REFERENCE_NOT_FOUND с недостающей
+     *     ссылкой; CONFLICT с видом "organization" (название занято)
+     *     или "person" (персона уже связана с работником)
      */
     @Transactional
     public Change create(Worker worker, String username) {
@@ -94,14 +93,13 @@ public class WorkerService {
     }
 
     /**
-     * Полностью заменяет поля и привязки работника в одной транзакции. Создатель и дата
-     * создания не меняются. Прежняя персона при замене или {@code person: null}
-     * отвязывается, но не удаляется; прежние координаты и организация тоже остаются.
+     * Заменяет поля и привязки работника; создатель и дата создания не меняются.
+     * Прежняя персона отвязывается, но не удаляется.
      *
      * @param id ID работника
-     * @param values новые значения; организация — только ссылка или {@code null}
-     * @return {@code DONE}; {@code NOT_FOUND}; {@code REFERENCE_NOT_FOUND} с недостающей
-     *     ссылкой; {@code CONFLICT} с видом {@code "person"}, если персона связана
+     * @param values новые значения; организация — только ссылка или null
+     * @return DONE; NOT_FOUND; REFERENCE_NOT_FOUND с недостающей
+     *     ссылкой; CONFLICT с видом "person", если персона связана
      *     с другим работником
      */
     @Transactional
@@ -135,12 +133,10 @@ public class WorkerService {
     }
 
     /**
-     * Удаляет работника, если на него не ссылается персона: по контракту сначала нужно
-     * отвязать её через обновление. Координаты и организацию не удаляет.
-     * Внешний ключ {@code persons.worker_id} защищает от одновременной привязки.
+     * Удаляет работника, если с ним не связана персона.
      *
      * @param id ID работника
-     * @return {@code DONE}, {@code NOT_FOUND} или {@code IN_USE}
+     * @return DONE, NOT_FOUND или IN_USE
      */
     @Transactional
     public Outcome delete(int id) {
@@ -189,7 +185,7 @@ public class WorkerService {
 
     /**
      * Первая причина отказа: ненайденная ссылка или конфликт; без записи в БД.
-     * {@code owner} — ID обновляемого работника, его собственная персона не конфликтует.
+     * owner — ID обновляемого работника, его собственная персона не конфликтует.
      */
     private Optional<Change> refusal(Worker worker, Integer owner) {
         Coordinates coordinates = worker.getCoordinates();
@@ -232,19 +228,19 @@ public class WorkerService {
         }
         Optional<Person> existing = personRepository.findByIdForUpdate(person.getId());
         if (existing.isEmpty()) {
-            return Optional.of(missing(PERSON, person.getId()));
+            return Optional.of(missing("person", person.getId()));
         }
         Worker holder = existing.get().getWorker();
         return holder == null || holder.getId().equals(owner)
                 ? Optional.empty()
-                : Optional.of(new Change(Outcome.CONFLICT, null, PERSON, person.getId()));
+                : Optional.of(new Change(Outcome.CONFLICT, null, "person", person.getId()));
     }
 
     private Change missing(String subject, long id) {
         return new Change(Outcome.REFERENCE_NOT_FOUND, null, subject, id);
     }
 
-    /** Ссылки уже проверены {@link #refusal} в этой транзакции. */
+    /** Ссылки уже проверены refusal в этой транзакции. */
     private Coordinates persistOrFind(Coordinates coordinates) {
         if (coordinates.getId() != null) {
             return coordinatesRepository.findById(coordinates.getId()).orElseThrow();
@@ -263,7 +259,7 @@ public class WorkerService {
         return organization;
     }
 
-    /** Привязка задаётся со стороны персоны: внешний ключ — {@code persons.worker_id}. */
+    /** Привязка задаётся со стороны персоны: внешний ключ — persons.worker_id. */
     private void attach(Worker worker, Person person) {
         if (person == null) {
             return;

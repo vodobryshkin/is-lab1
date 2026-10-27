@@ -38,16 +38,17 @@ public class CoordinatesRepository {
      * @return координаты страницы; за концом списка — пустой список
      */
     public List<Coordinates> findPage(ListQuery query) {
-        long offset = (long) (query.page() - 1) * query.pageSize();
+        long offset = (long) (query.getPage() - 1) * query.getPageSize();
         if (offset > Integer.MAX_VALUE) {
             return List.of();
         }
-        String order = SORT_COLUMNS.get(query.sortBy()) + (query.ascending() ? " ASC" : " DESC");
+        String order = SORT_COLUMNS.get(query.getSortBy())
+                + (query.isAscending() ? " ASC" : " DESC");
         return entityManager.createQuery(
                         "SELECT c FROM Coordinates c ORDER BY " + order + ", c.id ASC",
                         Coordinates.class)
                 .setFirstResult((int) offset)
-                .setMaxResults(query.pageSize())
+                .setMaxResults(query.getPageSize())
                 .getResultList();
     }
 
@@ -65,7 +66,7 @@ public class CoordinatesRepository {
      * Проверяет, ссылается ли на координаты хотя бы один работник.
      *
      * @param id ID координат
-     * @return {@code true}, если координаты используются
+     * @return true, если координаты используются
      */
     public boolean isUsed(long id) {
         return entityManager.createQuery(
@@ -85,7 +86,7 @@ public class CoordinatesRepository {
 
     /**
      * Удаляет координаты и сразу отправляет DELETE: внешний ключ БД отклонит удаление,
-     * если работник сослался на координаты после проверки {@link #isUsed}.
+     * если работник сослался на координаты после проверки isUsed.
      *
      * @param coordinates сохранённые координаты
      */

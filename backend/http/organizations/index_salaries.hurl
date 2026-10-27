@@ -36,7 +36,7 @@ POST {{base_url}}/organizations/1/index_salaries
 }
 HTTP 403
 [Asserts]
-jsonpath "$.type" == "/problems/invalid-csrf-token"
+jsonpath "$.message" == "The X-CSRF-Token header is missing or does not match the current session."
 
 GET {{base_url}}/workers/1
 HTTP 200
@@ -104,9 +104,7 @@ X-CSRF-Token: {{csrf}}
 HTTP 409
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/salary-indexation-conflict"
-jsonpath "$.status" == 409
-jsonpath "$.organization_id" == 4
+jsonpath "$.message" == "Indexation would produce a salary outside the allowed range."
 
 POST {{base_url}}/organizations/4/index_salaries
 X-CSRF-Token: {{csrf}}
@@ -116,9 +114,7 @@ X-CSRF-Token: {{csrf}}
 HTTP 409
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/salary-indexation-conflict"
-jsonpath "$.status" == 409
-jsonpath "$.organization_id" == 4
+jsonpath "$.message" == "Indexation would produce a salary outside the allowed range."
 
 GET {{base_url}}/workers/4
 HTTP 200
@@ -143,9 +139,7 @@ X-CSRF-Token: {{csrf}}
 HTTP 404
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/organization-not-found"
-jsonpath "$.status" == 404
-jsonpath "$.organization_id" == 999
+jsonpath "$.message" == "Organization with id=999 does not exist."
 
 POST {{base_url}}/organizations/abc/index_salaries
 X-CSRF-Token: {{csrf}}
@@ -154,9 +148,7 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 400
 [Asserts]
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.errors[0].field" == "id"
-jsonpath "$.errors[0].title" == "INVALID_TYPE"
+jsonpath "$.message" == "Parameter id must be an integer."
 
 POST {{base_url}}/organizations/1/index_salaries
 X-CSRF-Token: {{csrf}}
@@ -166,7 +158,7 @@ Content-Type: application/json
 ```
 HTTP 400
 [Asserts]
-jsonpath "$.type" == "/problems/malformed-json"
+jsonpath "$.message" == "The request body contains invalid JSON."
 
 POST {{base_url}}/organizations/1/index_salaries
 X-CSRF-Token: {{csrf}}
@@ -176,10 +168,8 @@ X-CSRF-Token: {{csrf}}
 HTTP 422
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.status" == 422
 jsonpath "$.errors[0].field" == "coefficient"
-jsonpath "$.errors[0].title" == "MUST_BE_POSITIVE"
+jsonpath "$.errors[0].code" == "MUST_BE_POSITIVE"
 
 POST {{base_url}}/organizations/1/index_salaries
 X-CSRF-Token: {{csrf}}
@@ -189,10 +179,8 @@ X-CSRF-Token: {{csrf}}
 HTTP 422
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.status" == 422
 jsonpath "$.errors[0].field" == "coefficient"
-jsonpath "$.errors[0].title" == "MUST_BE_POSITIVE"
+jsonpath "$.errors[0].code" == "MUST_BE_POSITIVE"
 
 POST {{base_url}}/organizations/1/index_salaries
 X-CSRF-Token: {{csrf}}
@@ -202,10 +190,8 @@ X-CSRF-Token: {{csrf}}
 HTTP 422
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.status" == 422
 jsonpath "$.errors[0].field" == "coefficient"
-jsonpath "$.errors[0].title" == "MUST_BE_POSITIVE"
+jsonpath "$.errors[0].code" == "MUST_BE_POSITIVE"
 
 POST {{base_url}}/organizations/1/index_salaries
 X-CSRF-Token: {{csrf}}
@@ -215,10 +201,8 @@ X-CSRF-Token: {{csrf}}
 HTTP 422
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.status" == 422
 jsonpath "$.errors[0].field" == "coefficient"
-jsonpath "$.errors[0].title" == "OUT_OF_RANGE"
+jsonpath "$.errors[0].code" == "OUT_OF_RANGE"
 
 POST {{base_url}}/organizations/1/index_salaries
 X-CSRF-Token: {{csrf}}
@@ -228,10 +212,8 @@ X-CSRF-Token: {{csrf}}
 HTTP 422
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.status" == 422
 jsonpath "$.errors[0].field" == "coefficient"
-jsonpath "$.errors[0].title" == "MUST_NOT_BE_NULL"
+jsonpath "$.errors[0].code" == "MUST_NOT_BE_NULL"
 
 POST {{base_url}}/organizations/1/index_salaries
 X-CSRF-Token: {{csrf}}
@@ -240,10 +222,8 @@ X-CSRF-Token: {{csrf}}
 HTTP 422
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.status" == 422
 jsonpath "$.errors[0].field" == "coefficient"
-jsonpath "$.errors[0].title" == "REQUIRED"
+jsonpath "$.errors[0].code" == "REQUIRED"
 
 POST {{base_url}}/organizations/1/index_salaries
 X-CSRF-Token: {{csrf}}
@@ -253,10 +233,8 @@ X-CSRF-Token: {{csrf}}
 HTTP 422
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.status" == 422
 jsonpath "$.errors[0].field" == "coefficient"
-jsonpath "$.errors[0].title" == "INVALID_TYPE"
+jsonpath "$.errors[0].code" == "INVALID_TYPE"
 
 POST {{base_url}}/organizations/1/index_salaries
 X-CSRF-Token: {{csrf}}
@@ -267,10 +245,8 @@ X-CSRF-Token: {{csrf}}
 HTTP 422
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.status" == 422
 jsonpath "$.errors[0].field" == "status"
-jsonpath "$.errors[0].title" == "UNKNOWN_FIELD"
+jsonpath "$.errors[0].code" == "UNKNOWN_FIELD"
 
 GET {{base_url}}/workers/1
 HTTP 200

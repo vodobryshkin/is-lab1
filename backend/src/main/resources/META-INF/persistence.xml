@@ -16,17 +16,13 @@
         <class>com.github.vodobryshkin.islab1.backend.domain.Worker</class>
         <class>com.github.vodobryshkin.islab1.backend.domain.ZonedDateTimeConverter</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
-        <!-- Без общего кэша чтение идёт из БД и видит изменения, сделанные мимо приложения. -->
         <shared-cache-mode>NONE</shared-cache-mode>
 
         <properties>
-            <!-- EclipseLink упакован в WAR: WildFly не должен подставлять встроенный Hibernate. -->
             <property name="jboss.as.jpa.providerModule" value="application"/>
             <property name="eclipselink.target-server" value="JBoss"/>
             <property name="eclipselink.target-database" value="PostgreSQL"/>
-            <!-- Схема создаётся только скриптом db/schema.sql, рабочие таблицы не пересоздаются. -->
             <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
-            <!-- Без агента загрузки классов поведение одинаково в WildFly и в JUnit. -->
             <property name="eclipselink.weaving" value="false"/>
             <property name="eclipselink.logging.level" value="INFO"/>
         </properties>

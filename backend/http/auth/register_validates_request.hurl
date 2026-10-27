@@ -10,8 +10,7 @@ Content-Type: application/json
 HTTP 400
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.status" == 400
-jsonpath "$.type" == "/problems/malformed-json"
+jsonpath "$.message" == "The request body contains invalid JSON."
 
 POST {{base_url}}/auth/register
 X-CSRF-Token: {{csrf}}
@@ -20,9 +19,7 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.status" == 422
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.errors[?(@.field == 'username')].title" contains "REQUIRED"
+jsonpath "$.errors[?(@.field == 'username')].code" contains "REQUIRED"
 
 POST {{base_url}}/auth/register
 X-CSRF-Token: {{csrf}}
@@ -32,8 +29,8 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'username')].title" contains "MUST_NOT_BE_NULL"
-jsonpath "$.errors[?(@.field == 'password')].title" contains "INVALID_TYPE"
+jsonpath "$.errors[?(@.field == 'username')].code" contains "MUST_NOT_BE_NULL"
+jsonpath "$.errors[?(@.field == 'password')].code" contains "INVALID_TYPE"
 
 POST {{base_url}}/auth/register
 X-CSRF-Token: {{csrf}}
@@ -43,7 +40,7 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'username')].title" contains "MUST_NOT_BE_EMPTY"
+jsonpath "$.errors[?(@.field == 'username')].code" contains "MUST_NOT_BE_EMPTY"
 
 POST {{base_url}}/auth/register
 X-CSRF-Token: {{csrf}}
@@ -53,8 +50,8 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'username')].title" contains "OUT_OF_RANGE"
-jsonpath "$.errors[?(@.field == 'password')].title" contains "OUT_OF_RANGE"
+jsonpath "$.errors[?(@.field == 'username')].code" contains "OUT_OF_RANGE"
+jsonpath "$.errors[?(@.field == 'password')].code" contains "OUT_OF_RANGE"
 
 POST {{base_url}}/auth/register
 X-CSRF-Token: {{csrf}}
@@ -64,8 +61,8 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'username')].title" contains "OUT_OF_RANGE"
-jsonpath "$.errors[?(@.field == 'password')].title" contains "OUT_OF_RANGE"
+jsonpath "$.errors[?(@.field == 'username')].code" contains "OUT_OF_RANGE"
+jsonpath "$.errors[?(@.field == 'password')].code" contains "OUT_OF_RANGE"
 
 POST {{base_url}}/auth/register
 X-CSRF-Token: {{csrf}}
@@ -75,8 +72,8 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'username')].title" contains "MUST_MATCH_PATTERN"
-jsonpath "$.errors[?(@.field == 'password')].title" contains "MUST_MATCH_PATTERN"
+jsonpath "$.errors[?(@.field == 'username')].code" contains "MUST_MATCH_PATTERN"
+jsonpath "$.errors[?(@.field == 'password')].code" contains "MUST_MATCH_PATTERN"
 
 POST {{base_url}}/auth/register
 X-CSRF-Token: {{csrf}}

@@ -85,6 +85,6 @@ op createOrganization(
     | BadRequestError
     | UnauthorizedError
     | ForbiddenError
-    | NotFoundError<AddressNotFoundDetails | LocationNotFoundDetails>
-    | OrganizationNameConflictError
+    | NotFoundError
+    | ConflictError
     | OrganizationValidationError;

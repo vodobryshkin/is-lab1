@@ -7,11 +7,8 @@ import "../model/request/CreateWorkerRequest.tsp";
 import "../model/response/CreateWorkerResponse.tsp";
 
 import "../model/error/CreateWorkerValidationError.tsp";
-import "../model/error/CreateWorkerOrganizationNotFoundError.tsp";
-import "../model/error/CreateWorkerOrganizationNameConflictError.tsp";
 
 import "../../common/error/BadRequestError.tsp";
-import "../../common/error/AddressNotFoundError.tsp";
 import "../../common/error/UnauthorizedError.tsp";
 import "../../common/error/ForbiddenError.tsp";
 
@@ -78,11 +75,11 @@ const createWorkerBadRequestOperationExample = #{
 };
 
 const createWorkerOrganizationNotFoundOperationExample = #{
-    returnType: createWorkerOrganizationNotFoundErrorExample
+    returnType: organizationNotFoundExample
 };
 
 const createWorkerOrganizationNameConflictOperationExample = #{
-    returnType: createWorkerOrganizationNameConflictErrorExample
+    returnType: organizationNameConflictExample
 };
 
 const createWorkerValidationOperationExample = #{
@@ -90,7 +87,7 @@ const createWorkerValidationOperationExample = #{
 };
 
 const createWorkerAddressNotFoundOperationExample = #{
-    returnType: addressNotFoundErrorExample
+    returnType: addressNotFoundExample
 };
 
 const createWorkerWithExistingObjectsOperationExample = #{
@@ -149,9 +146,6 @@ op createWorker(
     | BadRequestError
     | UnauthorizedError
     | ForbiddenError
-    | NotFoundError<
-        OrganizationNotFoundDetails | AddressNotFoundDetails
-        | CoordinatesNotFoundDetails | LocationNotFoundDetails | PersonNotFoundDetails
-    >
-    | ConflictError<OrganizationNameConflictDetails | PersonAlreadyAssignedDetails>
+    | NotFoundError
+    | ConflictError
     | CreateWorkerValidationError;

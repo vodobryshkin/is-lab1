@@ -32,7 +32,6 @@ public class OrganizationResponse {
 
     @JsonbProperty("annual_turnover")
     @Positive
-    // +∞ недопустима; NaN, 0 и отрицательные значения отклоняет @Positive.
     @DecimalMax("3.4028235E38")
     private float annualTurnover;
 

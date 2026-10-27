@@ -41,9 +41,8 @@ op updateLocation(
     @body body: LocationWriteRequest
 ):
     WorkersApi.Ok.NoContentResponse
-    | ValidationError<400, ParameterValidationIssue>
     | BadRequestError
     | UnauthorizedError
     | ForbiddenError
-    | NotFoundError<LocationNotFoundDetails>
+    | NotFoundError
     | LocationValidationError;

@@ -33,8 +33,8 @@ op deleteAddress(
     id: int64
 ):
     WorkersApi.Ok.NoContentResponse
-    | ValidationError<400, ParameterValidationIssue>
+    | BadRequestError
     | UnauthorizedError
     | ForbiddenError
-    | AddressNotFoundError
-    | DeleteAddressConflictError;
+    | NotFoundError
+    | ConflictError;

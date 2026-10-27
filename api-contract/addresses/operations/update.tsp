@@ -60,9 +60,8 @@ op updateAddress(
     @body body: AddressFields
 ):
     WorkersApi.Ok.NoContentResponse
-    | ValidationError<400, ParameterValidationIssue>
     | BadRequestError
     | UnauthorizedError
     | ForbiddenError
-    | NotFoundError<AddressNotFoundDetails | LocationNotFoundDetails>
+    | NotFoundError
     | AddressValidationError;

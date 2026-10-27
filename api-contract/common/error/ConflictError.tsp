@@ -1,55 +1,32 @@
-import "./ProblemResponse.tsp";
+import "./ErrorResponse.tsp";
 
 namespace WorkersApi.Errors;
 
-const conflictExample: ConflictError = #{
+const personAlreadyAssignedExample: ConflictError = #{
     statusCode: 409,
     contentType: "application/json",
     body: #{
-        type: "/problems/organization-has-workers",
-        title: "Organization cannot be deleted",
-        status: 409,
-        detail: "The organization cannot be deleted while workers reference it.",
-        instance: "/problem-occurrences/example-409"
+        message: "Person with id=10 is already assigned to another worker."
     }
 };
-
-@error
-@doc("Ошибка: конфликт с текущим состоянием ресурса.")
-model ConflictError<TBody = ProblemDetails<409>> is ProblemResponse<409, TBody>;
-
-@doc("Название организации занято.")
-model OrganizationNameConflictDetails {
-    ...OmitProperties<ProblemDetails<409>, "type">;
-    type: "/problems/organization-name-already-exists";
-
-    @doc("Занятое название организации.")
-    full_name: string;
-}
-
-@doc("Персона связана с другим работником.")
-model PersonAlreadyAssignedDetails {
-    ...OmitProperties<ProblemDetails<409>, "type">;
-    type: "/problems/person-already-assigned";
-
-    @doc("ID занятой персоны.")
-    @minValue(1)
-    person_id: int64;
-}
-
-const personAlreadyAssignedExample:
-    ConflictError<PersonAlreadyAssignedDetails> = #{
-        statusCode: 409,
-        contentType: "application/json",
-        body: #{
-            type: "/problems/person-already-assigned",
-            title: "Person already assigned",
-            status: 409,
-            detail: "Person with id=10 is already assigned to another worker.",
-            person_id: 10
-        }
-    };
 
 const personAlreadyAssignedOperationExample = #{
     returnType: personAlreadyAssignedExample
 };
+
+const organizationNameConflictExample: ConflictError = #{
+    statusCode: 409,
+    contentType: "application/json",
+    body: #{
+        message: "Another organization with this full_name already exists."
+    }
+};
+
+const organizationNameConflictOperationExample = #{
+    returnType: organizationNameConflictExample
+};
+
+@error
+@doc("Ошибка: конфликт с текущим состоянием данных; ничего не изменено.")
+@example(organizationNameConflictExample)
+model ConflictError is ErrorResult<409>;

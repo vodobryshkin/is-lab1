@@ -69,9 +69,7 @@ HTTP 204
 GET {{base_url}}/coordinates/{{id}}
 HTTP 404
 [Asserts]
-jsonpath "$.status" == 404
-jsonpath "$.type" == "/problems/coordinates-not-found"
-jsonpath "$.coordinates_id" == {{id}}
+jsonpath "$.message" == "Coordinates with id={{id}} do not exist."
 
 DELETE {{base_url}}/coordinates/{{id}}
 X-CSRF-Token: {{csrf}}
@@ -85,4 +83,4 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 404
 [Asserts]
-jsonpath "$.coordinates_id" == {{id}}
+jsonpath "$.message" == "Coordinates with id={{id}} do not exist."

@@ -195,11 +195,13 @@ HTTP 200
 jsonpath "$.total_items" == 4
 jsonpath "$.items" count == 0
 
-GET {{base_url}}/workers?sort_by=creator_id&page_size=101
+GET {{base_url}}/workers?sort_by=creator_id
 HTTP 400
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.status" == 400
-jsonpath "$.errors[?(@.field == 'sort_by')].title" == "INVALID_ENUM_VALUE"
-jsonpath "$.errors[?(@.field == 'page_size')].title" == "OUT_OF_RANGE"
+jsonpath "$.message" == "Parameter sort_by has an unsupported value."
+
+GET {{base_url}}/workers?page_size=101
+HTTP 400
+[Asserts]
+jsonpath "$.message" == "Parameter page_size must not exceed 100."

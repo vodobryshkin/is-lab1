@@ -127,8 +127,7 @@ HTTP 204
 GET {{base_url}}/addresses/{{second_id}}
 HTTP 404
 [Asserts]
-jsonpath "$.status" == 404
-jsonpath "$.type" == "/problems/address-not-found"
+jsonpath "$.message" == "Address with id={{second_id}} does not exist."
 
 GET {{base_url}}/locations/{{town_id}}
 HTTP 200

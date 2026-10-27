@@ -44,11 +44,10 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.type" == "/problems/validation-failed"
-jsonpath "$.errors[?(@.field == 'x')].title" contains "MUST_NOT_BE_NULL"
-jsonpath "$.errors[?(@.field == 'y')].title" contains "OUT_OF_RANGE"
-jsonpath "$.errors[?(@.field == 'z')].title" contains "REQUIRED"
-jsonpath "$.errors[?(@.field == 'w')].title" contains "UNKNOWN_FIELD"
+jsonpath "$.errors[?(@.field == 'x')].code" contains "MUST_NOT_BE_NULL"
+jsonpath "$.errors[?(@.field == 'y')].code" contains "OUT_OF_RANGE"
+jsonpath "$.errors[?(@.field == 'z')].code" contains "REQUIRED"
+jsonpath "$.errors[?(@.field == 'w')].code" contains "UNKNOWN_FIELD"
 
 POST {{base_url}}/locations
 X-CSRF-Token: {{csrf}}
@@ -59,8 +58,8 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'x')].title" contains "INVALID_TYPE"
-jsonpath "$.errors[?(@.field == 'z')].title" contains "OUT_OF_RANGE"
+jsonpath "$.errors[?(@.field == 'x')].code" contains "INVALID_TYPE"
+jsonpath "$.errors[?(@.field == 'z')].code" contains "OUT_OF_RANGE"
 
 POST {{base_url}}/locations
 X-CSRF-Token: {{csrf}}
@@ -68,7 +67,7 @@ Content-Type: application/json
 `"location"`
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == '$')].title" contains "INVALID_TYPE"
+jsonpath "$.errors[?(@.field == '$')].code" contains "INVALID_TYPE"
 
 PUT {{base_url}}/locations/{{id}}
 X-CSRF-Token: {{csrf}}
@@ -78,7 +77,7 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'z')].title" contains "REQUIRED"
+jsonpath "$.errors[?(@.field == 'z')].code" contains "REQUIRED"
 
 GET {{base_url}}/locations/{{id}}
 HTTP 200

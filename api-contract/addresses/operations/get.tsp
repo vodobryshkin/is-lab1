@@ -50,9 +50,9 @@ op getAddress(
     id: int64
 ):
     WorkersApi.Ok.OkResponse<GetSingleAddressResponse>
-    | ValidationError<400, ParameterValidationIssue>
+    | BadRequestError
     | UnauthorizedError
-    | AddressNotFoundError;
+    | NotFoundError;
 
 const listAddressesPageExample: PageResponse<GetSingleAddressResponse> = #{
     items: #[getSingleAddressExample],
@@ -120,5 +120,5 @@ op listAddresses(
     street?: SubstringFilter,
 ):
     WorkersApi.Ok.OkResponse<PageResponse<GetSingleAddressResponse>>
-    | ValidationError<400, ParameterValidationIssue>
+    | BadRequestError
     | UnauthorizedError;

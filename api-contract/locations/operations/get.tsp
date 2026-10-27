@@ -39,9 +39,9 @@ op getLocation(
     id: int64
 ):
     WorkersApi.Ok.OkResponse<GetSingleLocationResponse>
-    | ValidationError<400, ParameterValidationIssue>
+    | BadRequestError
     | UnauthorizedError
-    | NotFoundError<LocationNotFoundDetails>;
+    | NotFoundError;
 
 const listLocationsPageExample: PageResponse<GetSingleLocationResponse> = #{
     items: #[getSingleLocationExample],
@@ -95,5 +95,5 @@ op listLocations(
         "id" | "x" | "y" | "z" = "id",
 ):
     WorkersApi.Ok.OkResponse<PageResponse<GetSingleLocationResponse>>
-    | ValidationError<400, ParameterValidationIssue>
+    | BadRequestError
     | UnauthorizedError;

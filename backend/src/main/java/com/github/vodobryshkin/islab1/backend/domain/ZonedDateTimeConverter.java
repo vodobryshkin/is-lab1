@@ -6,7 +6,7 @@ import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 
 /**
- * Преобразует {@link ZonedDateTime} в {@link OffsetDateTime} для колонок {@code TIMESTAMPTZ}.
+ * Преобразует время с часовым поясом для сохранения в PostgreSQL.
  */
 @Converter(autoApply = true)
 public class ZonedDateTimeConverter implements AttributeConverter<ZonedDateTime, OffsetDateTime> {

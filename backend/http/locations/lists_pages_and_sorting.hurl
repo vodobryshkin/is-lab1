@@ -81,4 +81,4 @@ jsonpath "$.items[2].id" == {{third}}
 GET {{base_url}}/locations?sort_by=w
 HTTP 400
 [Asserts]
-jsonpath "$.errors[?(@.field == 'sort_by')].title" contains "INVALID_ENUM_VALUE"
+jsonpath "$.message" == "Parameter sort_by has an unsupported value."

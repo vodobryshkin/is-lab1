@@ -1,5 +1,4 @@
-import "../../../common/error/ProblemResponse.tsp";
-import "../../../common/error/ValidationProblemDetails.tsp";
+import "../../../common/error/ValidationError.tsp";
 import "./UpdateWorkerValidationIssue.tsp";
 
 using WorkersApi.Errors;
@@ -10,19 +9,16 @@ const updateWorkerValidationExample: UpdateWorkerValidationError = #{
     statusCode: 422,
     contentType: "application/json",
     body: #{
-        type: "/problems/update-worker-validation",
-        title: "Validation failed",
-        status: 422,
         errors: #[
             #{
                 field: "salary",
-                title: "MUST_BE_POSITIVE",
-                description: "Salary must be greater than zero."
+                code: "MUST_BE_POSITIVE",
+                message: "salary must be greater than zero."
             },
             #{
                 field: "organization_id",
-                title: "REQUIRED",
-                description: "Organization ID must be provided. Use null to unlink the organization."
+                code: "REQUIRED",
+                message: "organization_id is required."
             }
         ]
     }
@@ -32,19 +28,16 @@ const updateWorkerReferenceValidationExample: UpdateWorkerValidationError = #{
     statusCode: 422,
     contentType: "application/json",
     body: #{
-        type: "/problems/update-worker-validation",
-        title: "Validation failed",
-        status: 422,
         errors: #[
             #{
                 field: "coordinates.id",
-                title: "MUST_BE_POSITIVE",
-                description: "Coordinates ID must be greater than zero."
+                code: "MUST_BE_POSITIVE",
+                message: "coordinates.id must be greater than zero."
             },
             #{
                 field: "person.location.id",
-                title: "MUST_BE_POSITIVE",
-                description: "Location ID must be greater than zero."
+                code: "MUST_BE_POSITIVE",
+                message: "person.location.id must be greater than zero."
             }
         ]
     }
@@ -54,18 +47,8 @@ const updateWorkerReferenceValidationOperationExample = #{
     returnType: updateWorkerReferenceValidationExample
 };
 
-@example(updateWorkerReferenceValidationExample)
 @error
 @doc("Ошибка валидации работника.")
 @example(updateWorkerValidationExample)
-model UpdateWorkerValidationError is ProblemResponse<
-    422,
-    {
-        ...OmitProperties<ValidationProblemDetails, "type" | "errors">;
-
-        type: "/problems/update-worker-validation";
-
-        @minItems(1)
-        errors: UpdateWorkerValidationIssue[];
-    }
->;
+@example(updateWorkerReferenceValidationExample)
+model UpdateWorkerValidationError is ValidationError<UpdateWorkerValidationIssue>;

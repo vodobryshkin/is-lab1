@@ -98,7 +98,7 @@ public class LocationService {
      *
      * @param id ID локации
      * @param values новые значения
-     * @return {@code false}, если локации нет
+     * @return false, если локации нет
      */
     @Transactional
     public boolean update(long id, Location values) {
