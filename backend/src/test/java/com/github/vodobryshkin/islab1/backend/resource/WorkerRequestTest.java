@@ -233,6 +233,7 @@ class WorkerRequestTest {
 
     private Worker read(String fields, boolean update) {
         RequestFields body = reader.read("{" + fields + "}");
+
         return body.validate(entities.worker(body, update), "user", "creation_date");
     }
 
@@ -244,6 +245,7 @@ class WorkerRequestTest {
         WebApplicationException exception =
                 catchThrowableOfType(WebApplicationException.class, () -> read(fields, update));
         ValidationErrorResponse response = (ValidationErrorResponse) exception.getResponse().getEntity();
+
         return response.getErrors().stream()
                 .map(issue -> issue.getField() + " " + issue.getCode())
                 .toList();

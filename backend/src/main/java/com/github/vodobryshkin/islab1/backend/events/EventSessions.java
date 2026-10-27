@@ -44,6 +44,7 @@ public class EventSessions {
         if (transactions.getResource(PENDING) != null) {
             return;
         }
+
         transactions.putResource(PENDING, Boolean.TRUE);
         transactions.registerInterposedSynchronization(new Synchronization() {
             @Override
@@ -104,6 +105,7 @@ public class EventSessions {
     void send(Session connection, String message) {
         Lock lock = lockOf(connection);
         lock.lock();
+
         try {
             connection.getBasicRemote().sendText(message);
         } catch (IOException | IllegalStateException exception) {
@@ -125,8 +127,10 @@ public class EventSessions {
         if (message != null) {
             send(connection, message);
         }
+
         Lock lock = lockOf(connection);
         lock.lock();
+
         try {
             connection.close(new CloseReason(CloseReason.CloseCodes.getCloseCode(code), reason));
         } catch (IOException | IllegalStateException exception) {

@@ -83,6 +83,7 @@ public class AuthResource {
     @Path("/csrf")
     public Response getCsrfToken(@Context HttpServletRequest request) {
         String token = csrfProtection.tokenOf(request.getSession(true));
+
         return Response.ok().entity(new CsrfTokenResponse(token)).cacheControl(noStore()).build();
     }
 
@@ -97,6 +98,7 @@ public class AuthResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response register(String body) {
         CredentialsRequest credentials = readCredentials(body);
+
         try {
             Long id = userService.register(credentials.getUsername(), credentials.getPassword());
             return Response.status(Response.Status.CREATED).entity(new IdResponse(id)).build();
@@ -125,22 +127,27 @@ public class AuthResource {
     public Response login(String body, @Context HttpServletRequest request,
             @Context HttpServletResponse response) throws ServletException {
         CredentialsRequest credentials = readCredentials(body);
+
         if (request.getUserPrincipal() != null) {
             eventSessions.end(request.getSession());
             request.logout();
         }
+
         AuthenticationStatus status = securityContext.authenticate(request, response,
                 AuthenticationParameters.withParams()
                         .newAuthentication(true)
                         .credential(new UsernamePasswordCredential(credentials.getUsername(),
                                 new Password(credentials.getPassword()))));
+
         if (status != AuthenticationStatus.SUCCESS) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new ErrorResponse("Username or password is incorrect."))
                     .build();
         }
+
         request.changeSessionId();
         csrfProtection.replace(request.getSession());
+
         return currentUser(credentials.getUsername());
     }
 
@@ -170,6 +177,7 @@ public class AuthResource {
         eventSessions.end(request.getSession());
         request.logout();
         request.getSession().invalidate();
+
         return Response.noContent().cacheControl(noStore()).build();
     }
 
@@ -177,11 +185,13 @@ public class AuthResource {
         CurrentUserResponse body = userService.findByUsername(username)
                 .map(user -> new CurrentUserResponse(user.getId(), user.getUsername()))
                 .orElseThrow();
+
         return Response.ok().entity(body).cacheControl(noStore()).build();
     }
 
     private CredentialsRequest readCredentials(String body) {
         RequestFields fields = requestReader.read(body);
+
         return fields.validate(
                 new CredentialsRequest(fields.string("username"), fields.string("password")));
     }
@@ -193,12 +203,14 @@ public class AuthResource {
                 return true;
             }
         }
+
         return false;
     }
 
     private CacheControl noStore() {
         CacheControl cacheControl = new CacheControl();
         cacheControl.setNoStore(true);
+
         return cacheControl;
     }
 }

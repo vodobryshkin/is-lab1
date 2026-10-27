@@ -36,16 +36,19 @@ public class AddressRepository {
      * При равных значениях порядок задаёт ID.
      *
      * @param query проверенные параметры страницы
-     * @param street подстрока улицы; null или пустая строка не фильтрует
-     * @return адреса страницы; за концом списка -- пустой список
+     * @param street подстрока улицы, null или пустая строка не фильтрует
+     * @return адреса страницы, за концом списка -- пустой список
      */
     public List<Address> findPage(ListQuery query, String street) {
         long offset = (long) (query.getPage() - 1) * query.getPageSize();
+
         if (offset > Integer.MAX_VALUE) {
             return List.of();
         }
+
         String order = SORT_COLUMNS.get(query.getSortBy())
                 + (query.isAscending() ? " ASC" : " DESC");
+
         return entityManager.createQuery("SELECT a FROM Address a"
                         + " WHERE (:street = '' OR LOCATE(:street, LOWER(a.street)) > 0)"
                         + " ORDER BY " + order + ", a.id ASC", Address.class)
@@ -58,7 +61,7 @@ public class AddressRepository {
     /**
      * Считает адреса с фильтром-подстрокой по улице.
      *
-     * @param street подстрока улицы; null или пустая строка не фильтрует
+     * @param street подстрока улицы, null или пустая строка не фильтрует
      * @return количество
      */
     public long count(String street) {
@@ -83,7 +86,7 @@ public class AddressRepository {
     }
 
     /**
-     * Сохраняет новый адрес; ID выдаёт последовательность БД.
+     * Сохраняет новый адрес, ID выдаёт последовательность БД.
      *
      * @param address адрес без ID с сохранённой локацией или без неё
      */
@@ -92,7 +95,7 @@ public class AddressRepository {
     }
 
     /**
-     * Удаляет адрес и сразу отправляет DELETE; локацию адреса не удаляет.
+     * Удаляет адрес и сразу отправляет DELETE, локацию адреса не удаляет.
      *
      * @param address сохранённый адрес
      */

@@ -9,7 +9,7 @@ import jakarta.security.enterprise.identitystore.IdentityStore;
 
 /**
  * Проверяет логин и пароль по пользователям в БД.
- * Имя вызывающего -- логин; ролей нет, все вошедшие пользователи равноправны.
+ * Имя вызывающего -- логин, ролей нет, все вошедшие пользователи равноправны.
  */
 @ApplicationScoped
 public class DatabaseIdentityStore implements IdentityStore {
@@ -26,14 +26,14 @@ public class DatabaseIdentityStore implements IdentityStore {
     }
 
     /**
-     * Нужен CDI для создания клиентского прокси; прикладной код его не вызывает.
+     * Нужен CDI для создания клиентского прокси, прикладной код его не вызывает.
      */
     protected DatabaseIdentityStore() {
         this.userService = null;
     }
 
     /**
-     * Проверяет учётные данные; вызывается IdentityStore.validate по их типу.
+     * Проверяет учётные данные, вызывается IdentityStore.validate по их типу.
      *
      * @param credential логин и пароль
      * @return VALID с логином или INVALID

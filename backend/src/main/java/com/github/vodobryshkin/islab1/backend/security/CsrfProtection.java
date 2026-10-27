@@ -41,12 +41,14 @@ public class CsrfProtection implements ContainerRequestFilter {
         if (SAFE_METHODS.contains(requestContext.getMethod())) {
             return;
         }
+
         HttpSession session = request.getSession(false);
         Object expected = session == null ? null : session.getAttribute(SESSION_ATTRIBUTE);
         String actual = requestContext.getHeaderString(HEADER);
         boolean valid = expected instanceof String token && actual != null
                 && MessageDigest.isEqual(token.getBytes(StandardCharsets.UTF_8),
                         actual.getBytes(StandardCharsets.UTF_8));
+
         if (!valid) {
             requestContext.abortWith(Response.status(Response.Status.FORBIDDEN)
                     .type(MediaType.APPLICATION_JSON_TYPE)
@@ -64,11 +66,12 @@ public class CsrfProtection implements ContainerRequestFilter {
      */
     public String tokenOf(HttpSession session) {
         Object token = session.getAttribute(SESSION_ATTRIBUTE);
+
         return token instanceof String existing ? existing : replace(session);
     }
 
     /**
-     * Заменяет токен сессии новым; прежний перестаёт действовать.
+     * Заменяет токен сессии новым, прежний перестаёт действовать.
      *
      * @param session текущая сессия
      * @return новый токен
@@ -78,6 +81,7 @@ public class CsrfProtection implements ContainerRequestFilter {
         random.nextBytes(bytes);
         String token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
         session.setAttribute(SESSION_ATTRIBUTE, token);
+
         return token;
     }
 }

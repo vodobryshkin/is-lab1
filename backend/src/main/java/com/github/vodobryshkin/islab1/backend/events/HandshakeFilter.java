@@ -33,16 +33,19 @@ public class HandshakeFilter extends HttpFilter {
     protected void doFilter(HttpServletRequest request, HttpServletResponse response,
             FilterChain chain) throws IOException, ServletException {
         String origin = request.getHeader("Origin");
+
         if (origin == null || !allowedOrigins.contains(origin)) {
             reject(response, HttpServletResponse.SC_FORBIDDEN,
                     "The Origin header is missing or not allowed.");
             return;
         }
+
         if (request.getQueryString() != null) {
             reject(response, HttpServletResponse.SC_BAD_REQUEST,
                     "URL parameters are not supported.");
             return;
         }
+
         chain.doFilter(request, response);
     }
 

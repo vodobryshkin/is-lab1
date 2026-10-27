@@ -67,6 +67,7 @@ public class LocationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(String body, @Context UriInfo uriInfo) {
         Long id = service.create(readLocation(body));
+
         return Response.created(uriInfo.getAbsolutePathBuilder().path(id.toString()).build())
                 .entity(new IdResponse(id))
                 .build();
@@ -83,11 +84,13 @@ public class LocationResource {
     public Response get(@PathParam("id") String rawId) {
         long id = requestReader.id(rawId);
         Optional<Location> location = service.find(id);
+
         if (location.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
                     .build();
         }
+
         return Response.ok().entity(new LocationResponse(location.get())).build();
     }
 
@@ -103,6 +106,7 @@ public class LocationResource {
         PageResponse<LocationResponse> page = new PageResponse<>(
                 service.findPage(query).stream().map(LocationResponse::new).toList(),
                 query.getPage(), query.getPageSize(), service.count());
+
         return Response.ok().entity(page).build();
     }
 
@@ -118,11 +122,13 @@ public class LocationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("id") String rawId, String body) {
         long id = requestReader.id(rawId);
+
         if (!service.update(id, readLocation(body))) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
                     .build();
         }
+
         return Response.noContent().build();
     }
 
@@ -136,6 +142,7 @@ public class LocationResource {
     @Path("/{id}")
     public Response delete(@PathParam("id") String rawId) {
         long id = requestReader.id(rawId);
+
         return switch (service.delete(id)) {
             case DONE -> Response.noContent().build();
             case IN_USE -> Response.status(Response.Status.CONFLICT)
@@ -150,6 +157,7 @@ public class LocationResource {
 
     private Location readLocation(String body) {
         RequestFields fields = requestReader.read(body).allowOnly("x", "y", "z");
+
         return fields.validate(
                 new Location(null, fields.int32("x"), fields.int32("y"), fields.int64("z")));
     }

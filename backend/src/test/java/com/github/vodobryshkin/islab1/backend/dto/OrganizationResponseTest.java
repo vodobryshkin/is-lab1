@@ -83,6 +83,7 @@ class OrganizationResponseTest {
 
     private OrganizationResponse organization(float turnover, OrganizationType type) {
         AddressResponse address = new AddressResponse(1L, "Kronverksky", null);
+
         return new OrganizationResponse(4L, address, turnover, 3L, "ООО Ромашка", 5, type, address);
     }
 }

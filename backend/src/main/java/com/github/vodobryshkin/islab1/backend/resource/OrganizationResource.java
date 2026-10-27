@@ -68,7 +68,7 @@ public class OrganizationResource {
     }
 
     /**
-     * Создаёт организацию; новые адреса и локации создаются в той же транзакции.
+     * Создаёт организацию, новые адреса и локации создаются в той же транзакции.
      *
      * @param body тело запроса
      * @param uriInfo адрес запроса для заголовка Location
@@ -78,6 +78,7 @@ public class OrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(String body, @Context UriInfo uriInfo) {
         Change change = service.create(readOrganization(body));
+
         return switch (change.getOutcome()) {
             case DONE -> Response.created(uriInfo.getAbsolutePathBuilder()
                             .path(change.getId().toString()).build())
@@ -101,11 +102,13 @@ public class OrganizationResource {
     public Response get(@PathParam("id") String rawId) {
         long id = requestReader.id(rawId);
         Optional<Organization> organization = service.find(id);
+
         if (organization.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
                     .build();
         }
+
         return Response.ok().entity(new OrganizationResponse(organization.get())).build();
     }
 
@@ -122,6 +125,7 @@ public class OrganizationResource {
         PageResponse<OrganizationResponse> page = new PageResponse<>(
                 service.findPage(query, filters).stream().map(OrganizationResponse::new).toList(),
                 query.getPage(), query.getPageSize(), service.count(filters));
+
         return Response.ok().entity(page).build();
     }
 
@@ -138,6 +142,7 @@ public class OrganizationResource {
     public Response update(@PathParam("id") String rawId, String body) {
         long id = requestReader.id(rawId);
         Change change = service.update(id, readOrganization(body));
+
         return switch (change.getOutcome()) {
             case DONE -> Response.noContent().build();
             case NOT_FOUND -> Response.status(Response.Status.NOT_FOUND)
@@ -165,11 +170,14 @@ public class OrganizationResource {
         long id = requestReader.id(rawId);
         RequestFields fields = requestReader.read(body).allowOnly("coefficient");
         Double coefficient = fields.float64("coefficient");
+
         if (coefficient != null && coefficient <= 0) {
             fields.reject("coefficient", "MUST_BE_POSITIVE",
                     "coefficient must be greater than zero.");
         }
+
         Change change = service.indexSalaries(id, fields.validate(coefficient));
+
         return switch (change.getOutcome()) {
             case DONE -> Response.ok().entity(new CountResponse(change.getId())).build();
             case CONFLICT -> Response.status(Response.Status.CONFLICT)
@@ -183,7 +191,7 @@ public class OrganizationResource {
     }
 
     /**
-     * Удаляет организацию, если на неё не ссылаются работники; адреса остаются.
+     * Удаляет организацию, если на неё не ссылаются работники, адреса остаются.
      *
      * @param rawId ID из пути
      * @return 204, 404 или 409
@@ -192,6 +200,7 @@ public class OrganizationResource {
     @Path("/{id}")
     public Response delete(@PathParam("id") String rawId) {
         long id = requestReader.id(rawId);
+
         return switch (service.delete(id)) {
             case DONE -> Response.noContent().build();
             case IN_USE -> Response.status(Response.Status.CONFLICT)
@@ -206,6 +215,7 @@ public class OrganizationResource {
 
     private Organization readOrganization(String body) {
         RequestFields fields = requestReader.read(body);
+
         return fields.validate(entities.organization(fields));
     }
 
@@ -213,6 +223,7 @@ public class OrganizationResource {
         String message = "address".equals(change.getSubject())
                 ? "Address with id=%d does not exist."
                 : "Location with id=%d does not exist.";
+
         return Response.status(Response.Status.NOT_FOUND)
                 .entity(new ErrorResponse(message.formatted(change.getSubjectId())))
                 .build();

@@ -63,17 +63,20 @@ public class OrganizationRepository {
      *
      * @param query проверенные параметры страницы
      * @param filters параметры запроса с фильтрами контракта
-     * @return организации страницы; за концом списка -- пустой список
+     * @return организации страницы, за концом списка -- пустой список
      */
     public List<Organization> findPage(ListQuery query, Map<String, List<String>> filters) {
         long offset = (long) (query.getPage() - 1) * query.getPageSize();
         String type = filter(filters, "type");
         List<OrganizationType> types = matching(OrganizationType.values(), type);
+
         if (offset > Integer.MAX_VALUE || types.isEmpty()) {
             return List.of();
         }
+
         String order = SORT_COLUMNS.get(query.getSortBy())
                 + (query.isAscending() ? " ASC" : " DESC");
+
         return entityManager.createQuery("SELECT o FROM Organization o"
                         + " WHERE (:fullName = '' OR LOCATE(:fullName, LOWER(o.fullName)) > 0)"
                         + " AND (:officialStreet = ''"
@@ -101,9 +104,11 @@ public class OrganizationRepository {
     public long count(Map<String, List<String>> filters) {
         String type = filter(filters, "type");
         List<OrganizationType> types = matching(OrganizationType.values(), type);
+
         if (types.isEmpty()) {
             return 0;
         }
+
         return entityManager.createQuery("SELECT COUNT(o) FROM Organization o"
                         + " WHERE (:fullName = '' OR LOCATE(:fullName, LOWER(o.fullName)) > 0)"
                         + " AND (:officialStreet = ''"
@@ -144,7 +149,7 @@ public class OrganizationRepository {
     }
 
     /**
-     * Удаляет организацию и сразу отправляет DELETE; её адреса не удаляет.
+     * Удаляет организацию и сразу отправляет DELETE, её адреса не удаляет.
      *
      * @param organization сохранённая организация
      */
@@ -155,16 +160,19 @@ public class OrganizationRepository {
 
     private String filter(Map<String, List<String>> filters, String name) {
         List<String> values = filters.getOrDefault(name, List.of());
+
         return values.isEmpty() ? "" : values.get(0).toLowerCase(Locale.ROOT);
     }
 
     private <E extends Enum<E>> List<E> matching(E[] values, String filter) {
         List<E> result = new ArrayList<>();
+
         for (E value : values) {
             if (value.name().toLowerCase(Locale.ROOT).contains(filter)) {
                 result.add(value);
             }
         }
+
         return result;
     }
 }

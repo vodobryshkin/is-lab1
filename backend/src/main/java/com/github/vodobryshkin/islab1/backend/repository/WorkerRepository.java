@@ -60,7 +60,7 @@ public class WorkerRepository {
      *
      * @param query проверенные параметры страницы
      * @param filters параметры запроса с фильтрами контракта
-     * @return работники страницы; за концом списка -- пустой список
+     * @return работники страницы, за концом списка -- пустой список
      */
     public List<Worker> findPage(ListQuery query, Map<String, List<String>> filters) {
         long offset = (long) (query.getPage() - 1) * query.getPageSize();
@@ -76,13 +76,16 @@ public class WorkerRepository {
         List<Color> eyeColors = matching(Color.values(), eyeColor);
         List<Color> hairColors = matching(Color.values(), hairColor);
         List<Country> nationalities = matching(Country.values(), nationality);
+
         if (offset > Integer.MAX_VALUE || positions.isEmpty() || statuses.isEmpty()
                 || types.isEmpty() || eyeColors.isEmpty() || hairColors.isEmpty()
                 || nationalities.isEmpty()) {
             return List.of();
         }
+
         String order = SORT_COLUMNS.get(query.getSortBy())
                 + (query.isAscending() ? " ASC" : " DESC");
+
         return entityManager.createQuery("SELECT w FROM Worker w"
                         + " LEFT JOIN w.organization o"
                         + " LEFT JOIN o.officialAddress oa"
@@ -142,10 +145,12 @@ public class WorkerRepository {
         List<Color> eyeColors = matching(Color.values(), eyeColor);
         List<Color> hairColors = matching(Color.values(), hairColor);
         List<Country> nationalities = matching(Country.values(), nationality);
+
         if (positions.isEmpty() || statuses.isEmpty() || types.isEmpty()
                 || eyeColors.isEmpty() || hairColors.isEmpty() || nationalities.isEmpty()) {
             return 0;
         }
+
         return entityManager.createQuery("SELECT COUNT(w) FROM Worker w"
                         + " LEFT JOIN w.organization o"
                         + " LEFT JOIN o.officialAddress oa"
@@ -187,7 +192,7 @@ public class WorkerRepository {
     /**
      * Считает работников с указанным статусом.
      *
-     * @param status статус; null -- работники без статуса
+     * @param status статус, null -- работники без статуса
      * @return количество
      */
     public long countByStatus(Status status) {
@@ -196,6 +201,7 @@ public class WorkerRepository {
                             "SELECT COUNT(w) FROM Worker w WHERE w.status IS NULL", Long.class)
                     .getSingleResult();
         }
+
         return entityManager.createQuery(
                         "SELECT COUNT(w) FROM Worker w WHERE w.status = :value", Long.class)
                 .setParameter("value", status)
@@ -206,7 +212,7 @@ public class WorkerRepository {
      * Считает работников, чей статус входит в список.
      *
      * @param statuses непустой список статусов
-     * @return количество; работники без статуса не учитываются
+     * @return количество, работники без статуса не учитываются
      */
     public long countByStatusIn(List<Status> statuses) {
         return entityManager.createQuery(
@@ -219,7 +225,7 @@ public class WorkerRepository {
      * Возвращает всех работников с рейтингом строго меньше порога, по возрастанию ID.
      *
      * @param rating порог
-     * @return работники с вложенными объектами; без совпадений -- пустой список
+     * @return работники с вложенными объектами, без совпадений -- пустой список
      */
     public List<Worker> findByRatingLessThan(int rating) {
         return entityManager.createQuery(
@@ -234,7 +240,7 @@ public class WorkerRepository {
      * Порядок по ID одинаков для всех транзакций и исключает взаимную блокировку.
      *
      * @param organizationId ID организации
-     * @return работники организации; без работников -- пустой список
+     * @return работники организации, без работников -- пустой список
      */
     public List<Worker> findByOrganizationForUpdate(long organizationId) {
         return entityManager.createQuery(
@@ -259,7 +265,7 @@ public class WorkerRepository {
     }
 
     /**
-     * Сохраняет нового работника и сразу отправляет INSERT; ID выдаёт последовательность БД.
+     * Сохраняет нового работника и сразу отправляет INSERT, ID выдаёт последовательность БД.
      *
      * @param worker работник без ID с сохранёнными связанными объектами
      */
@@ -269,7 +275,7 @@ public class WorkerRepository {
     }
 
     /**
-     * Удаляет работника и сразу отправляет DELETE; связанные объекты не удаляет.
+     * Удаляет работника и сразу отправляет DELETE, связанные объекты не удаляет.
      *
      * @param worker сохранённый работник
      */
@@ -280,16 +286,19 @@ public class WorkerRepository {
 
     private String filter(Map<String, List<String>> filters, String name) {
         List<String> values = filters.getOrDefault(name, List.of());
+
         return values.isEmpty() ? "" : values.get(0).toLowerCase(Locale.ROOT);
     }
 
     private <E extends Enum<E>> List<E> matching(E[] values, String filter) {
         List<E> result = new ArrayList<>();
+
         for (E value : values) {
             if (value.name().toLowerCase(Locale.ROOT).contains(filter)) {
                 result.add(value);
             }
         }
+
         return result;
     }
 }

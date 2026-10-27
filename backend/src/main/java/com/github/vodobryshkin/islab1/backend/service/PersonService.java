@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Операции с персонами. Локация персоны -- новая или существующая; связь с работником
+ * Операции с персонами. Локация персоны -- новая или существующая, связь с работником
  * задаётся со стороны работника и здесь не меняется.
  */
 @ApplicationScoped
@@ -38,7 +38,7 @@ public class PersonService {
     }
 
     /**
-     * Нужен CDI для создания клиентского прокси; прикладной код его не вызывает.
+     * Нужен CDI для создания клиентского прокси, прикладной код его не вызывает.
      */
     protected PersonService() {
         this.repository = null;
@@ -49,19 +49,22 @@ public class PersonService {
     /**
      * Сохраняет персону без работника и новую локацию в одной транзакции.
      *
-     * @param person персона; у локации задан только ID, если она существующая
+     * @param person персона, у локации задан только ID, если она существующая
      * @return ID персоны или пустой результат, если локации с таким ID нет
      */
     @Transactional
     public Optional<Long> create(Person person) {
         Optional<Location> location = locationService.persistOrFind(person.getLocation());
+
         if (location.isEmpty()) {
             return Optional.empty();
         }
+
         person.setLocation(location.get());
         person.setWorker(null);
         repository.save(person);
         events.changed();
+
         return Optional.of(person.getId());
     }
 
@@ -79,7 +82,7 @@ public class PersonService {
      * Возвращает страницу персон.
      *
      * @param query параметры страницы
-     * @param filters параметры запроса; учитываются только фильтры контракта
+     * @param filters параметры запроса, учитываются только фильтры контракта
      * @return персоны страницы
      */
     public List<Person> findPage(ListQuery query, Map<String, List<String>> filters) {
@@ -89,7 +92,7 @@ public class PersonService {
     /**
      * Считает персоны с учётом фильтров.
      *
-     * @param filters параметры запроса; учитываются только фильтры контракта
+     * @param filters параметры запроса, учитываются только фильтры контракта
      * @return количество
      */
     public long count(Map<String, List<String>> filters) {
@@ -97,7 +100,7 @@ public class PersonService {
     }
 
     /**
-     * Заменяет поля и локацию персоны; связь с работником сохраняется,
+     * Заменяет поля и локацию персоны, связь с работником сохраняется,
      * прежняя локация не удаляется.
      *
      * @param id ID персоны
@@ -107,13 +110,17 @@ public class PersonService {
     @Transactional
     public Outcome update(long id, Person values) {
         Optional<Person> person = repository.findById(id);
+
         if (person.isEmpty()) {
             return Outcome.NOT_FOUND;
         }
+
         Optional<Location> location = locationService.persistOrFind(values.getLocation());
+
         if (location.isEmpty()) {
             return Outcome.REFERENCE_NOT_FOUND;
         }
+
         Person target = person.get();
         target.setEyeColor(values.getEyeColor());
         target.setHairColor(values.getHairColor());
@@ -122,6 +129,7 @@ public class PersonService {
         target.setWeight(values.getWeight());
         target.setNationality(values.getNationality());
         events.changed();
+
         return Outcome.DONE;
     }
 
@@ -139,11 +147,14 @@ public class PersonService {
         if (person.isEmpty()) {
             return Outcome.NOT_FOUND;
         }
+
         if (person.get().getWorker() != null) {
             return Outcome.IN_USE;
         }
+
         repository.delete(person.get());
         events.changed();
+
         return Outcome.DONE;
     }
 }

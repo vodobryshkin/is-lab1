@@ -184,6 +184,7 @@ class OrganizationRequestTest {
 
     private Organization read(String fields) {
         RequestFields body = reader.read("{" + fields + "}");
+
         return body.validate(entities.organization(body));
     }
 
@@ -191,6 +192,7 @@ class OrganizationRequestTest {
         WebApplicationException exception =
                 catchThrowableOfType(WebApplicationException.class, () -> read(fields));
         ValidationErrorResponse response = (ValidationErrorResponse) exception.getResponse().getEntity();
+
         return response.getErrors().stream()
                 .map(issue -> issue.getField() + " " + issue.getCode())
                 .toList();

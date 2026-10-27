@@ -33,7 +33,7 @@ public class SessionAuthenticationMechanism implements HttpAuthenticationMechani
     }
 
     /**
-     * Нужен CDI для создания клиентского прокси; прикладной код его не вызывает.
+     * Нужен CDI для создания клиентского прокси, прикладной код его не вызывает.
      */
     protected SessionAuthenticationMechanism() {
         this.identityStoreHandler = null;
@@ -46,6 +46,7 @@ public class SessionAuthenticationMechanism implements HttpAuthenticationMechani
         Credential credential = context.isAuthenticationRequest()
                 ? context.getAuthParameters().getCredential()
                 : null;
+
         if (credential != null) {
             CredentialValidationResult result = identityStoreHandler.validate(credential);
             if (result.getStatus() == CredentialValidationResult.Status.VALID) {
@@ -53,9 +54,11 @@ public class SessionAuthenticationMechanism implements HttpAuthenticationMechani
             }
             return AuthenticationStatus.SEND_FAILURE;
         }
+
         if (context.isProtected()) {
             return context.responseUnauthorized();
         }
+
         return context.doNothing();
     }
 }

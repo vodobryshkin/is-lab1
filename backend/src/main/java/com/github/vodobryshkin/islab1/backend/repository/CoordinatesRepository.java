@@ -31,18 +31,21 @@ public class CoordinatesRepository {
     }
 
     /**
-     * Возвращает страницу координат; при равных значениях порядок задаёт ID по возрастанию.
+     * Возвращает страницу координат, при равных значениях порядок задаёт ID по возрастанию.
      *
      * @param query проверенные параметры страницы
-     * @return координаты страницы; за концом списка -- пустой список
+     * @return координаты страницы, за концом списка -- пустой список
      */
     public List<Coordinates> findPage(ListQuery query) {
         long offset = (long) (query.getPage() - 1) * query.getPageSize();
+
         if (offset > Integer.MAX_VALUE) {
             return List.of();
         }
+
         String order = SORT_COLUMNS.get(query.getSortBy())
                 + (query.isAscending() ? " ASC" : " DESC");
+
         return entityManager.createQuery(
                         "SELECT c FROM Coordinates c ORDER BY " + order + ", c.id ASC",
                         Coordinates.class)
@@ -75,7 +78,7 @@ public class CoordinatesRepository {
     }
 
     /**
-     * Сохраняет новые координаты; ID выдаёт последовательность БД.
+     * Сохраняет новые координаты, ID выдаёт последовательность БД.
      *
      * @param coordinates координаты без ID
      */

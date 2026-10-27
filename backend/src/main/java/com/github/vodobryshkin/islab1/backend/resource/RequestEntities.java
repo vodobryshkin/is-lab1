@@ -39,12 +39,15 @@ public class RequestEntities {
      */
     public Location location(RequestFields fields, String field, boolean nullable) {
         RequestFields location = fields.object(field, nullable);
+
         if (location == null) {
             return null;
         }
+
         if (location.isReference("x", "y", "z")) {
             return new Location(location.id(ID), null, null, null);
         }
+
         return new Location(null, location.int32("x"), location.int32("y"), location.int64("z"));
     }
 
@@ -57,18 +60,21 @@ public class RequestEntities {
      */
     public Coordinates coordinates(RequestFields fields, String field) {
         RequestFields coordinates = fields.object(field, false);
+
         if (coordinates == null) {
             return null;
         }
+
         if (coordinates.isReference("x", "y")) {
             return new Coordinates(coordinates.id(ID), null, null);
         }
+
         return new Coordinates(null, coordinates.int32("x"), coordinates.int64("y"));
     }
 
     /**
      * Читает адрес в варианте «новый адрес в objectField или ID существующего
-     * в idField»; нужно ровно одно из двух полей.
+     * в idField», нужно ровно одно из двух полей.
      *
      * @param fields поля родительского объекта
      * @param objectField поле нового адреса {street, town}
@@ -82,15 +88,20 @@ public class RequestEntities {
             fields.reject(idField, MUTUALLY_EXCLUSIVE, description);
             return null;
         }
+
         if (fields.has(idField)) {
             fields.markReference(objectField);
             return new Address(fields.id(idField), null, null);
         }
+
         RequestFields address = fields.object(objectField, false);
+
         if (address == null) {
             return null;
         }
+
         address.allowOnly("street", "town");
+
         return new Address(null, address.string("street"), location(address, "town", true));
     }
 
@@ -105,6 +116,7 @@ public class RequestEntities {
                 "employees_count", "full_name", RATING, "type", "postal_address",
                 "postal_address_id");
         Float turnover = fields.float32("annual_turnover");
+
         return new Organization(null, address(fields, "official_address", "official_address_id"),
                 turnover == null ? 0 : turnover, fields.int64("employees_count"),
                 fields.string("full_name"), fields.int32(RATING),
@@ -120,6 +132,7 @@ public class RequestEntities {
      */
     public Person person(RequestFields fields) {
         fields.allowOnly(PERSON_FIELDS.toArray(String[]::new));
+
         return new Person(null, fields.enumValue("eye_color", Color.class, true),
                 fields.enumValue("hair_color", Color.class, false),
                 location(fields, "location", false), fields.dateTime("birthday"),
@@ -137,12 +150,15 @@ public class RequestEntities {
      */
     public Person person(RequestFields fields, String field, boolean nullable) {
         RequestFields person = fields.object(field, nullable);
+
         if (person == null) {
             return null;
         }
+
         if (person.isReference(PERSON_FIELDS.toArray(String[]::new))) {
             return new Person(person.id(ID), null, null, null, null, null, null, null);
         }
+
         return person(person);
     }
 
@@ -152,17 +168,20 @@ public class RequestEntities {
      *
      * @param fields поля работника
      * @param update true для PUT: обязателен organization_id, допускающий
-     *     null, а новой организации нет; иначе -- три формы создания
+     *     null, а новой организации нет, иначе -- три формы создания
      * @return работник без ID, создателя и даты создания
      */
     public Worker worker(RequestFields fields, boolean update) {
         List<String> allowed = new ArrayList<>(List.of("name", "coordinates", "salary", RATING,
                 "start_date", "position", "status", "person", ORGANIZATION_ID_FIELD));
+
         if (!update) {
             allowed.add(ORGANIZATION_FIELD);
         }
+
         fields.allowOnly(allowed.toArray(String[]::new));
         Double salary = fields.float64("salary");
+
         return new Worker(null, null, fields.string("name"), coordinates(fields, "coordinates"),
                 null, update ? updatedOrganization(fields) : newWorkerOrganization(fields),
                 salary == null ? 0 : salary, fields.int32(RATING), fields.dateTime("start_date"),
@@ -180,18 +199,22 @@ public class RequestEntities {
             fields.reject(ORGANIZATION_FIELD, MUTUALLY_EXCLUSIVE, description);
             return null;
         }
+
         if (fields.has(ORGANIZATION_ID_FIELD)) {
             return organizationReference(fields);
         }
+
         if (!fields.has(ORGANIZATION_FIELD)) {
             return null;
         }
+
         RequestFields organization = fields.object(ORGANIZATION_FIELD, false);
+
         return organization == null ? null : organization(organization);
     }
 
     /**
-     * PUT: ключ organization_id обязателен; null -- без организации.
+     * PUT: ключ organization_id обязателен, null -- без организации.
      */
     private Organization updatedOrganization(RequestFields fields) {
         return fields.hasNull(ORGANIZATION_ID_FIELD) ? null : organizationReference(fields);
@@ -199,6 +222,7 @@ public class RequestEntities {
 
     private Organization organizationReference(RequestFields fields) {
         fields.markReference(ORGANIZATION_FIELD);
+
         return new Organization(fields.id(ORGANIZATION_ID_FIELD), null, 0, null, null, null,
                 null, null);
     }

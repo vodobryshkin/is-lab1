@@ -51,7 +51,7 @@ public class OrganizationService {
     }
 
     /**
-     * Нужен CDI для создания клиентского прокси; прикладной код его не вызывает.
+     * Нужен CDI для создания клиентского прокси, прикладной код его не вызывает.
      */
     protected OrganizationService() {
         this.repository = null;
@@ -64,20 +64,23 @@ public class OrganizationService {
     /**
      * Сохраняет организацию вместе с новыми адресами и локациями в одной транзакции.
      *
-     * @param organization организация; у ссылки на адрес или локацию задан только ID
+     * @param organization организация, у ссылки на адрес или локацию задан только ID
      * @return DONE с ID, REFERENCE_NOT_FOUND с недостающей ссылкой
      *     или CONFLICT, если полное название занято
      */
     @Transactional
     public Change create(Organization organization) {
         Optional<Change> refusal = refusal(organization);
+
         if (refusal.isPresent()) {
             return refusal.get();
         }
+
         organization.setOfficialAddress(persistOrFind(organization.getOfficialAddress()));
         organization.setPostalAddress(persistOrFind(organization.getPostalAddress()));
         repository.save(organization);
         events.changed();
+
         return new Change(Outcome.DONE, organization.getId(), null, null);
     }
 
@@ -123,19 +126,25 @@ public class OrganizationService {
     @Transactional
     public Change update(long id, Organization values) {
         Optional<Organization> organization = repository.findById(id);
+
         if (organization.isEmpty()) {
             return new Change(Outcome.NOT_FOUND, null, null, null);
         }
+
         Optional<Change> missing = missingReference(values);
+
         if (missing.isPresent()) {
             return missing.get();
         }
+
         boolean nameTaken = repository.findByFullName(values.getFullName())
                 .filter(other -> other.getId() != id)
                 .isPresent();
+
         if (nameTaken) {
             return new Change(Outcome.CONFLICT, null, null, null);
         }
+
         Organization target = organization.get();
         target.setOfficialAddress(persistOrFind(values.getOfficialAddress()));
         target.setPostalAddress(persistOrFind(values.getPostalAddress()));
@@ -145,6 +154,7 @@ public class OrganizationService {
         target.setRating(values.getRating());
         target.setType(values.getType());
         events.changed();
+
         return new Change(Outcome.DONE, null, null, null);
     }
 
@@ -162,20 +172,24 @@ public class OrganizationService {
         if (repository.findById(organizationId).isEmpty()) {
             return new Change(Outcome.NOT_FOUND, null, null, null);
         }
+
         List<Worker> workers = workerRepository.findByOrganizationForUpdate(organizationId);
         double[] salaries = new double[workers.size()];
+
         for (int i = 0; i < salaries.length; i++) {
             salaries[i] = workers.get(i).getSalary() * coefficient;
             if (salaries[i] <= 0 || Double.isInfinite(salaries[i])) {
                 return new Change(Outcome.CONFLICT, null, null, null);
             }
         }
+
         for (int i = 0; i < salaries.length; i++) {
             if (Double.compare(workers.get(i).getSalary(), salaries[i]) != 0) {
                 workers.get(i).setSalary(salaries[i]);
                 events.changed();
             }
         }
+
         return new Change(Outcome.DONE, (long) workers.size(), null, null);
     }
 
@@ -188,14 +202,18 @@ public class OrganizationService {
     @Transactional
     public Outcome delete(long id) {
         Optional<Organization> organization = repository.findById(id);
+
         if (organization.isEmpty()) {
             return Outcome.NOT_FOUND;
         }
+
         if (repository.isUsed(id)) {
             return Outcome.IN_USE;
         }
+
         repository.delete(organization.get());
         events.changed();
+
         return Outcome.DONE;
     }
 
@@ -209,9 +227,11 @@ public class OrganizationService {
      */
     public Optional<Change> refusal(Organization organization) {
         Optional<Change> missing = missingReference(organization);
+
         if (missing.isPresent()) {
             return missing;
         }
+
         return repository.findByFullName(organization.getFullName()).isPresent()
                 ? Optional.of(new Change(Outcome.CONFLICT, null, "organization", null))
                 : Optional.empty();
@@ -233,11 +253,14 @@ public class OrganizationService {
                     ? Optional.empty()
                     : Optional.of(missing("address", address.getId()));
         }
+
         Location town = address.getTown();
+
         if (town != null && town.getId() != null
                 && locationRepository.findById(town.getId()).isEmpty()) {
             return Optional.of(missing("location", town.getId()));
         }
+
         return Optional.empty();
     }
 
@@ -252,13 +275,17 @@ public class OrganizationService {
         if (address.getId() != null) {
             return addressRepository.findById(address.getId()).orElseThrow();
         }
+
         Location town = address.getTown();
+
         if (town != null && town.getId() != null) {
             address.setTown(locationRepository.findById(town.getId()).orElseThrow());
         } else if (town != null) {
             locationRepository.save(town);
         }
+
         addressRepository.save(address);
+
         return address;
     }
 }

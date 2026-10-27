@@ -31,7 +31,7 @@ public class CoordinatesService {
     }
 
     /**
-     * Нужен CDI для создания клиентского прокси; прикладной код его не вызывает.
+     * Нужен CDI для создания клиентского прокси, прикладной код его не вызывает.
      */
     protected CoordinatesService() {
         this.repository = null;
@@ -48,6 +48,7 @@ public class CoordinatesService {
     public Long create(Coordinates coordinates) {
         repository.save(coordinates);
         events.changed();
+
         return coordinates.getId();
     }
 
@@ -95,6 +96,7 @@ public class CoordinatesService {
             found.setY(values.getY());
             events.changed();
         });
+
         return coordinates.isPresent();
     }
 
@@ -108,14 +110,18 @@ public class CoordinatesService {
     @Transactional
     public Outcome delete(long id) {
         Optional<Coordinates> coordinates = repository.findById(id);
+
         if (coordinates.isEmpty()) {
             return Outcome.NOT_FOUND;
         }
+
         if (repository.isUsed(id)) {
             return Outcome.IN_USE;
         }
+
         repository.delete(coordinates.get());
         events.changed();
+
         return Outcome.DONE;
     }
 }

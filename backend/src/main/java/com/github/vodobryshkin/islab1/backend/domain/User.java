@@ -43,7 +43,7 @@ public class User {
     private String username;
 
     /**
-     * Хеш PBKDF2 вместе с алгоритмом, числом итераций и солью; пароль не хранится.
+     * Хеш PBKDF2 вместе с алгоритмом, числом итераций и солью, пароль не хранится.
      */
     @Column(name = "password_hash", nullable = false)
     @NotBlank

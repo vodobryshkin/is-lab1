@@ -67,6 +67,7 @@ public class CoordinatesResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(String body, @Context UriInfo uriInfo) {
         Long id = service.create(readCoordinates(body));
+
         return Response.created(uriInfo.getAbsolutePathBuilder().path(id.toString()).build())
                 .entity(new IdResponse(id))
                 .build();
@@ -83,11 +84,13 @@ public class CoordinatesResource {
     public Response get(@PathParam("id") String rawId) {
         long id = requestReader.id(rawId);
         Optional<Coordinates> coordinates = service.find(id);
+
         if (coordinates.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
                     .build();
         }
+
         return Response.ok().entity(new CoordinatesResponse(coordinates.get())).build();
     }
 
@@ -103,6 +106,7 @@ public class CoordinatesResource {
         PageResponse<CoordinatesResponse> page = new PageResponse<>(
                 service.findPage(query).stream().map(CoordinatesResponse::new).toList(),
                 query.getPage(), query.getPageSize(), service.count());
+
         return Response.ok().entity(page).build();
     }
 
@@ -118,11 +122,13 @@ public class CoordinatesResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("id") String rawId, String body) {
         long id = requestReader.id(rawId);
+
         if (!service.update(id, readCoordinates(body))) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
                     .build();
         }
+
         return Response.noContent().build();
     }
 
@@ -136,6 +142,7 @@ public class CoordinatesResource {
     @Path("/{id}")
     public Response delete(@PathParam("id") String rawId) {
         long id = requestReader.id(rawId);
+
         return switch (service.delete(id)) {
             case DONE -> Response.noContent().build();
             case IN_USE -> Response.status(Response.Status.CONFLICT)
@@ -150,6 +157,7 @@ public class CoordinatesResource {
 
     private Coordinates readCoordinates(String body) {
         RequestFields fields = requestReader.read(body).allowOnly("x", "y");
+
         return fields.validate(new Coordinates(null, fields.int32("x"), fields.int64("y")));
     }
 }

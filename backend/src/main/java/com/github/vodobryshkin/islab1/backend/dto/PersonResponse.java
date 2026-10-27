@@ -50,7 +50,7 @@ public class PersonResponse {
     private Country nationality;
 
     /**
-     * Создаёт ответ из сохранённой персоны с её локацией; день рождения -- в UTC.
+     * Создаёт ответ из сохранённой персоны с её локацией, день рождения -- в UTC.
      *
      * @param person персона
      */

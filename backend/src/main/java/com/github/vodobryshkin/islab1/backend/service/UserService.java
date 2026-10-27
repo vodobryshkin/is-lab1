@@ -45,7 +45,7 @@ public class UserService {
     }
 
     /**
-     * Нужен CDI для создания клиентского прокси; прикладной код его не вызывает.
+     * Нужен CDI для создания клиентского прокси, прикладной код его не вызывает.
      */
     protected UserService() {
         this.userRepository = null;
@@ -65,6 +65,7 @@ public class UserService {
     public Long register(String username, String password) {
         User user = new User(null, username, passwordHash.generate(password.toCharArray()), null);
         userRepository.save(user);
+
         return user.getId();
     }
 
@@ -79,6 +80,7 @@ public class UserService {
         Optional<User> user = userRepository.findByUsername(username);
         String hash = user.map(User::getPasswordHash).orElse(unusedHash);
         boolean matches = passwordHash.verify(password.toCharArray(), hash);
+
         return user.filter(found -> matches);
     }
 

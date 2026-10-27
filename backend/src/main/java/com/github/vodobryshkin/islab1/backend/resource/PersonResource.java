@@ -76,11 +76,13 @@ public class PersonResource {
         Person person = readPerson(body);
         Long locationId = person.getLocation().getId();
         Optional<Long> id = service.create(person);
+
         if (id.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity(new ErrorResponse(LOCATION_NOT_FOUND.formatted(locationId)))
                     .build();
         }
+
         return Response.created(uriInfo.getAbsolutePathBuilder().path(id.get().toString()).build())
                 .entity(new IdResponse(id.get()))
                 .build();
@@ -97,11 +99,13 @@ public class PersonResource {
     public Response get(@PathParam("id") String rawId) {
         long id = requestReader.id(rawId);
         Optional<Person> person = service.find(id);
+
         if (person.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
                     .build();
         }
+
         return Response.ok().entity(new PersonResponse(person.get())).build();
     }
 
@@ -118,11 +122,12 @@ public class PersonResource {
         PageResponse<PersonResponse> page = new PageResponse<>(
                 service.findPage(query, filters).stream().map(PersonResponse::new).toList(),
                 query.getPage(), query.getPageSize(), service.count(filters));
+
         return Response.ok().entity(page).build();
     }
 
     /**
-     * Заменяет поля и локацию персоны; связь с работником сохраняется.
+     * Заменяет поля и локацию персоны, связь с работником сохраняется.
      *
      * @param rawId ID из пути
      * @param body тело запроса
@@ -135,6 +140,7 @@ public class PersonResource {
         long id = requestReader.id(rawId);
         Person values = readPerson(body);
         Long locationId = values.getLocation().getId();
+
         return switch (service.update(id, values)) {
             case DONE -> Response.noContent().build();
             case REFERENCE_NOT_FOUND -> Response.status(Response.Status.NOT_FOUND)
@@ -156,6 +162,7 @@ public class PersonResource {
     @Path("/{id}")
     public Response delete(@PathParam("id") String rawId) {
         long id = requestReader.id(rawId);
+
         return switch (service.delete(id)) {
             case DONE -> Response.noContent().build();
             case IN_USE -> Response.status(Response.Status.CONFLICT)
@@ -170,6 +177,7 @@ public class PersonResource {
 
     private Person readPerson(String body) {
         RequestFields fields = requestReader.read(body);
+
         return fields.validate(entities.person(fields));
     }
 }

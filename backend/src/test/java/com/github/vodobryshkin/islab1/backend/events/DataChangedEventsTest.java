@@ -117,9 +117,11 @@ class DataChangedEventsTest {
         Client bob = connected(BOB);
         long organization = alice.created("/organizations", organization("indexed"));
         long coordinates = alice.created(COORDINATES_PATH, COORDINATES);
+
         for (int i = 0; i < 3; i++) {
             alice.created(WORKERS_PATH, worker(coordinates, organization));
         }
+
         alice.drain();
         bob.drain();
 
@@ -182,6 +184,7 @@ class DataChangedEventsTest {
         Client client = new Client(name + "_" + run);
         clients.add(client);
         assertThat(client.next(DELIVERY)).isEqualTo("{\"type\":\"AUTHENTICATED\"}");
+
         return client;
     }
 
@@ -192,6 +195,7 @@ class DataChangedEventsTest {
                  "type": null, "official_address": {"street": "Official", "town": null},
                  "postal_address": {"street": "Postal", "town": null}}
                 """;
+
         return body.formatted(name, run);
     }
 
@@ -202,6 +206,7 @@ class DataChangedEventsTest {
                  "start_date": "2026-10-01T09:00:00Z", "position": null, "status": null,
                  "person": null, "organization_id": %d}
                 """;
+
         return body.formatted(coordinates, organization);
     }
 
@@ -215,6 +220,7 @@ class DataChangedEventsTest {
                    "weight": 50, "nationality": "SPAIN"},
                  "organization": %s}
                 """;
+
         return body.formatted(organization("nested"));
     }
 

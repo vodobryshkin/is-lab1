@@ -70,7 +70,7 @@ public class WorkerResource {
     }
 
     /**
-     * Создаёт работника; новые вложенные объекты создаются в той же транзакции.
+     * Создаёт работника, новые вложенные объекты создаются в той же транзакции.
      *
      * @param body тело запроса
      * @param request текущий запрос с вошедшим пользователем
@@ -83,6 +83,7 @@ public class WorkerResource {
             @Context UriInfo uriInfo) {
         Worker worker = readWorker(body, false);
         Change change = service.create(worker, request.getUserPrincipal().getName());
+
         return switch (change.getOutcome()) {
             case DONE -> Response.created(uriInfo.getAbsolutePathBuilder()
                             .path(change.getId().toString()).build())
@@ -106,6 +107,7 @@ public class WorkerResource {
     @Path("/{id}")
     public Response get(@PathParam("id") String rawId) {
         int id = requestReader.workerId(rawId);
+
         return service.find(id)
                 .map(worker -> Response.ok().entity(new WorkerResponse(worker)).build())
                 .orElseGet(() -> Response.status(Response.Status.NOT_FOUND)
@@ -126,11 +128,12 @@ public class WorkerResource {
         PageResponse<WorkerResponse> page = new PageResponse<>(
                 service.findPage(query, filters).stream().map(WorkerResponse::new).toList(),
                 query.getPage(), query.getPageSize(), service.count(filters));
+
         return Response.ok().entity(page).build();
     }
 
     /**
-     * Считает работников с указанным статусом; status=null -- работников без статуса.
+     * Считает работников с указанным статусом, status=null -- работников без статуса.
      *
      * @param uriInfo параметр status
      * @return 200 с количеством или 400 при неверном параметре
@@ -141,11 +144,12 @@ public class WorkerResource {
         String raw = uriInfo.getQueryParameters().getFirst("status");
         Status status = "null".equals(raw) ? null : statusParameter(raw);
         CountResponse count = new CountResponse(service.countByStatus(status));
+
         return Response.ok().entity(count).build();
     }
 
     /**
-     * Считает работников со статусом выше заданного; работники без статуса не учитываются.
+     * Считает работников со статусом выше заданного, работники без статуса не учитываются.
      *
      * @param uriInfo параметр status
      * @return 200 с количеством или 400 при неверном параметре
@@ -156,6 +160,7 @@ public class WorkerResource {
         Status status = statusParameter(uriInfo.getQueryParameters().getFirst("status"));
         CountResponse count =
                 new CountResponse(service.countByStatusGreaterThan(status));
+
         return Response.ok().entity(count).build();
     }
 
@@ -169,16 +174,21 @@ public class WorkerResource {
     @Path("/rating_less_than")
     public Response ratingLessThan(@Context UriInfo uriInfo) {
         String raw = uriInfo.getQueryParameters().getFirst("rating");
+
         if (raw == null) {
             throw requestReader.badRequest("Parameter rating is required.");
         }
+
         if (!raw.matches("-?\\d+")) {
             throw requestReader.badRequest("Parameter rating must be an integer.");
         }
+
         if (new BigInteger(raw).bitLength() >= Integer.SIZE) {
             throw requestReader.badRequest("Parameter rating must fit into int32.");
         }
+
         int rating = Integer.parseInt(raw);
+
         return Response.ok()
                 .entity(service.findByRatingLessThan(rating).stream()
                         .map(WorkerResponse::new)
@@ -199,6 +209,7 @@ public class WorkerResource {
     public Response update(@PathParam("id") String rawId, String body) {
         int id = requestReader.workerId(rawId);
         Change change = service.update(id, readWorker(body, true));
+
         return switch (change.getOutcome()) {
             case DONE -> Response.noContent().build();
             case NOT_FOUND -> Response.status(Response.Status.NOT_FOUND)
@@ -223,6 +234,7 @@ public class WorkerResource {
         int id = requestReader.workerId(rawId);
         RequestFields fields = requestReader.read(body).allowOnly("organization_id");
         long organizationId = fields.validate(fields.id("organization_id"));
+
         return switch (service.hire(id, organizationId)) {
             case DONE -> Response.noContent().build();
             case NOT_FOUND -> Response.status(Response.Status.NOT_FOUND)
@@ -242,6 +254,7 @@ public class WorkerResource {
     @Path("/{id}")
     public Response delete(@PathParam("id") String rawId) {
         int id = requestReader.workerId(rawId);
+
         return switch (service.delete(id)) {
             case DONE -> Response.noContent().build();
             case IN_USE -> Response.status(Response.Status.CONFLICT)
@@ -258,16 +271,19 @@ public class WorkerResource {
         if (raw == null) {
             throw requestReader.badRequest("Parameter status is required.");
         }
+
         for (Status status : Status.values()) {
             if (status.name().equals(raw)) {
                 return status;
             }
         }
+
         throw requestReader.badRequest("Parameter status has an unsupported value.");
     }
 
     private Worker readWorker(String body, boolean update) {
         RequestFields fields = requestReader.read(body);
+
         return fields.validate(entities.worker(fields, update), "user", "creation_date");
     }
 
@@ -276,6 +292,7 @@ public class WorkerResource {
                 ? "Person with id=" + change.getSubjectId()
                         + " is already assigned to another worker."
                 : "Another organization with this full_name already exists.";
+
         return Response.status(Response.Status.CONFLICT)
                 .entity(new ErrorResponse(message))
                 .build();
@@ -289,6 +306,7 @@ public class WorkerResource {
             case "person" -> "Person with id=%d does not exist.";
             default -> "Location with id=%d does not exist.";
         };
+
         return Response.status(Response.Status.NOT_FOUND)
                 .entity(new ErrorResponse(message.formatted(id)))
                 .build();

@@ -31,18 +31,21 @@ public class LocationRepository {
     }
 
     /**
-     * Возвращает страницу локаций; при равных значениях порядок задаёт ID по возрастанию.
+     * Возвращает страницу локаций, при равных значениях порядок задаёт ID по возрастанию.
      *
      * @param query проверенные параметры страницы
-     * @return локации страницы; за концом списка -- пустой список
+     * @return локации страницы, за концом списка -- пустой список
      */
     public List<Location> findPage(ListQuery query) {
         long offset = (long) (query.getPage() - 1) * query.getPageSize();
+
         if (offset > Integer.MAX_VALUE) {
             return List.of();
         }
+
         String order = SORT_COLUMNS.get(query.getSortBy())
                 + (query.isAscending() ? " ASC" : " DESC");
+
         return entityManager.createQuery(
                         "SELECT l FROM Location l ORDER BY " + order + ", l.id ASC",
                         Location.class)
@@ -79,7 +82,7 @@ public class LocationRepository {
     }
 
     /**
-     * Сохраняет новую локацию; ID выдаёт последовательность БД.
+     * Сохраняет новую локацию, ID выдаёт последовательность БД.
      *
      * @param location локация без ID
      */

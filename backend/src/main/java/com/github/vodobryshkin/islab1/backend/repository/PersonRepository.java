@@ -58,7 +58,7 @@ public class PersonRepository {
      *
      * @param query проверенные параметры страницы
      * @param filters параметры запроса с фильтрами контракта
-     * @return персоны страницы; за концом списка -- пустой список
+     * @return персоны страницы, за концом списка -- пустой список
      */
     public List<Person> findPage(ListQuery query, Map<String, List<String>> filters) {
         long offset = (long) (query.getPage() - 1) * query.getPageSize();
@@ -68,12 +68,15 @@ public class PersonRepository {
         List<Color> eyeColors = matching(Color.values(), eyeColor);
         List<Color> hairColors = matching(Color.values(), hairColor);
         List<Country> nationalities = matching(Country.values(), nationality);
+
         if (offset > Integer.MAX_VALUE || eyeColors.isEmpty() || hairColors.isEmpty()
                 || nationalities.isEmpty()) {
             return List.of();
         }
+
         String order = SORT_COLUMNS.get(query.getSortBy())
                 + (query.isAscending() ? " ASC" : " DESC");
+
         return entityManager.createQuery("SELECT p FROM Person p"
                         + " WHERE (:eyeColorText = '' OR p.eyeColor IN :eyeColors)"
                         + " AND (:hairColorText = '' OR p.hairColor IN :hairColors)"
@@ -103,9 +106,11 @@ public class PersonRepository {
         List<Color> eyeColors = matching(Color.values(), eyeColor);
         List<Color> hairColors = matching(Color.values(), hairColor);
         List<Country> nationalities = matching(Country.values(), nationality);
+
         if (eyeColors.isEmpty() || hairColors.isEmpty() || nationalities.isEmpty()) {
             return 0;
         }
+
         return entityManager.createQuery("SELECT COUNT(p) FROM Person p"
                         + " WHERE (:eyeColorText = '' OR p.eyeColor IN :eyeColors)"
                         + " AND (:hairColorText = '' OR p.hairColor IN :hairColors)"
@@ -121,7 +126,7 @@ public class PersonRepository {
     }
 
     /**
-     * Сохраняет новую персону; ID выдаёт последовательность БД.
+     * Сохраняет новую персону, ID выдаёт последовательность БД.
      *
      * @param person персона без ID с сохранённой локацией
      */
@@ -142,7 +147,7 @@ public class PersonRepository {
     }
 
     /**
-     * Удаляет персону; её локацию не удаляет.
+     * Удаляет персону, её локацию не удаляет.
      *
      * @param person сохранённая персона
      */
@@ -152,16 +157,19 @@ public class PersonRepository {
 
     private String filter(Map<String, List<String>> filters, String name) {
         List<String> values = filters.getOrDefault(name, List.of());
+
         return values.isEmpty() ? "" : values.get(0).toLowerCase(Locale.ROOT);
     }
 
     private <E extends Enum<E>> List<E> matching(E[] values, String filter) {
         List<E> result = new ArrayList<>();
+
         for (E value : values) {
             if (value.name().toLowerCase(Locale.ROOT).contains(filter)) {
                 result.add(value);
             }
         }
+
         return result;
     }
 }

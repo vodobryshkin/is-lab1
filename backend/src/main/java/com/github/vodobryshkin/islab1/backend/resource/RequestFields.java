@@ -52,11 +52,13 @@ public final class RequestFields {
      */
     public RequestFields allowOnly(String... allowed) {
         Set<String> names = Set.of(allowed);
+
         for (String key : json.keySet()) {
             if (!names.contains(key)) {
                 reject(key, "UNKNOWN_FIELD", name(key) + " is not supported.");
             }
         }
+
         return this;
     }
 
@@ -69,14 +71,17 @@ public final class RequestFields {
      */
     public RequestFields object(String field, boolean nullable) {
         JsonValue value = json.get(field);
+
         if (value instanceof JsonObject object) {
             return new RequestFields(reader, object, name(field) + ".", issues, references);
         }
+
         if (value == null || !nullable && isNull(value)) {
             present(field);
         } else if (!isNull(value)) {
             reject(field, "INVALID_TYPE", name(field) + " must be an object.");
         }
+
         return null;
     }
 
@@ -91,13 +96,17 @@ public final class RequestFields {
         List<String> allowed = new ArrayList<>(List.of(newObjectFields));
         allowed.add("id");
         allowOnly(allowed.toArray(String[]::new));
+
         if (!json.containsKey("id")) {
             return false;
         }
+
         if (List.of(newObjectFields).stream().anyMatch(json::containsKey)) {
             reject("id", "MUTUALLY_EXCLUSIVE", "Use either id or the fields of a new object.");
         }
+
         references.add(prefix);
+
         return true;
     }
 
@@ -109,10 +118,12 @@ public final class RequestFields {
      */
     public Long id(String field) {
         Long value = int64(field);
+
         if (value != null && value <= 0) {
             reject(field, "MUST_BE_POSITIVE", name(field) + " must be greater than zero.");
             return null;
         }
+
         return value;
     }
 
@@ -124,10 +135,13 @@ public final class RequestFields {
      */
     public String string(String field) {
         JsonValue value = present(field);
+
         if (value instanceof JsonString string) {
             return string.getString();
         }
+
         invalidType(value, field, "a string");
+
         return null;
     }
 
@@ -144,10 +158,13 @@ public final class RequestFields {
         if (nullable && json.containsKey(field) && isNull(json.get(field))) {
             return null;
         }
+
         String text = string(field);
+
         if (text == null) {
             return null;
         }
+
         try {
             return Enum.valueOf(type, text);
         } catch (IllegalArgumentException exception) {
@@ -164,9 +181,11 @@ public final class RequestFields {
      */
     public ZonedDateTime dateTime(String field) {
         String text = string(field);
+
         if (text == null) {
             return null;
         }
+
         try {
             return OffsetDateTime.parse(text).toZonedDateTime();
         } catch (DateTimeParseException exception) {
@@ -183,6 +202,7 @@ public final class RequestFields {
      */
     public Double float64(String field) {
         BigDecimal value = decimal(field, Double.MAX_VALUE, "float64");
+
         return value == null ? null : value.doubleValue();
     }
 
@@ -194,6 +214,7 @@ public final class RequestFields {
      */
     public Float float32(String field) {
         BigDecimal value = decimal(field, Float.MAX_VALUE, "float32");
+
         return value == null ? null : value.floatValue();
     }
 
@@ -205,10 +226,12 @@ public final class RequestFields {
      */
     public Integer int32(String field) {
         Long value = int64(field);
+
         if (value != null && (value < Integer.MIN_VALUE || value > Integer.MAX_VALUE)) {
             reject(field, "OUT_OF_RANGE", name(field) + " must fit into int32.");
             return null;
         }
+
         return value == null ? null : value.intValue();
     }
 
@@ -220,10 +243,12 @@ public final class RequestFields {
      */
     public Long int64(String field) {
         JsonValue value = present(field);
+
         if (!(value instanceof JsonNumber number) || !number.isIntegral()) {
             invalidType(value, field, "an integer");
             return null;
         }
+
         try {
             return number.longValueExact();
         } catch (ArithmeticException exception) {
@@ -234,11 +259,11 @@ public final class RequestFields {
 
     /**
      * Проверяет собранный объект через Jakarta Validation. Поля с ошибкой структуры
-     * представлены только ею; поля ссылок {id} не проверяются как новый объект.
+     * представлены только ею, поля ссылок {id} не проверяются как новый объект.
      *
-     * @param value объект из прочитанных полей; null, если поле с ошибкой было
+     * @param value объект из прочитанных полей, null, если поле с ошибкой было
      *     единственным значением и проверять нечего, кроме ошибок самих полей
-     * @param serverFields поля, которые заполняет сервер, а не клиент; их нарушения
+     * @param serverFields поля, которые заполняет сервер, а не клиент, их нарушения
      *     не относятся к запросу
      * @param <T> тип объекта
      * @return тот же объект
@@ -246,28 +271,34 @@ public final class RequestFields {
     public <T> T validate(T value, String... serverFields) {
         Set<String> invalidFields = new HashSet<>(List.of(serverFields));
         issues.forEach(issue -> invalidFields.add(issue.getField()));
+
         if (value != null) {
             reader.violations(value).stream()
                     .filter(issue -> !invalidFields.contains(issue.getField()))
                     .filter(issue -> references.stream().noneMatch(issue.getField()::startsWith))
                     .forEach(issues::add);
         }
+
         if (!issues.isEmpty()) {
             throw reader.invalid(issues);
         }
+
         return value;
     }
 
     private BigDecimal decimal(String field, double max, String type) {
         JsonValue value = present(field);
+
         if (!(value instanceof JsonNumber number)) {
             invalidType(value, field, "a number");
             return null;
         }
+
         if (number.bigDecimalValue().abs().compareTo(BigDecimal.valueOf(max)) > 0) {
             reject(field, "OUT_OF_RANGE", name(field) + " must fit into " + type + ".");
             return null;
         }
+
         return number.bigDecimalValue();
     }
 
@@ -302,11 +333,13 @@ public final class RequestFields {
 
     private JsonValue present(String field) {
         JsonValue value = json.get(field);
+
         if (value == null) {
             reject(field, "REQUIRED", name(field) + " is required.");
         } else if (isNull(value)) {
             reject(field, "MUST_NOT_BE_NULL", name(field) + " must not be null.");
         }
+
         return value;
     }
 

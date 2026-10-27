@@ -74,11 +74,13 @@ public class AddressResource {
     public Response create(String body, @Context UriInfo uriInfo) {
         Address address = readAddress(body);
         Optional<Long> id = service.create(address);
+
         if (id.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity(new ErrorResponse(TOWN_NOT_FOUND.formatted(address.getTown().getId())))
                     .build();
         }
+
         return Response.created(uriInfo.getAbsolutePathBuilder().path(id.get().toString()).build())
                 .entity(new IdResponse(id.get()))
                 .build();
@@ -95,11 +97,13 @@ public class AddressResource {
     public Response get(@PathParam("id") String rawId) {
         long id = requestReader.id(rawId);
         Optional<Address> address = service.find(id);
+
         if (address.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
                     .build();
         }
+
         return Response.ok().entity(new AddressResponse(address.get())).build();
     }
 
@@ -116,6 +120,7 @@ public class AddressResource {
         PageResponse<AddressResponse> page = new PageResponse<>(
                 service.findPage(query, street).stream().map(AddressResponse::new).toList(),
                 query.getPage(), query.getPageSize(), service.count(street));
+
         return Response.ok().entity(page).build();
     }
 
@@ -132,6 +137,7 @@ public class AddressResource {
     public Response update(@PathParam("id") String rawId, String body) {
         long id = requestReader.id(rawId);
         Address values = readAddress(body);
+
         return switch (service.update(id, values)) {
             case DONE -> Response.noContent().build();
             case REFERENCE_NOT_FOUND -> Response.status(Response.Status.NOT_FOUND)
@@ -153,6 +159,7 @@ public class AddressResource {
     @Path("/{id}")
     public Response delete(@PathParam("id") String rawId) {
         long id = requestReader.id(rawId);
+
         return switch (service.delete(id)) {
             case DONE -> Response.noContent().build();
             case IN_USE -> Response.status(Response.Status.CONFLICT)
@@ -167,6 +174,7 @@ public class AddressResource {
 
     private Address readAddress(String body) {
         RequestFields fields = requestReader.read(body).allowOnly(STREET, "town");
+
         return fields.validate(new Address(null, fields.string(STREET),
                 entities.location(fields, "town", true)));
     }

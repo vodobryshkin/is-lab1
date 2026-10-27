@@ -31,7 +31,7 @@ public class LocationService {
     }
 
     /**
-     * Нужен CDI для создания клиентского прокси; прикладной код его не вызывает.
+     * Нужен CDI для создания клиентского прокси, прикладной код его не вызывает.
      */
     protected LocationService() {
         this.repository = null;
@@ -48,6 +48,7 @@ public class LocationService {
     public Long create(Location location) {
         repository.save(location);
         events.changed();
+
         return location.getId();
     }
 
@@ -62,7 +63,9 @@ public class LocationService {
         if (location.getId() != null) {
             return repository.findById(location.getId());
         }
+
         repository.save(location);
+
         return Optional.of(location);
     }
 
@@ -111,6 +114,7 @@ public class LocationService {
             found.setZ(values.getZ());
             events.changed();
         });
+
         return location.isPresent();
     }
 
@@ -124,14 +128,18 @@ public class LocationService {
     @Transactional
     public Outcome delete(long id) {
         Optional<Location> location = repository.findById(id);
+
         if (location.isEmpty()) {
             return Outcome.NOT_FOUND;
         }
+
         if (repository.isUsed(id)) {
             return Outcome.IN_USE;
         }
+
         repository.delete(location.get());
         events.changed();
+
         return Outcome.DONE;
     }
 }

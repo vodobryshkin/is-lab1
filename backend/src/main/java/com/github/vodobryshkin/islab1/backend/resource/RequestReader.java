@@ -61,7 +61,7 @@ public class RequestReader {
     }
 
     /**
-     * Нужен CDI для создания клиентского прокси; прикладной код его не вызывает.
+     * Нужен CDI для создания клиентского прокси, прикладной код его не вызывает.
      */
     protected RequestReader() {
         this.validator = null;
@@ -78,21 +78,26 @@ public class RequestReader {
             throw invalid(List.of(
                     new ValidationIssue("$", "REQUIRED", "Request body is required.")));
         }
+
         JsonValue json;
+
         try (JsonReader reader = Json.createReader(new StringReader(body))) {
             json = reader.readValue();
         } catch (JsonException exception) {
             throw new WebApplicationException(exception,
                     badRequest("The request body contains invalid JSON.").getResponse());
         }
+
         if (json.getValueType() == JsonValue.ValueType.NULL) {
             throw invalid(List.of(new ValidationIssue("$", "MUST_NOT_BE_NULL",
                     "Request body must not be null.")));
         }
+
         if (!(json instanceof JsonObject object)) {
             throw invalid(List.of(new ValidationIssue("$", "INVALID_TYPE",
                     "Request body must be a JSON object.")));
         }
+
         return new RequestFields(this, object);
     }
 
@@ -117,7 +122,7 @@ public class RequestReader {
     }
 
     /**
-     * Проверяет параметры списка; отсутствующий параметр получает значение по умолчанию.
+     * Проверяет параметры списка, отсутствующий параметр получает значение по умолчанию.
      *
      * @param parameters параметры запроса
      * @param sortFields разрешённые поля сортировки записей
@@ -128,12 +133,15 @@ public class RequestReader {
         String pageSize = parameters.getFirst("page_size");
         String sortBy = parameters.getFirst("sort_by");
         String sortOrder = parameters.getFirst("sort_order");
+
         if (sortBy != null && !sortFields.contains(sortBy)) {
             throw badRequest("Parameter sort_by has an unsupported value.");
         }
+
         if (sortOrder != null && !"asc".equals(sortOrder) && !"desc".equals(sortOrder)) {
             throw badRequest("Parameter sort_order must be asc or desc.");
         }
+
         return new ListQuery(
                 page == null ? 1 : (int) positive("page", page, Integer.MAX_VALUE),
                 pageSize == null ? 20 : (int) positive("page_size", pageSize, MAX_PAGE_SIZE),
@@ -188,13 +196,17 @@ public class RequestReader {
         if (!raw.matches("-?\\d+")) {
             throw badRequest("Parameter %s must be an integer.".formatted(name));
         }
+
         BigInteger value = new BigInteger(raw);
+
         if (value.signum() <= 0) {
             throw badRequest("Parameter %s must be greater than zero.".formatted(name));
         }
+
         if (value.compareTo(BigInteger.valueOf(max)) > 0) {
             throw badRequest("Parameter %s must not exceed %d.".formatted(name, max));
         }
+
         return value.longValue();
     }
 
@@ -223,6 +235,7 @@ public class RequestReader {
                 : field + rule.get(1);
         boolean defaultMessage =
                 violation.getConstraintDescriptor().getMessageTemplate().startsWith("{");
+
         return new ValidationIssue(field, code, defaultMessage ? message : violation.getMessage());
     }
 
@@ -235,6 +248,7 @@ public class RequestReader {
 
     private String boundName(ConstraintViolation<?> violation) {
         long bound = bound(violation);
+
         return bound < 0 ? "MINUS_" + -bound : String.valueOf(bound);
     }
 
