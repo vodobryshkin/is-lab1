@@ -9,7 +9,6 @@ import com.github.vodobryshkin.islab1.backend.dto.OrganizationResponse;
 import com.github.vodobryshkin.islab1.backend.dto.PageResponse;
 import com.github.vodobryshkin.islab1.backend.service.Change;
 import com.github.vodobryshkin.islab1.backend.service.OrganizationService;
-import com.github.vodobryshkin.islab1.backend.service.SpecialOperationService;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
@@ -43,7 +42,6 @@ public class OrganizationResource {
             "Another organization with this full_name already exists.";
 
     private final OrganizationService service;
-    private final SpecialOperationService specialOperations;
     private final RequestReader requestReader;
     private final RequestEntities entities;
 
@@ -51,16 +49,13 @@ public class OrganizationResource {
      * Создаёт ресурс.
      *
      * @param service операции с организациями
-     * @param specialOperations специальные операции ТЗ
      * @param requestReader чтение запросов
      * @param entities сборка сущностей из полей запроса
      */
     @Inject
-    public OrganizationResource(OrganizationService service,
-            SpecialOperationService specialOperations, RequestReader requestReader,
+    public OrganizationResource(OrganizationService service, RequestReader requestReader,
             RequestEntities entities) {
         this.service = service;
-        this.specialOperations = specialOperations;
         this.requestReader = requestReader;
         this.entities = entities;
     }
@@ -69,7 +64,7 @@ public class OrganizationResource {
      * Нужен CDI для прокси и Jakarta REST, который требует публичный конструктор.
      */
     public OrganizationResource() {
-        this(null, null, null, null);
+        this(null, null, null);
     }
 
     /**
@@ -174,7 +169,7 @@ public class OrganizationResource {
             fields.reject("coefficient", "MUST_BE_POSITIVE",
                     "coefficient must be greater than zero.");
         }
-        Change change = specialOperations.indexSalaries(id, fields.validate(coefficient));
+        Change change = service.indexSalaries(id, fields.validate(coefficient));
         return switch (change.getOutcome()) {
             case DONE -> Response.ok().entity(new CountResponse(change.getId())).build();
             case CONFLICT -> Response.status(Response.Status.CONFLICT)

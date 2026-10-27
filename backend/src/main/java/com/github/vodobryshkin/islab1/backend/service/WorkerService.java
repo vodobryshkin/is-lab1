@@ -4,6 +4,7 @@ import com.github.vodobryshkin.islab1.backend.domain.Coordinates;
 import com.github.vodobryshkin.islab1.backend.domain.Location;
 import com.github.vodobryshkin.islab1.backend.domain.Organization;
 import com.github.vodobryshkin.islab1.backend.domain.Person;
+import com.github.vodobryshkin.islab1.backend.domain.Status;
 import com.github.vodobryshkin.islab1.backend.domain.Worker;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
 import com.github.vodobryshkin.islab1.backend.events.EventSessions;
@@ -26,7 +27,6 @@ import java.util.Optional;
  */
 @ApplicationScoped
 public class WorkerService {
-
     private final WorkerRepository repository;
     private final UserRepository userRepository;
     private final CoordinatesRepository coordinatesRepository;
@@ -155,6 +155,70 @@ public class WorkerService {
     }
 
     /**
+     * Назначает работнику существующую организацию и статус HIRED.
+     *
+     * @param workerId ID работника
+     * @param organizationId ID существующей организации
+     * @return DONE, NOT_FOUND без работника или
+     *     REFERENCE_NOT_FOUND без организации; при отказе ничего не меняется
+     */
+    @Transactional
+    public Outcome hire(int workerId, long organizationId) {
+        Optional<Worker> worker = repository.findById(workerId);
+        if (worker.isEmpty()) {
+            return Outcome.NOT_FOUND;
+        }
+        Organization organization = organizationService.find(organizationId).orElse(null);
+        if (organization == null) {
+            return Outcome.REFERENCE_NOT_FOUND;
+        }
+        Worker target = worker.get();
+        if (target.getStatus() != Status.HIRED || target.getOrganization() == null
+                || !target.getOrganization().getId().equals(organizationId)) {
+            target.setOrganization(organization);
+            target.setStatus(Status.HIRED);
+            events.changed();
+        }
+        return Outcome.DONE;
+    }
+
+    /**
+     * Считает работников с указанным статусом.
+     *
+     * @param status статус; null -- работники без статуса
+     * @return количество
+     */
+    public long countByStatus(Status status) {
+        return repository.countByStatus(status);
+    }
+
+    /**
+     * Считает работников со статусом выше заданного в порядке
+     * HIRED < RECOMMENDED_FOR_PROMOTION < REGULAR; без статуса не учитываются.
+     *
+     * @param status статус для сравнения
+     * @return количество
+     */
+    public long countByStatusGreaterThan(Status status) {
+        return switch (status) {
+            case HIRED -> repository.countByStatusIn(
+                    List.of(Status.RECOMMENDED_FOR_PROMOTION, Status.REGULAR));
+            case RECOMMENDED_FOR_PROMOTION -> repository.countByStatusIn(List.of(Status.REGULAR));
+            case REGULAR -> 0;
+        };
+    }
+
+    /**
+     * Возвращает всех работников с рейтингом строго меньше порога.
+     *
+     * @param rating порог
+     * @return работники по возрастанию ID
+     */
+    public List<Worker> findByRatingLessThan(int rating) {
+        return repository.findByRatingLessThan(rating);
+    }
+
+    /**
      * Ищет работника.
      *
      * @param id ID работника
@@ -228,11 +292,11 @@ public class WorkerService {
                     ? Optional.of(missing("location", location.getId()))
                     : Optional.empty();
         }
-        Optional<Person> existing = personRepository.findByIdForUpdate(person.getId());
-        if (existing.isEmpty()) {
+        Person existing = personRepository.findByIdForUpdate(person.getId()).orElse(null);
+        if (existing == null) {
             return Optional.of(missing("person", person.getId()));
         }
-        Worker holder = existing.get().getWorker();
+        Worker holder = existing.getWorker();
         return holder == null || holder.getId().equals(owner)
                 ? Optional.empty()
                 : Optional.of(new Change(Outcome.CONFLICT, null, "person", person.getId()));

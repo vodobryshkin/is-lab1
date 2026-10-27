@@ -3,11 +3,13 @@ package com.github.vodobryshkin.islab1.backend.service;
 import com.github.vodobryshkin.islab1.backend.domain.Address;
 import com.github.vodobryshkin.islab1.backend.domain.Location;
 import com.github.vodobryshkin.islab1.backend.domain.Organization;
+import com.github.vodobryshkin.islab1.backend.domain.Worker;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
 import com.github.vodobryshkin.islab1.backend.events.EventSessions;
 import com.github.vodobryshkin.islab1.backend.repository.AddressRepository;
 import com.github.vodobryshkin.islab1.backend.repository.LocationRepository;
 import com.github.vodobryshkin.islab1.backend.repository.OrganizationRepository;
+import com.github.vodobryshkin.islab1.backend.repository.WorkerRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -25,6 +27,7 @@ public class OrganizationService {
     private final OrganizationRepository repository;
     private final AddressRepository addressRepository;
     private final LocationRepository locationRepository;
+    private final WorkerRepository workerRepository;
     private final EventSessions events;
 
     /**
@@ -33,15 +36,17 @@ public class OrganizationService {
      * @param repository хранилище организаций
      * @param addressRepository хранилище адресов
      * @param locationRepository хранилище локаций
+     * @param workerRepository хранилище работников
      * @param events уведомление об изменениях после фиксации транзакции
      */
     @Inject
     public OrganizationService(OrganizationRepository repository,
             AddressRepository addressRepository, LocationRepository locationRepository,
-            EventSessions events) {
+            WorkerRepository workerRepository, EventSessions events) {
         this.repository = repository;
         this.addressRepository = addressRepository;
         this.locationRepository = locationRepository;
+        this.workerRepository = workerRepository;
         this.events = events;
     }
 
@@ -52,6 +57,7 @@ public class OrganizationService {
         this.repository = null;
         this.addressRepository = null;
         this.locationRepository = null;
+        this.workerRepository = null;
         this.events = null;
     }
 
@@ -140,6 +146,37 @@ public class OrganizationService {
         target.setType(values.getType());
         events.changed();
         return new Change(Outcome.DONE, null, null, null);
+    }
+
+    /**
+     * Умножает зарплаты работников организации на коэффициент.
+     * Если хотя бы одна зарплата перестала бы быть конечной и положительной, ни одна не меняется.
+     *
+     * @param organizationId ID организации
+     * @param coefficient положительный конечный коэффициент
+     * @return DONE с числом проиндексированных работников в id (0 для
+     *     организации без работников), NOT_FOUND или CONFLICT
+     */
+    @Transactional
+    public Change indexSalaries(long organizationId, double coefficient) {
+        if (repository.findById(organizationId).isEmpty()) {
+            return new Change(Outcome.NOT_FOUND, null, null, null);
+        }
+        List<Worker> workers = workerRepository.findByOrganizationForUpdate(organizationId);
+        double[] salaries = new double[workers.size()];
+        for (int i = 0; i < salaries.length; i++) {
+            salaries[i] = workers.get(i).getSalary() * coefficient;
+            if (salaries[i] <= 0 || Double.isInfinite(salaries[i])) {
+                return new Change(Outcome.CONFLICT, null, null, null);
+            }
+        }
+        for (int i = 0; i < salaries.length; i++) {
+            if (Double.compare(workers.get(i).getSalary(), salaries[i]) != 0) {
+                workers.get(i).setSalary(salaries[i]);
+                events.changed();
+            }
+        }
+        return new Change(Outcome.DONE, (long) workers.size(), null, null);
     }
 
     /**

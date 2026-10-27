@@ -9,7 +9,6 @@ import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
 import com.github.vodobryshkin.islab1.backend.dto.PageResponse;
 import com.github.vodobryshkin.islab1.backend.dto.WorkerResponse;
 import com.github.vodobryshkin.islab1.backend.service.Change;
-import com.github.vodobryshkin.islab1.backend.service.SpecialOperationService;
 import com.github.vodobryshkin.islab1.backend.service.WorkerService;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
@@ -45,7 +44,6 @@ public class WorkerResource {
     private static final String NOT_FOUND = "Worker with id=%d does not exist.";
 
     private final WorkerService service;
-    private final SpecialOperationService specialOperations;
     private final RequestReader requestReader;
     private final RequestEntities entities;
 
@@ -53,15 +51,13 @@ public class WorkerResource {
      * Создаёт ресурс.
      *
      * @param service операции с работниками
-     * @param specialOperations специальные операции ТЗ
      * @param requestReader чтение запросов
      * @param entities сборка сущностей из полей запроса
      */
     @Inject
-    public WorkerResource(WorkerService service, SpecialOperationService specialOperations,
-            RequestReader requestReader, RequestEntities entities) {
+    public WorkerResource(WorkerService service, RequestReader requestReader,
+            RequestEntities entities) {
         this.service = service;
-        this.specialOperations = specialOperations;
         this.requestReader = requestReader;
         this.entities = entities;
     }
@@ -70,7 +66,7 @@ public class WorkerResource {
      * Нужен CDI для прокси и Jakarta REST, который требует публичный конструктор.
      */
     public WorkerResource() {
-        this(null, null, null, null);
+        this(null, null, null);
     }
 
     /**
@@ -144,7 +140,7 @@ public class WorkerResource {
     public Response countByStatus(@Context UriInfo uriInfo) {
         String raw = uriInfo.getQueryParameters().getFirst("status");
         Status status = "null".equals(raw) ? null : statusParameter(raw);
-        CountResponse count = new CountResponse(specialOperations.countByStatus(status));
+        CountResponse count = new CountResponse(service.countByStatus(status));
         return Response.ok().entity(count).build();
     }
 
@@ -159,7 +155,7 @@ public class WorkerResource {
     public Response countByStatusGreaterThan(@Context UriInfo uriInfo) {
         Status status = statusParameter(uriInfo.getQueryParameters().getFirst("status"));
         CountResponse count =
-                new CountResponse(specialOperations.countByStatusGreaterThan(status));
+                new CountResponse(service.countByStatusGreaterThan(status));
         return Response.ok().entity(count).build();
     }
 
@@ -184,7 +180,7 @@ public class WorkerResource {
         }
         int rating = Integer.parseInt(raw);
         return Response.ok()
-                .entity(specialOperations.findByRatingLessThan(rating).stream()
+                .entity(service.findByRatingLessThan(rating).stream()
                         .map(WorkerResponse::new)
                         .toList())
                 .build();
@@ -227,7 +223,7 @@ public class WorkerResource {
         int id = requestReader.workerId(rawId);
         RequestFields fields = requestReader.read(body).allowOnly("organization_id");
         long organizationId = fields.validate(fields.id("organization_id"));
-        return switch (specialOperations.hire(id, organizationId)) {
+        return switch (service.hire(id, organizationId)) {
             case DONE -> Response.noContent().build();
             case NOT_FOUND -> Response.status(Response.Status.NOT_FOUND)
                     .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
