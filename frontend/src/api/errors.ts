@@ -29,6 +29,10 @@ const messages: Record<string, string> = {
     'Персону нельзя удалить: она привязана к работнику. Сначала отвяжите её в окне изменения работника.',
   'The organization cannot be deleted while workers reference it.':
     'Организацию нельзя удалить: в ней есть работники.',
+  'Indexation would produce a salary outside the allowed range.':
+    'Индексация отменена: зарплата хотя бы одного работника вышла бы за допустимые пределы.',
+  'Parameter rating must be an int32 integer.': 'Рейтинг должен быть целым числом.',
+  'Parameter status has an unsupported value.': 'Неизвестный статус.',
 }
 
 const objectNames: Record<string, string> = {
@@ -85,6 +89,7 @@ const fieldNames: Record<string, string> = {
   postal_address: 'Почтовый адрес',
   postal_address_id: 'ID почтового адреса',
   street: 'Улица',
+  coefficient: 'Коэффициент',
   town: 'Город',
 }
 

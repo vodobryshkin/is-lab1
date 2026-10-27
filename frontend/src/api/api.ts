@@ -166,6 +166,10 @@ interface IdResponse {
   id: number
 }
 
+interface CountResponse {
+  count: number
+}
+
 interface CreateWorkerResponse {
   id: number
   organization_id: number | null
@@ -249,6 +253,30 @@ export const api = createApi({
     }),
     updateWorker: build.mutation<void, { id: number; body: WorkerRequest }>({
       query: ({ id, body }) => ({ url: `/workers/${id}`, method: 'PUT', body }),
+      invalidatesTags: (_result, error) => (error ? [] : [...dataTags]),
+    }),
+    countByStatus: build.query<CountResponse, string>({
+      query: (status) => ({ url: '/workers/count_by_status', params: { status } }),
+      providesTags: ['Worker'],
+    }),
+    countByStatusGreaterThan: build.query<CountResponse, string>({
+      query: (status) => ({ url: '/workers/count_by_status_greater_than', params: { status } }),
+      providesTags: ['Worker'],
+    }),
+    ratingLessThan: build.query<Worker[], number>({
+      query: (rating) => ({ url: '/workers/rating_less_than', params: { rating } }),
+      providesTags: ['Worker'],
+    }),
+    hireWorker: build.mutation<void, { id: number; organization_id: number }>({
+      query: ({ id, organization_id }) => ({ url: `/workers/${id}/hire`, method: 'POST', body: { organization_id } }),
+      invalidatesTags: (_result, error) => (error ? [] : [...dataTags]),
+    }),
+    indexSalaries: build.mutation<CountResponse, { id: number; coefficient: number }>({
+      query: ({ id, coefficient }) => ({
+        url: `/organizations/${id}/index_salaries`,
+        method: 'POST',
+        body: { coefficient },
+      }),
       invalidatesTags: (_result, error) => (error ? [] : [...dataTags]),
     }),
     deleteWorker: build.mutation<void, number>({
@@ -353,6 +381,11 @@ export const {
   useCreateWorkerMutation,
   useUpdateWorkerMutation,
   useDeleteWorkerMutation,
+  useLazyCountByStatusQuery,
+  useLazyCountByStatusGreaterThanQuery,
+  useLazyRatingLessThanQuery,
+  useHireWorkerMutation,
+  useIndexSalariesMutation,
   useListCoordinatesQuery,
   useCreateCoordinatesMutation,
   useUpdateCoordinatesMutation,

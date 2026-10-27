@@ -8,6 +8,7 @@ import CreateWorkerPage from './pages/CreateWorkerPage'
 import LocationsPage from './pages/LocationsPage'
 import OrganizationsPage from './pages/OrganizationsPage'
 import PersonsPage from './pages/PersonsPage'
+import SpecialPage from './pages/SpecialPage'
 import WorkersPage from './pages/WorkersPage'
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
     { hash: '#locations', title: 'Локации', content: <LocationsPage /> },
     { hash: '#addresses', title: 'Адреса', content: <AddressesPage /> },
     { hash: '#persons', title: 'Персоны', content: <PersonsPage /> },
+    { hash: '#special', title: 'Специальные операции', content: <SpecialPage /> },
   ]
   const currentPage = pages.find((page) => page.hash === hash) ?? pages[0]
 
