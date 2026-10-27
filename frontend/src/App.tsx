@@ -1,10 +1,13 @@
 import { useGetSessionQuery, useLogoutMutation } from './api/api'
 import { errorText, isUnauthorized } from './api/errors'
 import AuthPage from './pages/AuthPage'
+import WorkersPage from './pages/WorkersPage'
 
 function App() {
   const session = useGetSessionQuery()
   const [logout, logoutState] = useLogoutMutation()
+
+  const loggedIn = !!session.data && !session.error
 
   let content
   if (session.isLoading) {
@@ -21,19 +24,15 @@ function App() {
       </>
     )
   } else if (session.data) {
-    content = (
-      <p>
-        Вы вошли как <strong>{session.data.username}</strong> (ID пользователя {session.data.id}).
-      </p>
-    )
+    content = <WorkersPage />
   }
 
   return (
     <>
       <header>
-        <section>
+        <section className={loggedIn ? undefined : 'centered'}>
           <h1>Работники</h1>
-          {session.data && !session.error && (
+          {loggedIn && (
             <nav>
               <span>{session.data.username}</span>
               <button type="button" onClick={() => logout()} disabled={logoutState.isLoading}>

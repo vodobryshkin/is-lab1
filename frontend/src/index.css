@@ -14,6 +14,15 @@ header section {
   gap: 1rem;
 }
 
+header .centered {
+  justify-content: center;
+}
+
+.auth-form {
+  max-width: 24rem;
+  margin: 0 auto;
+}
+
 nav {
   display: flex;
   flex-wrap: wrap;
@@ -42,4 +51,66 @@ form small {
   main section {
     padding: 0 1rem;
   }
+}
+
+section {
+  width: auto;
+  max-width: 80rem;
+}
+
+.inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.inline-form label {
+  display: block;
+}
+
+.inline-form input,
+.inline-form select {
+  display: block;
+  margin-bottom: 0;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+/* Tacit на узком экране превращает строки таблицы в блоки и скрывает заголовки,
+   поэтому главная таблица остаётся таблицей и прокручивается по горизонтали. */
+.table-scroll table {
+  display: table;
+  table-layout: auto;
+  margin-bottom: 0;
+}
+
+.table-scroll thead {
+  display: table-header-group;
+}
+
+.table-scroll tr {
+  display: table-row;
+}
+
+.table-scroll th,
+.table-scroll td {
+  display: table-cell;
+}
+
+dialog {
+  width: 48rem;
+  max-width: calc(100% - 2rem);
+  max-height: calc(100% - 2rem);
+  margin: auto;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+dialog h2 {
+  margin-top: 0;
 }

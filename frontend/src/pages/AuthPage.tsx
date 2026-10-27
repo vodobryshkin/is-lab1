@@ -44,7 +44,7 @@ function AuthPage() {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="auth-form">
       <fieldset disabled={current.isLoading}>
         <legend>{mode === 'login' ? 'Вход' : 'Регистрация'}</legend>
 

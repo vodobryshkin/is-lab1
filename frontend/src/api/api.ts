@@ -11,6 +11,72 @@ export interface CurrentUser {
   username: string
 }
 
+export interface Location {
+  id: number
+  x: number
+  y: number
+  z: number
+}
+
+export interface Address {
+  id: number
+  street: string
+  town: Location | null
+}
+
+export interface Organization {
+  id: number
+  full_name: string
+  annual_turnover: number
+  employees_count: number
+  rating: number
+  type: string | null
+  official_address: Address
+  postal_address: Address
+}
+
+export interface Person {
+  id: number
+  eye_color: string | null
+  hair_color: string
+  location: Location
+  birthday: string
+  weight: number
+  nationality: string
+}
+
+export interface Worker {
+  id: number
+  creator_id: number
+  name: string
+  coordinates: { id: number; x: number; y: number }
+  creation_date: string
+  organization: Organization | null
+  salary: number
+  rating: number
+  start_date: string
+  position: string | null
+  status: string | null
+  person: Person | null
+}
+
+export interface Page<T> {
+  items: T[]
+  page: number
+  page_size: number
+  total_items: number
+}
+
+export interface WorkerListParams {
+  page: number
+  page_size: number
+  sort_by: string
+  sort_order: string
+  name?: string
+  position?: string
+  status?: string
+}
+
 interface CsrfTokenResponse {
   csrf_token: string
 }
@@ -27,16 +93,21 @@ let csrfToken: string | null = null
 
 const baseQuery: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
   args,
-  api,
+  queryApi,
   extraOptions,
 ) => {
   const request = typeof args === 'string' ? { url: args } : args
   if (!request.method || request.method === 'GET') {
-    return rawBaseQuery(request, api, extraOptions)
+    const result = await rawBaseQuery(request, queryApi, extraOptions)
+    // Сессия могла закончиться: перечитываем её, чтобы приложение вернулось к экрану входа.
+    if (result.error?.status === 401 && request.url !== '/auth/session') {
+      queryApi.dispatch(api.util.invalidateTags(['Session']))
+    }
+    return result
   }
 
   if (!csrfToken) {
-    const csrf = await rawBaseQuery('/auth/csrf', api, extraOptions)
+    const csrf = await rawBaseQuery('/auth/csrf', queryApi, extraOptions)
     if (csrf.error) {
       return csrf
     }
@@ -45,7 +116,7 @@ const baseQuery: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> =
 
   const result = await rawBaseQuery(
     { ...request, headers: { ...request.headers, 'X-CSRF-Token': csrfToken } },
-    api,
+    queryApi,
     extraOptions,
   )
   if (result.error?.status === 403 || request.url === '/auth/login' || request.url === '/auth/logout') {
@@ -56,7 +127,7 @@ const baseQuery: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> =
 
 export const api = createApi({
   baseQuery,
-  tagTypes: ['Session'],
+  tagTypes: ['Session', 'Worker'],
   endpoints: (build) => ({
     getSession: build.query<CurrentUser, void>({
       query: () => '/auth/session',
@@ -73,7 +144,22 @@ export const api = createApi({
       query: () => ({ url: '/auth/logout', method: 'POST' }),
       invalidatesTags: (_result, error) => (error ? [] : ['Session']),
     }),
+    listWorkers: build.query<Page<Worker>, WorkerListParams>({
+      query: (params) => ({ url: '/workers', params }),
+      providesTags: ['Worker'],
+    }),
+    getWorker: build.query<Worker, number>({
+      query: (id) => `/workers/${id}`,
+      providesTags: ['Worker'],
+    }),
   }),
 })
 
-export const { useGetSessionQuery, useRegisterMutation, useLoginMutation, useLogoutMutation } = api
+export const {
+  useGetSessionQuery,
+  useRegisterMutation,
+  useLoginMutation,
+  useLogoutMutation,
+  useListWorkersQuery,
+  useGetWorkerQuery,
+} = api
