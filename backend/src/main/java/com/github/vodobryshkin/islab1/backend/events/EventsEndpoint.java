@@ -36,7 +36,9 @@ public class EventsEndpoint {
         this.sessions = sessions;
     }
 
-    /** Нужен контейнеру WebSocket; прикладной код его не вызывает. */
+    /**
+     * Нужен контейнеру WebSocket.
+     */
     public EventsEndpoint() {
         this(null);
     }

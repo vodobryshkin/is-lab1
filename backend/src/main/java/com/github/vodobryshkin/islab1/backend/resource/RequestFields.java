@@ -26,7 +26,9 @@ public final class RequestFields {
     private final String prefix;
     private final List<ValidationIssue> issues;
 
-    /** Префиксы вложенных ссылок {id}: их поля нового объекта не проверяются. */
+    /**
+     * Префиксы вложенных ссылок {id}: их поля нового объекта не проверяются.
+     */
     private final Set<String> references;
 
     RequestFields(RequestReader reader, JsonObject json) {

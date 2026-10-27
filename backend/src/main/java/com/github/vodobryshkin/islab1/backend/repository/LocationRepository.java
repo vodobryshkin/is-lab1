@@ -14,7 +14,6 @@ import java.util.Optional;
  */
 @ApplicationScoped
 public class LocationRepository {
-    /** Поля сортировки контракта и колонки JPQL; в запрос попадают только эти значения. */
     private static final Map<String, String> SORT_COLUMNS =
             Map.of("id", "l.id", "x", "l.x", "y", "l.y", "z", "l.z");
 

@@ -76,11 +76,12 @@ public class WorkerResponse {
     public WorkerResponse(Worker worker) {
         this(worker.getId(), worker.getName(), new CoordinatesResponse(worker.getCoordinates()),
                 worker.getCreationDate().withZoneSameInstant(ZoneOffset.UTC),
-                worker.getOrganization() == null
-                        ? null
+                worker.getOrganization() == null ? null
                         : new OrganizationResponse(worker.getOrganization()),
-                worker.getSalary(), worker.getRating(),
-                worker.getStartDate().withZoneSameInstant(ZoneOffset.UTC), worker.getPosition(),
+                worker.getSalary(),
+                worker.getRating(),
+                worker.getStartDate().withZoneSameInstant(ZoneOffset.UTC),
+                worker.getPosition(),
                 worker.getStatus(),
                 worker.getPerson() == null ? null : new PersonResponse(worker.getPerson()),
                 worker.getUser().getId());

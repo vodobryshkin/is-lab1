@@ -32,7 +32,9 @@ public class SessionAuthenticationMechanism implements HttpAuthenticationMechani
         this.identityStoreHandler = identityStoreHandler;
     }
 
-    /** Нужен CDI для создания клиентского прокси; прикладной код его не вызывает. */
+    /**
+     * Нужен CDI для создания клиентского прокси; прикладной код его не вызывает.
+     */
     protected SessionAuthenticationMechanism() {
         this.identityStoreHandler = null;
     }

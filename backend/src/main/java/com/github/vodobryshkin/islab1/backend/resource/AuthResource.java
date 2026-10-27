@@ -38,7 +38,6 @@ import java.sql.SQLException;
 @RequestScoped
 @Produces(MediaType.APPLICATION_JSON)
 public class AuthResource {
-    /** SQLSTATE нарушения уникальности. */
     private static final String UNIQUE_VIOLATION = "23505";
 
     private final UserService userService;
@@ -67,7 +66,9 @@ public class AuthResource {
         this.eventSessions = eventSessions;
     }
 
-    /** Нужен CDI для прокси и Jakarta REST, который требует публичный конструктор. */
+    /**
+     * Нужен CDI для прокси и Jakarta REST, который требует публичный конструктор.
+     */
     public AuthResource() {
         this(null, null, null, null, null);
     }

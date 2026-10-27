@@ -37,7 +37,9 @@ public class PersonService {
         this.events = events;
     }
 
-    /** Нужен CDI для создания клиентского прокси; прикладной код его не вызывает. */
+    /**
+     * Нужен CDI для создания клиентского прокси; прикладной код его не вызывает.
+     */
     protected PersonService() {
         this.repository = null;
         this.locationService = null;
@@ -133,6 +135,7 @@ public class PersonService {
     @Transactional
     public Outcome delete(long id) {
         Optional<Person> person = repository.findById(id);
+
         if (person.isEmpty()) {
             return Outcome.NOT_FOUND;
         }

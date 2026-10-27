@@ -11,13 +11,11 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Хранилище работников в БД.
@@ -26,10 +24,6 @@ import java.util.stream.Stream;
  */
 @ApplicationScoped
 public class WorkerRepository {
-    private static final String FROM = " FROM Worker w LEFT JOIN w.organization o"
-            + " LEFT JOIN o.officialAddress oa LEFT JOIN o.postalAddress pa"
-            + " LEFT JOIN w.person p";
-
     private static final Map<String, String> SORT_COLUMNS = Map.ofEntries(
             Map.entry("id", "w.id"),
             Map.entry("name", "LOWER(w.name)"),
@@ -47,32 +41,6 @@ public class WorkerRepository {
             Map.entry("person_hair_color", "p.hairColor"),
             Map.entry("person_nationality", "p.nationality"));
 
-    /**
-     * Текстовые фильтры: подстрока без учёта регистра. LOCATE ищет подстроку
-     * буквально, а null в колонке не проходит фильтр.
-     */
-    private static final Map<String, String> TEXT_FILTERS = Map.of(
-            "name", "w.name",
-            "organization_full_name", "o.fullName",
-            "organization_official_address_street", "oa.street",
-            "organization_postal_address_street", "pa.street");
-
-    /** Фильтры по перечислениям: колонка и все значения. */
-    private static final Map<String, String> ENUM_COLUMNS = Map.of(
-            "position", "w.position",
-            "status", "w.status",
-            "organization_type", "o.type",
-            "person_eye_color", "p.eyeColor",
-            "person_hair_color", "p.hairColor",
-            "person_nationality", "p.nationality");
-    private static final Map<String, List<Enum<?>>> ENUM_VALUES = Map.of(
-            "position", List.of(Position.values()),
-            "status", List.of(Status.values()),
-            "organization_type", List.of(OrganizationType.values()),
-            "person_eye_color", List.of(Color.values()),
-            "person_hair_color", List.of(Color.values()),
-            "person_nationality", List.of(Country.values()));
-
     @PersistenceContext(unitName = "is-lab1")
     private EntityManager entityManager;
 
@@ -87,42 +55,133 @@ public class WorkerRepository {
     }
 
     /**
-     * Возвращает страницу работников. null, в том числе отсутствующая организация
-     * или персона, при сортировке идёт последним; при равных значениях — ID по возрастанию.
+     * Возвращает страницу работников, прошедших фильтры-подстроки.
+     * null при сортировке идёт последним, при равных значениях порядок задаёт ID.
      *
      * @param query проверенные параметры страницы
-     * @param filters параметры запроса; учитываются фильтры контракта, соединённые через AND
+     * @param filters параметры запроса с фильтрами контракта
      * @return работники страницы; за концом списка — пустой список
      */
     public List<Worker> findPage(ListQuery query, Map<String, List<String>> filters) {
-        Map<String, Object> parameters = parameters(filters);
         long offset = (long) (query.getPage() - 1) * query.getPageSize();
-        if (offset > Integer.MAX_VALUE || parameters.containsValue(List.of())) {
+        String position = filter(filters, "position");
+        String status = filter(filters, "status");
+        String type = filter(filters, "organization_type");
+        String eyeColor = filter(filters, "person_eye_color");
+        String hairColor = filter(filters, "person_hair_color");
+        String nationality = filter(filters, "person_nationality");
+        List<Position> positions = matching(Position.values(), position);
+        List<Status> statuses = matching(Status.values(), status);
+        List<OrganizationType> types = matching(OrganizationType.values(), type);
+        List<Color> eyeColors = matching(Color.values(), eyeColor);
+        List<Color> hairColors = matching(Color.values(), hairColor);
+        List<Country> nationalities = matching(Country.values(), nationality);
+        if (offset > Integer.MAX_VALUE || positions.isEmpty() || statuses.isEmpty()
+                || types.isEmpty() || eyeColors.isEmpty() || hairColors.isEmpty()
+                || nationalities.isEmpty()) {
             return List.of();
         }
         String order = SORT_COLUMNS.get(query.getSortBy())
                 + (query.isAscending() ? " ASC" : " DESC");
-        return bind(entityManager.createQuery("SELECT w" + FROM + where(parameters)
-                        + " ORDER BY " + order + " NULLS LAST, w.id ASC", Worker.class),
-                parameters)
+        return entityManager.createQuery("SELECT w FROM Worker w"
+                        + " LEFT JOIN w.organization o"
+                        + " LEFT JOIN o.officialAddress oa"
+                        + " LEFT JOIN o.postalAddress pa"
+                        + " LEFT JOIN w.person p"
+                        + " WHERE (:workerName = '' OR LOCATE(:workerName, LOWER(w.name)) > 0)"
+                        + " AND (:fullName = '' OR LOCATE(:fullName, LOWER(o.fullName)) > 0)"
+                        + " AND (:officialStreet = ''"
+                        + " OR LOCATE(:officialStreet, LOWER(oa.street)) > 0)"
+                        + " AND (:postalStreet = '' OR LOCATE(:postalStreet, LOWER(pa.street)) > 0)"
+                        + " AND (:positionText = '' OR w.position IN :positions)"
+                        + " AND (:statusText = '' OR w.status IN :statuses)"
+                        + " AND (:typeText = '' OR o.type IN :types)"
+                        + " AND (:eyeColorText = '' OR p.eyeColor IN :eyeColors)"
+                        + " AND (:hairColorText = '' OR p.hairColor IN :hairColors)"
+                        + " AND (:nationalityText = '' OR p.nationality IN :nationalities)"
+                        + " ORDER BY " + order + " NULLS LAST, w.id ASC", Worker.class)
+                .setParameter("workerName", filter(filters, "name"))
+                .setParameter("fullName", filter(filters, "organization_full_name"))
+                .setParameter("officialStreet",
+                        filter(filters, "organization_official_address_street"))
+                .setParameter("postalStreet",
+                        filter(filters, "organization_postal_address_street"))
+                .setParameter("positionText", position)
+                .setParameter("positions", positions)
+                .setParameter("statusText", status)
+                .setParameter("statuses", statuses)
+                .setParameter("typeText", type)
+                .setParameter("types", types)
+                .setParameter("eyeColorText", eyeColor)
+                .setParameter("eyeColors", eyeColors)
+                .setParameter("hairColorText", hairColor)
+                .setParameter("hairColors", hairColors)
+                .setParameter("nationalityText", nationality)
+                .setParameter("nationalities", nationalities)
                 .setFirstResult((int) offset)
                 .setMaxResults(query.getPageSize())
                 .getResultList();
     }
 
     /**
-     * Считает работников с учётом фильтров.
+     * Считает работников, прошедших фильтры-подстроки.
      *
-     * @param filters параметры запроса, как в findPage
+     * @param filters параметры запроса с фильтрами контракта
      * @return количество
      */
     public long count(Map<String, List<String>> filters) {
-        Map<String, Object> parameters = parameters(filters);
-        if (parameters.containsValue(List.of())) {
+        String position = filter(filters, "position");
+        String status = filter(filters, "status");
+        String type = filter(filters, "organization_type");
+        String eyeColor = filter(filters, "person_eye_color");
+        String hairColor = filter(filters, "person_hair_color");
+        String nationality = filter(filters, "person_nationality");
+        List<Position> positions = matching(Position.values(), position);
+        List<Status> statuses = matching(Status.values(), status);
+        List<OrganizationType> types = matching(OrganizationType.values(), type);
+        List<Color> eyeColors = matching(Color.values(), eyeColor);
+        List<Color> hairColors = matching(Color.values(), hairColor);
+        List<Country> nationalities = matching(Country.values(), nationality);
+        if (positions.isEmpty() || statuses.isEmpty() || types.isEmpty()
+                || eyeColors.isEmpty() || hairColors.isEmpty() || nationalities.isEmpty()) {
             return 0;
         }
-        return bind(entityManager.createQuery("SELECT COUNT(w)" + FROM + where(parameters),
-                Long.class), parameters).getSingleResult();
+        return entityManager.createQuery("SELECT COUNT(w) FROM Worker w"
+                        + " LEFT JOIN w.organization o"
+                        + " LEFT JOIN o.officialAddress oa"
+                        + " LEFT JOIN o.postalAddress pa"
+                        + " LEFT JOIN w.person p"
+                        + " WHERE (:workerName = '' OR LOCATE(:workerName, LOWER(w.name)) > 0)"
+                        + " AND (:fullName = '' OR LOCATE(:fullName, LOWER(o.fullName)) > 0)"
+                        + " AND (:officialStreet = ''"
+                        + " OR LOCATE(:officialStreet, LOWER(oa.street)) > 0)"
+                        + " AND (:postalStreet = '' OR LOCATE(:postalStreet, LOWER(pa.street)) > 0)"
+                        + " AND (:positionText = '' OR w.position IN :positions)"
+                        + " AND (:statusText = '' OR w.status IN :statuses)"
+                        + " AND (:typeText = '' OR o.type IN :types)"
+                        + " AND (:eyeColorText = '' OR p.eyeColor IN :eyeColors)"
+                        + " AND (:hairColorText = '' OR p.hairColor IN :hairColors)"
+                        + " AND (:nationalityText = '' OR p.nationality IN :nationalities)",
+                        Long.class)
+                .setParameter("workerName", filter(filters, "name"))
+                .setParameter("fullName", filter(filters, "organization_full_name"))
+                .setParameter("officialStreet",
+                        filter(filters, "organization_official_address_street"))
+                .setParameter("postalStreet",
+                        filter(filters, "organization_postal_address_street"))
+                .setParameter("positionText", position)
+                .setParameter("positions", positions)
+                .setParameter("statusText", status)
+                .setParameter("statuses", statuses)
+                .setParameter("typeText", type)
+                .setParameter("types", types)
+                .setParameter("eyeColorText", eyeColor)
+                .setParameter("eyeColors", eyeColors)
+                .setParameter("hairColorText", hairColor)
+                .setParameter("hairColors", hairColors)
+                .setParameter("nationalityText", nationality)
+                .setParameter("nationalities", nationalities)
+                .getSingleResult();
     }
 
     /**
@@ -219,36 +278,18 @@ public class WorkerRepository {
         entityManager.flush();
     }
 
-    /**
-     * Значения непустых фильтров: строка в нижнем регистре для текстовых и список
-     * подходящих констант для перечислений. Пустой список означает, что ничего не подходит.
-     */
-    private Map<String, Object> parameters(Map<String, List<String>> filters) {
-        return Stream.concat(TEXT_FILTERS.keySet().stream(), ENUM_COLUMNS.keySet().stream())
-                .filter(name -> !filter(filters, name).isEmpty())
-                .collect(Collectors.toMap(name -> name, name -> ENUM_COLUMNS.containsKey(name)
-                        ? ENUM_VALUES.get(name).stream()
-                                .filter(value -> value.name().toLowerCase(Locale.ROOT)
-                                        .contains(filter(filters, name)))
-                                .toList()
-                        : filter(filters, name)));
-    }
-
     private String filter(Map<String, List<String>> filters, String name) {
         List<String> values = filters.getOrDefault(name, List.of());
         return values.isEmpty() ? "" : values.get(0).toLowerCase(Locale.ROOT);
     }
 
-    private String where(Map<String, Object> parameters) {
-        return parameters.isEmpty() ? "" : " WHERE " + parameters.keySet().stream()
-                .map(name -> ENUM_COLUMNS.containsKey(name)
-                        ? ENUM_COLUMNS.get(name) + " IN :" + name
-                        : "LOCATE(:" + name + ", LOWER(" + TEXT_FILTERS.get(name) + ")) > 0")
-                .collect(Collectors.joining(" AND "));
-    }
-
-    private <T> TypedQuery<T> bind(TypedQuery<T> query, Map<String, Object> parameters) {
-        parameters.forEach(query::setParameter);
-        return query;
+    private <E extends Enum<E>> List<E> matching(E[] values, String filter) {
+        List<E> result = new ArrayList<>();
+        for (E value : values) {
+            if (value.name().toLowerCase(Locale.ROOT).contains(filter)) {
+                result.add(value);
+            }
+        }
+        return result;
     }
 }

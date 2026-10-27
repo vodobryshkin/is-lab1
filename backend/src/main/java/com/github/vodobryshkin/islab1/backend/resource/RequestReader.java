@@ -38,7 +38,6 @@ public class RequestReader {
     private static final int MAX_PAGE_SIZE = 100;
     private static final Pattern SNAKE_CASE_BOUNDARY = Pattern.compile("([a-z0-9])([A-Z])");
 
-    /** Код и окончание сообщения для ограничений Jakarta Validation. */
     private static final Map<String, List<String>> RULES = Map.of(
             "NotNull", List.of("MUST_NOT_BE_NULL", " must not be null."),
             "NotEmpty", List.of("MUST_NOT_BE_EMPTY", " must not be empty."),
@@ -46,7 +45,6 @@ public class RequestReader {
             "Positive", List.of("MUST_BE_POSITIVE", " must be greater than zero."),
             "Pattern", List.of("MUST_MATCH_PATTERN", " has an invalid format."));
 
-    /** Если у поля несколько нарушений, в ответ попадает первое в этом порядке. */
     private static final List<String> CONSTRAINTS = List.of("NotNull", "NotEmpty", "NotBlank",
             "Size", "Min", "Positive", "DecimalMax", "Pattern");
 
@@ -62,7 +60,9 @@ public class RequestReader {
         this.validator = validator;
     }
 
-    /** Нужен CDI для создания клиентского прокси; прикладной код его не вызывает. */
+    /**
+     * Нужен CDI для создания клиентского прокси; прикладной код его не вызывает.
+     */
     protected RequestReader() {
         this.validator = null;
     }
@@ -202,7 +202,9 @@ public class RequestReader {
         return CONSTRAINTS.indexOf(constraintOf(violation));
     }
 
-    /** Путь свойств Java переводится в snake_case контракта, например official_address.town.x. */
+    /**
+     * Путь свойств Java переводится в snake_case контракта, например official_address.town.x.
+     */
     private String fieldOf(ConstraintViolation<?> violation) {
         return SNAKE_CASE_BOUNDARY.matcher(violation.getPropertyPath().toString())
                 .replaceAll("$1_$2").toLowerCase(Locale.ROOT);
@@ -224,7 +226,9 @@ public class RequestReader {
         return new ValidationIssue(field, code, defaultMessage ? message : violation.getMessage());
     }
 
-    /** Граница из ТЗ: ограничение Min(-953) означает «больше -954». */
+    /**
+     * Граница из ТЗ: ограничение Min(-953) означает «больше -954».
+     */
     private long bound(ConstraintViolation<?> violation) {
         return ((Min) violation.getConstraintDescriptor().getAnnotation()).value() - 1;
     }

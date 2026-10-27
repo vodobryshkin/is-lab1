@@ -18,7 +18,6 @@ import java.util.Optional;
  */
 @ApplicationScoped
 public class SpecialOperationService {
-    /** Порядок статусов из контракта; имена констант для сравнения не используются. */
     private static final List<Status> STATUS_ORDER =
             List.of(Status.HIRED, Status.RECOMMENDED_FOR_PROMOTION, Status.REGULAR);
 
@@ -41,7 +40,9 @@ public class SpecialOperationService {
         this.events = events;
     }
 
-    /** Нужен CDI для создания клиентского прокси; прикладной код его не вызывает. */
+    /**
+     * Нужен CDI для создания клиентского прокси; прикладной код его не вызывает.
+     */
     protected SpecialOperationService() {
         this(null, null, null);
     }

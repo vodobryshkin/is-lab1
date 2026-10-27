@@ -5,7 +5,6 @@ import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -16,7 +15,6 @@ import java.util.Optional;
  */
 @ApplicationScoped
 public class AddressRepository {
-    /** Поля сортировки контракта; строки сравниваются без учёта регистра. */
     private static final Map<String, String> SORT_COLUMNS =
             Map.of("id", "a.id", "street", "LOWER(a.street)");
 
@@ -34,7 +32,8 @@ public class AddressRepository {
     }
 
     /**
-     * Возвращает страницу адресов; при равных значениях порядок задаёт ID по возрастанию.
+     * Возвращает страницу адресов с фильтром-подстрокой по улице.
+     * При равных значениях порядок задаёт ID.
      *
      * @param query проверенные параметры страницы
      * @param street подстрока улицы; null или пустая строка не фильтрует
@@ -47,22 +46,26 @@ public class AddressRepository {
         }
         String order = SORT_COLUMNS.get(query.getSortBy())
                 + (query.isAscending() ? " ASC" : " DESC");
-        return filtered(entityManager.createQuery("SELECT a FROM Address a" + where(street)
-                        + " ORDER BY " + order + ", a.id ASC", Address.class), street)
+        return entityManager.createQuery("SELECT a FROM Address a"
+                        + " WHERE (:street = '' OR LOCATE(:street, LOWER(a.street)) > 0)"
+                        + " ORDER BY " + order + ", a.id ASC", Address.class)
+                .setParameter("street", street == null ? "" : street.toLowerCase(Locale.ROOT))
                 .setFirstResult((int) offset)
                 .setMaxResults(query.getPageSize())
                 .getResultList();
     }
 
     /**
-     * Считает адреса с учётом фильтра.
+     * Считает адреса с фильтром-подстрокой по улице.
      *
      * @param street подстрока улицы; null или пустая строка не фильтрует
      * @return количество
      */
     public long count(String street) {
-        return filtered(entityManager.createQuery(
-                "SELECT COUNT(a) FROM Address a" + where(street), Long.class), street)
+        return entityManager.createQuery("SELECT COUNT(a) FROM Address a"
+                        + " WHERE (:street = '' OR LOCATE(:street, LOWER(a.street)) > 0)",
+                        Long.class)
+                .setParameter("street", street == null ? "" : street.toLowerCase(Locale.ROOT))
                 .getSingleResult();
     }
 
@@ -96,23 +99,5 @@ public class AddressRepository {
     public void delete(Address address) {
         entityManager.remove(address);
         entityManager.flush();
-    }
-
-    private String where(String street) {
-        return isBlank(street) ? "" : " WHERE LOWER(a.street) LIKE :street ESCAPE '\\'";
-    }
-
-    private <T> TypedQuery<T> filtered(TypedQuery<T> query, String street) {
-        if (isBlank(street)) {
-            return query;
-        }
-        String escaped = street.toLowerCase(Locale.ROOT).replace("\\", "\\\\")
-                .replace("%", "\\%").replace("_", "\\_");
-        return query.setParameter("street", "%" + escaped + "%");
-    }
-
-    /** Пустой фильтр не фильтрует, как требует контракт. */
-    private boolean isBlank(String street) {
-        return street == null || street.isEmpty();
     }
 }

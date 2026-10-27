@@ -170,7 +170,9 @@ public class RequestEntities {
                 fields.enumValue("status", Status.class, true), person(fields, "person", true));
     }
 
-    /** Создание: organization_id, organization или ни одного из них. */
+    /**
+     * Создание: organization_id, organization или ни одного из них.
+     */
     private Organization newWorkerOrganization(RequestFields fields) {
         if (fields.has(ORGANIZATION_ID_FIELD) && fields.has(ORGANIZATION_FIELD)) {
             String description = "Use either organization_id or organization.";
@@ -188,7 +190,9 @@ public class RequestEntities {
         return organization == null ? null : organization(organization);
     }
 
-    /** PUT: ключ organization_id обязателен; null — без организации. */
+    /**
+     * PUT: ключ organization_id обязателен; null — без организации.
+     */
     private Organization updatedOrganization(RequestFields fields) {
         return fields.hasNull(ORGANIZATION_ID_FIELD) ? null : organizationReference(fields);
     }

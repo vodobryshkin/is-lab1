@@ -45,7 +45,9 @@ public class OrganizationService {
         this.events = events;
     }
 
-    /** Нужен CDI для создания клиентского прокси; прикладной код его не вызывает. */
+    /**
+     * Нужен CDI для создания клиентского прокси; прикладной код его не вызывает.
+     */
     protected OrganizationService() {
         this.repository = null;
         this.addressRepository = null;
@@ -178,7 +180,9 @@ public class OrganizationService {
                 : Optional.empty();
     }
 
-    /** Первая ссылка на несуществующий адрес или локацию нового адреса. */
+    /**
+     * Первая ссылка на несуществующий адрес или локацию нового адреса.
+     */
     private Optional<Change> missingReference(Organization organization) {
         return Stream.of(organization.getOfficialAddress(), organization.getPostalAddress())
                 .map(this::missingReference)
@@ -204,7 +208,9 @@ public class OrganizationService {
         return new Change(Outcome.REFERENCE_NOT_FOUND, null, type, id);
     }
 
-    /** Ссылки уже проверены missingReference в этой транзакции. */
+    /**
+     * Ссылки уже проверены missingReference в этой транзакции.
+     */
     private Address persistOrFind(Address address) {
         if (address.getId() != null) {
             return addressRepository.findById(address.getId()).orElseThrow();

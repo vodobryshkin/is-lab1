@@ -55,7 +55,9 @@ public class AddressResource {
         this.entities = entities;
     }
 
-    /** Нужен CDI для прокси и Jakarta REST, который требует публичный конструктор. */
+    /**
+     * Нужен CDI для прокси и Jakarta REST, который требует публичный конструктор.
+     */
     public AddressResource() {
         this(null, null, null);
     }

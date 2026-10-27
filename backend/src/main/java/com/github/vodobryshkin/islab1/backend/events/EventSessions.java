@@ -21,7 +21,6 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 @ApplicationScoped
 public class EventSessions {
-    /** Код закрытия контракта: вход сессии завершён. */
     static final short SESSION_ENDED = 4001;
 
     private static final String SESSION_ENDED_MESSAGE = "{\"type\":\"ERROR\",\"code\":"
@@ -31,7 +30,6 @@ public class EventSessions {
     private static final String LOCK = "lock";
     private static final String DATA_CHANGED = "{\"type\":\"DATA_CHANGED\"}";
 
-    /** Ключ отметки «уведомление уже запланировано» в текущей JTA-транзакции. */
     private static final Object PENDING = new Object();
 
     private final Map<Session, HttpSession> connections = new ConcurrentHashMap<>();

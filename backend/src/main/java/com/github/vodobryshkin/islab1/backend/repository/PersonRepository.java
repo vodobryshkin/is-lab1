@@ -8,12 +8,11 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Хранилище персон в БД. Транзакциями управляет вызывающий сервис.
@@ -27,16 +26,6 @@ public class PersonRepository {
             "nationality", "p.nationality",
             "birthday", "p.birthday",
             "weight", "p.weight");
-
-    /** Фильтры контракта: колонка и все значения перечисления. */
-    private static final Map<String, String> FILTER_COLUMNS = Map.of(
-            "eye_color", "p.eyeColor",
-            "hair_color", "p.hairColor",
-            "nationality", "p.nationality");
-    private static final Map<String, List<Enum<?>>> FILTER_VALUES = Map.of(
-            "eye_color", List.of(Color.values()),
-            "hair_color", List.of(Color.values()),
-            "nationality", List.of(Country.values()));
 
     @PersistenceContext(unitName = "is-lab1")
     private EntityManager entityManager;
@@ -64,43 +53,70 @@ public class PersonRepository {
     }
 
     /**
-     * Возвращает страницу персон. null при сортировке идёт последним,
-     * при равных значениях порядок задаёт ID по возрастанию.
+     * Возвращает страницу персон, прошедших фильтры-подстроки по цветам и национальности.
+     * null при сортировке идёт последним, при равных значениях порядок задаёт ID.
      *
      * @param query проверенные параметры страницы
-     * @param filters параметры запроса; учитываются eye_color, hair_color,
-     *     nationality
+     * @param filters параметры запроса с фильтрами контракта
      * @return персоны страницы; за концом списка — пустой список
      */
     public List<Person> findPage(ListQuery query, Map<String, List<String>> filters) {
-        Map<String, List<Enum<?>>> matches = matches(filters);
         long offset = (long) (query.getPage() - 1) * query.getPageSize();
-        if (offset > Integer.MAX_VALUE || matches.containsValue(List.of())) {
+        String eyeColor = filter(filters, "eye_color");
+        String hairColor = filter(filters, "hair_color");
+        String nationality = filter(filters, "nationality");
+        List<Color> eyeColors = matching(Color.values(), eyeColor);
+        List<Color> hairColors = matching(Color.values(), hairColor);
+        List<Country> nationalities = matching(Country.values(), nationality);
+        if (offset > Integer.MAX_VALUE || eyeColors.isEmpty() || hairColors.isEmpty()
+                || nationalities.isEmpty()) {
             return List.of();
         }
         String order = SORT_COLUMNS.get(query.getSortBy())
                 + (query.isAscending() ? " ASC" : " DESC");
-        return bind(entityManager.createQuery("SELECT p FROM Person p" + where(matches)
-                        + " ORDER BY " + order + " NULLS LAST, p.id ASC", Person.class), matches)
+        return entityManager.createQuery("SELECT p FROM Person p"
+                        + " WHERE (:eyeColorText = '' OR p.eyeColor IN :eyeColors)"
+                        + " AND (:hairColorText = '' OR p.hairColor IN :hairColors)"
+                        + " AND (:nationalityText = '' OR p.nationality IN :nationalities)"
+                        + " ORDER BY " + order + " NULLS LAST, p.id ASC", Person.class)
+                .setParameter("eyeColorText", eyeColor)
+                .setParameter("eyeColors", eyeColors)
+                .setParameter("hairColorText", hairColor)
+                .setParameter("hairColors", hairColors)
+                .setParameter("nationalityText", nationality)
+                .setParameter("nationalities", nationalities)
                 .setFirstResult((int) offset)
                 .setMaxResults(query.getPageSize())
                 .getResultList();
     }
 
     /**
-     * Считает персоны с учётом фильтров.
+     * Считает персоны, прошедшие фильтры-подстроки по цветам и национальности.
      *
-     * @param filters параметры запроса; учитываются eye_color, hair_color,
-     *     nationality
+     * @param filters параметры запроса с фильтрами контракта
      * @return количество
      */
     public long count(Map<String, List<String>> filters) {
-        Map<String, List<Enum<?>>> matches = matches(filters);
-        if (matches.containsValue(List.of())) {
+        String eyeColor = filter(filters, "eye_color");
+        String hairColor = filter(filters, "hair_color");
+        String nationality = filter(filters, "nationality");
+        List<Color> eyeColors = matching(Color.values(), eyeColor);
+        List<Color> hairColors = matching(Color.values(), hairColor);
+        List<Country> nationalities = matching(Country.values(), nationality);
+        if (eyeColors.isEmpty() || hairColors.isEmpty() || nationalities.isEmpty()) {
             return 0;
         }
-        return bind(entityManager.createQuery(
-                "SELECT COUNT(p) FROM Person p" + where(matches), Long.class), matches)
+        return entityManager.createQuery("SELECT COUNT(p) FROM Person p"
+                        + " WHERE (:eyeColorText = '' OR p.eyeColor IN :eyeColors)"
+                        + " AND (:hairColorText = '' OR p.hairColor IN :hairColors)"
+                        + " AND (:nationalityText = '' OR p.nationality IN :nationalities)",
+                        Long.class)
+                .setParameter("eyeColorText", eyeColor)
+                .setParameter("eyeColors", eyeColors)
+                .setParameter("hairColorText", hairColor)
+                .setParameter("hairColors", hairColors)
+                .setParameter("nationalityText", nationality)
+                .setParameter("nationalities", nationalities)
                 .getSingleResult();
     }
 
@@ -134,32 +150,18 @@ public class PersonRepository {
         entityManager.remove(person);
     }
 
-    /**
-     * Переводит непустые фильтры-подстроки в значения перечислений, чьи имена их содержат
-     * без учёта регистра. Пустой список значений означает, что ничего не подходит.
-     */
-    private Map<String, List<Enum<?>>> matches(Map<String, List<String>> filters) {
-        return FILTER_COLUMNS.keySet().stream()
-                .filter(name -> !filter(filters, name).isEmpty())
-                .collect(Collectors.toMap(name -> name, name -> FILTER_VALUES.get(name).stream()
-                        .filter(value -> value.name().toLowerCase(Locale.ROOT)
-                                .contains(filter(filters, name)))
-                        .toList()));
-    }
-
     private String filter(Map<String, List<String>> filters, String name) {
         List<String> values = filters.getOrDefault(name, List.of());
         return values.isEmpty() ? "" : values.get(0).toLowerCase(Locale.ROOT);
     }
 
-    private String where(Map<String, List<Enum<?>>> matches) {
-        return matches.isEmpty() ? "" : " WHERE " + matches.keySet().stream()
-                .map(key -> FILTER_COLUMNS.get(key) + " IN :" + key)
-                .collect(Collectors.joining(" AND "));
-    }
-
-    private <T> TypedQuery<T> bind(TypedQuery<T> query, Map<String, List<Enum<?>>> matches) {
-        matches.forEach(query::setParameter);
-        return query;
+    private <E extends Enum<E>> List<E> matching(E[] values, String filter) {
+        List<E> result = new ArrayList<>();
+        for (E value : values) {
+            if (value.name().toLowerCase(Locale.ROOT).contains(filter)) {
+                result.add(value);
+            }
+        }
+        return result;
     }
 }

@@ -35,7 +35,9 @@ public class AddressService {
         this.events = events;
     }
 
-    /** Нужен CDI для создания клиентского прокси; прикладной код его не вызывает. */
+    /**
+     * Нужен CDI для создания клиентского прокси; прикладной код его не вызывает.
+     */
     protected AddressService() {
         this.repository = null;
         this.locationService = null;

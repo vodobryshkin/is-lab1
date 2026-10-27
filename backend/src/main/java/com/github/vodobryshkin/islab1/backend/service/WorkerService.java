@@ -60,7 +60,9 @@ public class WorkerService {
         this.events = events;
     }
 
-    /** Нужен CDI для создания клиентского прокси; прикладной код его не вызывает. */
+    /**
+     * Нужен CDI для создания клиентского прокси; прикладной код его не вызывает.
+     */
     protected WorkerService() {
         this(null, null, null, null, null, null, null);
     }
@@ -240,7 +242,9 @@ public class WorkerService {
         return new Change(Outcome.REFERENCE_NOT_FOUND, null, subject, id);
     }
 
-    /** Ссылки уже проверены refusal в этой транзакции. */
+    /**
+     * Ссылки уже проверены refusal в этой транзакции.
+     */
     private Coordinates persistOrFind(Coordinates coordinates) {
         if (coordinates.getId() != null) {
             return coordinatesRepository.findById(coordinates.getId()).orElseThrow();
@@ -259,7 +263,9 @@ public class WorkerService {
         return organization;
     }
 
-    /** Привязка задаётся со стороны персоны: внешний ключ — persons.worker_id. */
+    /**
+     * Привязка задаётся со стороны персоны: внешний ключ — persons.worker_id.
+     */
     private void attach(Worker worker, Person person) {
         if (person == null) {
             return;

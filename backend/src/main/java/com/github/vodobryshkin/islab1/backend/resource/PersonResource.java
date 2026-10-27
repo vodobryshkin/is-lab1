@@ -56,7 +56,9 @@ public class PersonResource {
         this.entities = entities;
     }
 
-    /** Нужен CDI для прокси и Jakarta REST, который требует публичный конструктор. */
+    /**
+     * Нужен CDI для прокси и Jakarta REST, который требует публичный конструктор.
+     */
     public PersonResource() {
         this(null, null, null);
     }

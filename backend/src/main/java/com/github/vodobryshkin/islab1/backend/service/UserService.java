@@ -25,7 +25,9 @@ public class UserService {
     private final UserRepository userRepository;
     private final Pbkdf2PasswordHash passwordHash;
 
-    /** Хеш для проверки пароля неизвестного логина за то же время, что и известного. */
+    /**
+     * Хеш для проверки пароля неизвестного логина за то же время, что и известного.
+     */
     private final String unusedHash;
 
     /**
@@ -42,7 +44,9 @@ public class UserService {
         this.unusedHash = passwordHash.generate("unused-password-hash".toCharArray());
     }
 
-    /** Нужен CDI для создания клиентского прокси; прикладной код его не вызывает. */
+    /**
+     * Нужен CDI для создания клиентского прокси; прикладной код его не вызывает.
+     */
     protected UserService() {
         this.userRepository = null;
         this.passwordHash = null;

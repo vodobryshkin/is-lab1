@@ -42,7 +42,9 @@ public class User {
     @Pattern(regexp = "^[a-zA-Z0-9_]{3,64}$")
     private String username;
 
-    /** Хеш PBKDF2 вместе с алгоритмом, числом итераций и солью; пароль не хранится. */
+    /**
+     * Хеш PBKDF2 вместе с алгоритмом, числом итераций и солью; пароль не хранится.
+     */
     @Column(name = "password_hash", nullable = false)
     @NotBlank
     @Size(max = 255)

@@ -25,7 +25,9 @@ public class DatabaseIdentityStore implements IdentityStore {
         this.userService = userService;
     }
 
-    /** Нужен CDI для создания клиентского прокси; прикладной код его не вызывает. */
+    /**
+     * Нужен CDI для создания клиентского прокси; прикладной код его не вызывает.
+     */
     protected DatabaseIdentityStore() {
         this.userService = null;
     }

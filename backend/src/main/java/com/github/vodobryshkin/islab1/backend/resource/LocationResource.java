@@ -49,7 +49,9 @@ public class LocationResource {
         this.requestReader = requestReader;
     }
 
-    /** Нужен CDI для прокси и Jakarta REST, который требует публичный конструктор. */
+    /**
+     * Нужен CDI для прокси и Jakarta REST, который требует публичный конструктор.
+     */
     public LocationResource() {
         this(null, null);
     }
