@@ -85,14 +85,32 @@ export interface Page<T> {
   total_items: number
 }
 
-export interface WorkerListParams {
+export interface ListParams {
   page: number
   page_size: number
-  sort_by: string
-  sort_order: string
+  sort_by?: string
+  sort_order?: string
+}
+
+export interface WorkerListParams extends ListParams {
   name?: string
   position?: string
   status?: string
+}
+
+export interface PersonListParams extends ListParams {
+  eye_color?: string
+  hair_color?: string
+  nationality?: string
+}
+
+export interface PersonWriteRequest {
+  eye_color: string | null
+  hair_color: string
+  location: LocationFields | IdRef
+  birthday: string
+  weight: number
+  nationality: string
 }
 
 export interface IdRef {
@@ -122,15 +140,6 @@ export interface OrganizationRequest {
   postal_address_id?: number
 }
 
-export interface PersonRequest {
-  eye_color: string | null
-  hair_color: string
-  location: LocationFields | IdRef
-  birthday: string
-  weight: number
-  nationality: string
-}
-
 export interface WorkerRequest {
   name: string
   coordinates: { x: number; y: number } | IdRef
@@ -139,7 +148,7 @@ export interface WorkerRequest {
   start_date: string
   position: string | null
   status: string | null
-  person: PersonRequest | IdRef | null
+  person: PersonWriteRequest | IdRef | null
   organization_id?: number | null
   organization?: OrganizationRequest
 }
@@ -158,7 +167,7 @@ interface CreateWorkerResponse {
 }
 
 // Списки для выбора существующих объектов: сервер отдаёт не больше 100 за раз.
-const choiceParams = { page: 1, page_size: 100 }
+export const choiceParams: ListParams = { page: 1, page_size: 100 }
 
 const dataTags = ['Worker', 'Coordinates', 'Location', 'Address', 'Organization', 'Person'] as const
 
@@ -237,25 +246,82 @@ export const api = createApi({
       query: ({ id, body }) => ({ url: `/workers/${id}`, method: 'PUT', body }),
       invalidatesTags: (_result, error) => (error ? [] : [...dataTags]),
     }),
-    listCoordinates: build.query<Page<Coordinates>, void>({
-      query: () => ({ url: '/coordinates', params: choiceParams }),
+    deleteWorker: build.mutation<void, number>({
+      query: (id) => ({ url: `/workers/${id}`, method: 'DELETE' }),
+      invalidatesTags: (_result, error) => (error ? [] : [...dataTags]),
+    }),
+
+    listCoordinates: build.query<Page<Coordinates>, ListParams>({
+      query: (params) => ({ url: '/coordinates', params }),
       providesTags: ['Coordinates'],
     }),
-    listLocations: build.query<Page<Location>, void>({
-      query: () => ({ url: '/locations', params: choiceParams }),
+    createCoordinates: build.mutation<IdResponse, { x: number; y: number }>({
+      query: (body) => ({ url: '/coordinates', method: 'POST', body }),
+      invalidatesTags: (_result, error) => (error ? [] : [...dataTags]),
+    }),
+    updateCoordinates: build.mutation<void, { id: number; body: { x: number; y: number } }>({
+      query: ({ id, body }) => ({ url: `/coordinates/${id}`, method: 'PUT', body }),
+      invalidatesTags: (_result, error) => (error ? [] : [...dataTags]),
+    }),
+    deleteCoordinates: build.mutation<void, number>({
+      query: (id) => ({ url: `/coordinates/${id}`, method: 'DELETE' }),
+      invalidatesTags: (_result, error) => (error ? [] : [...dataTags]),
+    }),
+
+    listLocations: build.query<Page<Location>, ListParams>({
+      query: (params) => ({ url: '/locations', params }),
       providesTags: ['Location'],
     }),
-    listAddresses: build.query<Page<Address>, void>({
-      query: () => ({ url: '/addresses', params: choiceParams }),
+    createLocation: build.mutation<IdResponse, LocationFields>({
+      query: (body) => ({ url: '/locations', method: 'POST', body }),
+      invalidatesTags: (_result, error) => (error ? [] : [...dataTags]),
+    }),
+    updateLocation: build.mutation<void, { id: number; body: LocationFields }>({
+      query: ({ id, body }) => ({ url: `/locations/${id}`, method: 'PUT', body }),
+      invalidatesTags: (_result, error) => (error ? [] : [...dataTags]),
+    }),
+    deleteLocation: build.mutation<void, number>({
+      query: (id) => ({ url: `/locations/${id}`, method: 'DELETE' }),
+      invalidatesTags: (_result, error) => (error ? [] : [...dataTags]),
+    }),
+
+    listAddresses: build.query<Page<Address>, ListParams & { street?: string }>({
+      query: (params) => ({ url: '/addresses', params }),
       providesTags: ['Address'],
     }),
+    createAddress: build.mutation<IdResponse, AddressRequest>({
+      query: (body) => ({ url: '/addresses', method: 'POST', body }),
+      invalidatesTags: (_result, error) => (error ? [] : [...dataTags]),
+    }),
+    updateAddress: build.mutation<void, { id: number; body: AddressRequest }>({
+      query: ({ id, body }) => ({ url: `/addresses/${id}`, method: 'PUT', body }),
+      invalidatesTags: (_result, error) => (error ? [] : [...dataTags]),
+    }),
+    deleteAddress: build.mutation<void, number>({
+      query: (id) => ({ url: `/addresses/${id}`, method: 'DELETE' }),
+      invalidatesTags: (_result, error) => (error ? [] : [...dataTags]),
+    }),
+
+    listPersons: build.query<Page<Person>, PersonListParams>({
+      query: (params) => ({ url: '/persons', params }),
+      providesTags: ['Person'],
+    }),
+    createPerson: build.mutation<IdResponse, PersonWriteRequest>({
+      query: (body) => ({ url: '/persons', method: 'POST', body }),
+      invalidatesTags: (_result, error) => (error ? [] : [...dataTags]),
+    }),
+    updatePerson: build.mutation<void, { id: number; body: PersonWriteRequest }>({
+      query: ({ id, body }) => ({ url: `/persons/${id}`, method: 'PUT', body }),
+      invalidatesTags: (_result, error) => (error ? [] : [...dataTags]),
+    }),
+    deletePerson: build.mutation<void, number>({
+      query: (id) => ({ url: `/persons/${id}`, method: 'DELETE' }),
+      invalidatesTags: (_result, error) => (error ? [] : [...dataTags]),
+    }),
+
     listOrganizations: build.query<Page<Organization>, void>({
       query: () => ({ url: '/organizations', params: choiceParams }),
       providesTags: ['Organization'],
-    }),
-    listPersons: build.query<Page<Person>, void>({
-      query: () => ({ url: '/persons', params: choiceParams }),
-      providesTags: ['Person'],
     }),
   }),
 })
@@ -269,9 +335,22 @@ export const {
   useGetWorkerQuery,
   useCreateWorkerMutation,
   useUpdateWorkerMutation,
+  useDeleteWorkerMutation,
   useListCoordinatesQuery,
+  useCreateCoordinatesMutation,
+  useUpdateCoordinatesMutation,
+  useDeleteCoordinatesMutation,
   useListLocationsQuery,
+  useCreateLocationMutation,
+  useUpdateLocationMutation,
+  useDeleteLocationMutation,
   useListAddressesQuery,
-  useListOrganizationsQuery,
+  useCreateAddressMutation,
+  useUpdateAddressMutation,
+  useDeleteAddressMutation,
   useListPersonsQuery,
+  useCreatePersonMutation,
+  useUpdatePersonMutation,
+  useDeletePersonMutation,
+  useListOrganizationsQuery,
 } = api

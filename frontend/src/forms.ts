@@ -1,4 +1,14 @@
-import type { AddressRequest, IdRef, LocationFields, Worker, WorkerRequest } from './api/api'
+import type {
+  Address,
+  AddressRequest,
+  IdRef,
+  Location,
+  LocationFields,
+  Person,
+  PersonWriteRequest,
+  Worker,
+  WorkerRequest,
+} from './api/api'
 
 // Поля формы хранятся строками, как их отдают input. Значения всех вариантов
 // (новый объект / существующий) сохраняются, поэтому переключение режима ничего не стирает.
@@ -18,6 +28,15 @@ export interface AddressState {
   town: LocationState
 }
 
+export interface PersonState {
+  eyeColor: string
+  hairColor: string
+  birthday: string
+  weight: string
+  nationality: string
+  location: LocationState
+}
+
 export interface WorkerState {
   name: string
   salary: string
@@ -26,16 +45,7 @@ export interface WorkerState {
   position: string
   status: string
   coordinates: { mode: 'new' | 'existing'; id: string; x: string; y: string }
-  person: {
-    mode: 'none' | 'new' | 'existing'
-    id: string
-    eyeColor: string
-    hairColor: string
-    birthday: string
-    weight: string
-    nationality: string
-    location: LocationState
-  }
+  person: PersonState & { mode: 'none' | 'new' | 'existing'; id: string }
   organization: {
     mode: 'none' | 'existing' | 'new'
     id: string
@@ -58,6 +68,15 @@ export const emptyAddress: AddressState = {
   town: { ...emptyLocation, mode: 'none' },
 }
 
+export const emptyPerson: PersonState = {
+  eyeColor: '',
+  hairColor: 'BLACK',
+  birthday: '',
+  weight: '',
+  nationality: 'RUSSIA',
+  location: emptyLocation,
+}
+
 export const emptyWorker: WorkerState = {
   name: '',
   salary: '',
@@ -66,16 +85,7 @@ export const emptyWorker: WorkerState = {
   position: '',
   status: '',
   coordinates: { mode: 'new', id: '', x: '', y: '' },
-  person: {
-    mode: 'none',
-    id: '',
-    eyeColor: '',
-    hairColor: 'BLACK',
-    birthday: '',
-    weight: '',
-    nationality: 'RUSSIA',
-    location: emptyLocation,
-  },
+  person: { ...emptyPerson, mode: 'none', id: '' },
   organization: {
     mode: 'none',
     id: '',
@@ -94,6 +104,28 @@ export function toLocalInput(iso: string): string {
   const date = new Date(iso)
   const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
   return local.toISOString().slice(0, 16)
+}
+
+export function locationStateFrom(location: Location | null): LocationState {
+  if (!location) {
+    return { ...emptyLocation, mode: 'none' }
+  }
+  return { mode: 'existing', id: String(location.id), x: String(location.x), y: String(location.y), z: String(location.z) }
+}
+
+export function addressStateFrom(address: Address): AddressState {
+  return { mode: 'existing', id: String(address.id), street: address.street, town: locationStateFrom(address.town) }
+}
+
+export function personStateFrom(person: Person): PersonState {
+  return {
+    eyeColor: person.eye_color ?? '',
+    hairColor: person.hair_color,
+    birthday: toLocalInput(person.birthday).slice(0, 10),
+    weight: String(person.weight),
+    nationality: person.nationality,
+    location: locationStateFrom(person.location),
+  }
 }
 
 export function workerStateFrom(worker: Worker): WorkerState {
@@ -120,17 +152,28 @@ export function workerStateFrom(worker: Worker): WorkerState {
   }
 }
 
-function locationRequest(location: LocationState): LocationFields | IdRef {
+export function locationRequest(location: LocationState): LocationFields | IdRef {
   if (location.mode === 'existing') {
     return { id: Number(location.id) }
   }
   return { x: Number(location.x), y: Number(location.y), z: Number(location.z) }
 }
 
-function addressRequest(address: AddressState): AddressRequest {
+export function addressRequest(address: AddressState): AddressRequest {
   return {
     street: address.street,
     town: address.town.mode === 'none' ? null : locationRequest(address.town),
+  }
+}
+
+export function personRequest(person: PersonState): PersonWriteRequest {
+  return {
+    eye_color: person.eyeColor || null,
+    hair_color: person.hairColor,
+    location: locationRequest(person.location),
+    birthday: new Date(`${person.birthday}T00:00`).toISOString(),
+    weight: Number(person.weight),
+    nationality: person.nationality,
   }
 }
 
@@ -153,14 +196,7 @@ export function workerRequest(state: WorkerState, forUpdate: boolean): WorkerReq
   if (person.mode === 'existing') {
     body.person = { id: Number(person.id) }
   } else if (person.mode === 'new') {
-    body.person = {
-      eye_color: person.eyeColor || null,
-      hair_color: person.hairColor,
-      location: locationRequest(person.location),
-      birthday: new Date(`${person.birthday}T00:00`).toISOString(),
-      weight: Number(person.weight),
-      nationality: person.nationality,
-    }
+    body.person = personRequest(person)
   }
 
   if (organization.mode === 'existing') {

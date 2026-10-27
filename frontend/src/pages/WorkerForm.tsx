@@ -3,8 +3,7 @@ import type { FormEvent } from 'react'
 import type { SerializedError } from '@reduxjs/toolkit'
 import type { FetchBaseQueryError } from '@reduxjs/toolkit/query/react'
 import {
-  colors,
-  countries,
+  choiceParams,
   organizationTypes,
   positions,
   statuses,
@@ -16,7 +15,7 @@ import { errorText, fieldLabel, validationIssues } from '../api/errors'
 import AddressInput from '../components/AddressInput'
 import IdInput from '../components/IdInput'
 import Issues from '../components/Issues'
-import LocationInput from '../components/LocationInput'
+import PersonFields from '../components/PersonFields'
 import type { WorkerState } from '../forms'
 
 interface Props {
@@ -34,8 +33,8 @@ function WorkerForm({ initial, forUpdate, submitTitle, isLoading, error, onSubmi
   const { coordinates, person, organization } = state
   const issues = validationIssues(error)
 
-  const coordinatesList = useListCoordinatesQuery(undefined, { skip: coordinates.mode !== 'existing' })
-  const personsList = useListPersonsQuery(undefined, { skip: person.mode !== 'existing' })
+  const coordinatesList = useListCoordinatesQuery(choiceParams, { skip: coordinates.mode !== 'existing' })
+  const personsList = useListPersonsQuery(choiceParams, { skip: person.mode !== 'existing' })
   const organizationsList = useListOrganizationsQuery(undefined, { skip: organization.mode !== 'existing' })
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -224,74 +223,12 @@ function WorkerForm({ initial, forUpdate, submitTitle, isLoading, error, onSubmi
           </div>
           <Issues issues={issues} field="person" />
           {person.mode === 'new' && (
-            <>
-              <label>
-                Цвет глаз
-                <select
-                  value={person.eyeColor}
-                  onChange={(event) => setState({ ...state, person: { ...person, eyeColor: event.target.value } })}
-                >
-                  <option value="">не указан</option>
-                  {colors.map((value) => (
-                    <option key={value}>{value}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Цвет волос
-                <select
-                  value={person.hairColor}
-                  onChange={(event) => setState({ ...state, person: { ...person, hairColor: event.target.value } })}
-                >
-                  {colors.map((value) => (
-                    <option key={value}>{value}</option>
-                  ))}
-                </select>
-              </label>
-              <Issues issues={issues} field="person.hair_color" />
-              <label>
-                Дата рождения
-                <input
-                  type="date"
-                  required
-                  value={person.birthday}
-                  onChange={(event) => setState({ ...state, person: { ...person, birthday: event.target.value } })}
-                />
-              </label>
-              <Issues issues={issues} field="person.birthday" />
-              <label>
-                Вес (больше 0)
-                <input
-                  type="number"
-                  step="any"
-                  min={0}
-                  required
-                  value={person.weight}
-                  onChange={(event) => setState({ ...state, person: { ...person, weight: event.target.value } })}
-                />
-              </label>
-              <Issues issues={issues} field="person.weight" />
-              <label>
-                Национальность
-                <select
-                  value={person.nationality}
-                  onChange={(event) => setState({ ...state, person: { ...person, nationality: event.target.value } })}
-                >
-                  {countries.map((value) => (
-                    <option key={value}>{value}</option>
-                  ))}
-                </select>
-              </label>
-              <Issues issues={issues} field="person.nationality" />
-              <LocationInput
-                legend="Местоположение"
-                value={person.location}
-                onChange={(location) => setState({ ...state, person: { ...person, location } })}
-                allowNone={false}
-                issues={issues}
-                field="person.location"
-              />
-            </>
+            <PersonFields
+              value={person}
+              onChange={(value) => setState({ ...state, person: { ...person, ...value } })}
+              issues={issues}
+              field="person"
+            />
           )}
           {person.mode === 'existing' && (
             <IdInput

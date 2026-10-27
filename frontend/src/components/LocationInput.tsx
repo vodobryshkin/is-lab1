@@ -1,4 +1,4 @@
-import { useListLocationsQuery } from '../api/api'
+import { choiceParams, useListLocationsQuery } from '../api/api'
 import type { ValidationIssue } from '../api/errors'
 import type { LocationState } from '../forms'
 import IdInput from './IdInput'
@@ -14,7 +14,7 @@ interface Props {
 }
 
 function LocationInput({ legend, value, onChange, allowNone, issues, field }: Props) {
-  const locations = useListLocationsQuery(undefined, { skip: value.mode !== 'existing' })
+  const locations = useListLocationsQuery(choiceParams, { skip: value.mode !== 'existing' })
   const choices = (locations.data?.items ?? []).map((location) => ({
     id: location.id,
     title: `(${location.x}; ${location.y}; ${location.z})`,

@@ -19,6 +19,16 @@ const messages: Record<string, string> = {
   'The request body must be a JSON object.': 'Запрос содержит некорректные данные.',
   'Another organization with this full_name already exists.':
     'Организация с таким полным названием уже существует.',
+  'The coordinates cannot be deleted while workers reference them.':
+    'Координаты нельзя удалить: их используют работники.',
+  'The location cannot be deleted while addresses or persons reference it.':
+    'Локацию нельзя удалить: её используют адреса или персоны.',
+  'The address cannot be deleted while organizations reference it.':
+    'Адрес нельзя удалить: его используют организации.',
+  'The person cannot be deleted while a worker references it.':
+    'Персону нельзя удалить: она привязана к работнику. Сначала отвяжите её в окне изменения работника.',
+  'The organization cannot be deleted while workers reference it.':
+    'Организацию нельзя удалить: в ней есть работники.',
 }
 
 const objectNames: Record<string, string> = {
@@ -34,6 +44,10 @@ function translateMessage(message: string): string | undefined {
   const notFound = message.match(/^(\w+) with id=(\d+) (does|do) not exist\.$/)
   if (notFound) {
     return `Не найден объект «${objectNames[notFound[1]] ?? notFound[1]}» с ID ${notFound[2]}.`
+  }
+  const referenced = message.match(/^Worker with id=(\d+) is referenced by a person and cannot be deleted\.$/)
+  if (referenced) {
+    return `Работника с ID ${referenced[1]} нельзя удалить: с ним связана персона. Сначала отвяжите персону в окне изменения работника.`
   }
   const assigned = message.match(/^Person with id=(\d+) is already assigned to another worker\.$/)
   if (assigned) {

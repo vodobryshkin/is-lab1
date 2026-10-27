@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
 import { useGetWorkerQuery } from '../api/api'
+import type { SerializedError } from '@reduxjs/toolkit'
+import type { FetchBaseQueryError } from '@reduxjs/toolkit/query/react'
 import type { Address, Worker } from '../api/api'
 import { errorText } from '../api/errors'
 import { formatDate, formatLocation, formatValue } from '../format'
@@ -9,6 +11,8 @@ interface Props {
   id: number
   onClose: () => void
   onEdit?: (worker: Worker) => void
+  onDelete?: (worker: Worker) => void
+  deleteError?: FetchBaseQueryError | SerializedError
 }
 
 function Fields({ rows }: { rows: [string, ReactNode][] }) {
@@ -31,7 +35,7 @@ function addressText(address: Address) {
   return `${address.street} (ID ${address.id})${town}`
 }
 
-function WorkerDialog({ id, onClose, onEdit }: Props) {
+function WorkerDialog({ id, onClose, onEdit, onDelete, deleteError }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const { data: worker, error, isFetching } = useGetWorkerQuery(id)
 
@@ -111,10 +115,16 @@ function WorkerDialog({ id, onClose, onEdit }: Props) {
         </>
       )}
 
+      {deleteError && <p role="alert">{errorText(deleteError)}</p>}
       <form method="dialog">
         {worker && !error && onEdit && (
           <button type="button" onClick={() => onEdit(worker)}>
             Изменить
+          </button>
+        )}
+        {worker && !error && onDelete && (
+          <button type="button" onClick={() => onDelete(worker)}>
+            Удалить
           </button>
         )}
         <button type="submit">Закрыть</button>

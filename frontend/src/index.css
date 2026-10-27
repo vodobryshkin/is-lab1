@@ -117,10 +117,11 @@ dialog h2 {
 
 .menu ul {
   margin: 1rem 0 0;
+  text-align: left;
 }
 
-.menu li:first-child {
-  margin-left: 0;
+.menu li {
+  margin: 0 1rem 0 0;
 }
 
 .radio-group {

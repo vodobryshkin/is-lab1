@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { useListWorkersQuery } from '../api/api'
+import { useDeleteWorkerMutation, useListWorkersQuery } from '../api/api'
 import type { Worker } from '../api/api'
 import { errorText } from '../api/errors'
+import Pager from '../components/Pager'
 import { formatDate, formatValue } from '../format'
 import EditWorkerDialog from './EditWorkerDialog'
 import WorkerDialog from './WorkerDialog'
@@ -30,6 +31,7 @@ function WorkersPage() {
   const [idInput, setIdInput] = useState('')
   const [openedId, setOpenedId] = useState<number | null>(null)
   const [editing, setEditing] = useState<Worker | null>(null)
+  const [deleteWorker, deleteState] = useDeleteWorkerMutation()
 
   const list = useListWorkersQuery({
     page,
@@ -41,7 +43,15 @@ function WorkersPage() {
     status: filters.status || undefined,
   })
 
-  const totalPages = list.data ? Math.max(1, Math.ceil(list.data.total_items / pageSize)) : 1
+  async function handleDelete(worker: Worker) {
+    if (!window.confirm(`Удалить работника «${worker.name}» (ID ${worker.id})? Это действие нельзя отменить.`)) {
+      return
+    }
+    const result = await deleteWorker(worker.id)
+    if (!result.error) {
+      setOpenedId(null)
+    }
+  }
 
   function applyFilters(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -61,6 +71,7 @@ function WorkersPage() {
 
   function openById(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    deleteState.reset()
     setOpenedId(Number(idInput))
   }
 
@@ -147,24 +158,9 @@ function WorkersPage() {
             <option value="desc">по убыванию</option>
           </select>
         </label>
-        <label>
-          На странице
-          <select
-            value={pageSize}
-            onChange={(event) => {
-              setPageSize(Number(event.target.value))
-              setPage(1)
-            }}
-          >
-            {[5, 10, 20, 50, 100].map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </select>
-        </label>
       </div>
 
+      {deleteState.isError && <p role="alert">{errorText(deleteState.error)}</p>}
       {list.isLoading && <p>Загрузка…</p>}
       {list.isError && <p role="alert">{errorText(list.error)}</p>}
       {list.data && list.data.items.length === 0 && <p>Работники не найдены.</p>}
@@ -199,6 +195,9 @@ function WorkersPage() {
                       <button type="button" onClick={() => setEditing(worker)}>
                         Изменить
                       </button>
+                      <button type="button" onClick={() => handleDelete(worker)} disabled={deleteState.isLoading}>
+                        Удалить
+                      </button>
                     </div>
                   </td>
                   <td>{worker.id}</td>
@@ -222,18 +221,17 @@ function WorkersPage() {
       )}
 
       {list.data && (
-        <div className="inline-form">
-          <button type="button" onClick={() => setPage(page - 1)} disabled={page <= 1}>
-            Назад
-          </button>
-          <span>
-            Страница {page} из {totalPages}, всего работников: {list.data.total_items}
-            {list.isFetching && ' (обновление…)'}
-          </span>
-          <button type="button" onClick={() => setPage(page + 1)} disabled={page >= totalPages}>
-            Вперёд
-          </button>
-        </div>
+        <Pager
+          page={page}
+          pageSize={pageSize}
+          totalItems={list.data.total_items}
+          isFetching={list.isFetching}
+          onPage={setPage}
+          onPageSize={(size) => {
+            setPageSize(size)
+            setPage(1)
+          }}
+        />
       )}
 
       {openedId !== null && (
@@ -244,6 +242,8 @@ function WorkersPage() {
             setOpenedId(null)
             setEditing(worker)
           }}
+          onDelete={handleDelete}
+          deleteError={deleteState.error}
         />
       )}
       {editing && <EditWorkerDialog key={editing.id} worker={editing} onClose={() => setEditing(null)} />}

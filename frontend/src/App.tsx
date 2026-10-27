@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useGetSessionQuery, useLogoutMutation } from './api/api'
 import { errorText, isUnauthorized } from './api/errors'
+import AddressesPage from './pages/AddressesPage'
 import AuthPage from './pages/AuthPage'
+import CoordinatesPage from './pages/CoordinatesPage'
 import CreateWorkerPage from './pages/CreateWorkerPage'
+import LocationsPage from './pages/LocationsPage'
+import PersonsPage from './pages/PersonsPage'
 import WorkersPage from './pages/WorkersPage'
 
 function App() {
@@ -17,10 +21,14 @@ function App() {
   }, [])
 
   const pages = [
-    { hash: '', title: 'Список работников' },
-    { hash: '#new-worker', title: 'Новый работник' },
+    { hash: '', title: 'Список работников', content: <WorkersPage /> },
+    { hash: '#new-worker', title: 'Новый работник', content: <CreateWorkerPage /> },
+    { hash: '#coordinates', title: 'Координаты', content: <CoordinatesPage /> },
+    { hash: '#locations', title: 'Локации', content: <LocationsPage /> },
+    { hash: '#addresses', title: 'Адреса', content: <AddressesPage /> },
+    { hash: '#persons', title: 'Персоны', content: <PersonsPage /> },
   ]
-  const currentHash = pages.some((page) => page.hash === hash) ? hash : ''
+  const currentPage = pages.find((page) => page.hash === hash) ?? pages[0]
 
   const loggedIn = !!session.data && !session.error
 
@@ -39,7 +47,7 @@ function App() {
       </>
     )
   } else if (session.data) {
-    content = currentHash === '#new-worker' ? <CreateWorkerPage /> : <WorkersPage />
+    content = currentPage.content
   }
 
   return (
@@ -62,7 +70,7 @@ function App() {
               <ul>
                 {pages.map((page) => (
                   <li key={page.hash}>
-                    {page.hash === currentHash ? <strong>{page.title}</strong> : <a href={page.hash || '#'}>{page.title}</a>}
+                    {page === currentPage ? <strong>{page.title}</strong> : <a href={page.hash || '#'}>{page.title}</a>}
                   </li>
                 ))}
               </ul>

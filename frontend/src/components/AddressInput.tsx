@@ -1,4 +1,4 @@
-import { useListAddressesQuery } from '../api/api'
+import { choiceParams, useListAddressesQuery } from '../api/api'
 import type { ValidationIssue } from '../api/errors'
 import type { AddressState } from '../forms'
 import IdInput from './IdInput'
@@ -14,7 +14,7 @@ interface Props {
 }
 
 function AddressInput({ legend, value, onChange, issues, field }: Props) {
-  const addresses = useListAddressesQuery(undefined, { skip: value.mode !== 'existing' })
+  const addresses = useListAddressesQuery(choiceParams, { skip: value.mode !== 'existing' })
   const choices = (addresses.data?.items ?? []).map((address) => ({ id: address.id, title: address.street }))
 
   return (
