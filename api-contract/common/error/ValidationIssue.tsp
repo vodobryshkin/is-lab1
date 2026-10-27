@@ -9,7 +9,7 @@ const validationIssueExample: ValidationIssue = #{
 @doc("Нарушение правила в одном поле тела запроса.")
 @example(validationIssueExample)
 model ValidationIssue {
-    @doc("Имя поля; у вложенного поля — путь через точку, у всего тела — `$`.")
+    @doc("Имя поля; у вложенного поля -- путь через точку, у всего тела -- `$`.")
     field: string;
 
     @doc("Машинный код нарушения.")

@@ -60,7 +60,7 @@ public class WorkerRepository {
      *
      * @param query проверенные параметры страницы
      * @param filters параметры запроса с фильтрами контракта
-     * @return работники страницы; за концом списка — пустой список
+     * @return работники страницы; за концом списка -- пустой список
      */
     public List<Worker> findPage(ListQuery query, Map<String, List<String>> filters) {
         long offset = (long) (query.getPage() - 1) * query.getPageSize();
@@ -187,7 +187,7 @@ public class WorkerRepository {
     /**
      * Считает работников с указанным статусом.
      *
-     * @param status статус; null — работники без статуса
+     * @param status статус; null -- работники без статуса
      * @return количество
      */
     public long countByStatus(Status status) {
@@ -219,7 +219,7 @@ public class WorkerRepository {
      * Возвращает всех работников с рейтингом строго меньше порога, по возрастанию ID.
      *
      * @param rating порог
-     * @return работники с вложенными объектами; без совпадений — пустой список
+     * @return работники с вложенными объектами; без совпадений -- пустой список
      */
     public List<Worker> findByRatingLessThan(int rating) {
         return entityManager.createQuery(
@@ -234,7 +234,7 @@ public class WorkerRepository {
      * Порядок по ID одинаков для всех транзакций и исключает взаимную блокировку.
      *
      * @param organizationId ID организации
-     * @return работники организации; без работников — пустой список
+     * @return работники организации; без работников -- пустой список
      */
     public List<Worker> findByOrganizationForUpdate(long organizationId) {
         return entityManager.createQuery(

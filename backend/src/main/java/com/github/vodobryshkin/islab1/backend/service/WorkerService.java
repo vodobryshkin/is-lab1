@@ -69,7 +69,7 @@ public class WorkerService {
 
     /**
      * Создаёт работника вместе с новыми вложенными объектами в одной транзакции.
-     * Создатель — вошедший пользователь, дату создания задаёт сервер.
+     * Создатель -- вошедший пользователь, дату создания задаёт сервер.
      *
      * @param worker работник; у ссылок на координаты, персону и организацию задан только ID
      * @param username логин вошедшего пользователя
@@ -99,7 +99,7 @@ public class WorkerService {
      * Прежняя персона отвязывается, но не удаляется.
      *
      * @param id ID работника
-     * @param values новые значения; организация — только ссылка или null
+     * @param values новые значения; организация -- только ссылка или null
      * @return DONE; NOT_FOUND; REFERENCE_NOT_FOUND с недостающей
      *     ссылкой; CONFLICT с видом "person", если персона связана
      *     с другим работником
@@ -187,7 +187,7 @@ public class WorkerService {
 
     /**
      * Первая причина отказа: ненайденная ссылка или конфликт; без записи в БД.
-     * owner — ID обновляемого работника, его собственная персона не конфликтует.
+     * owner -- ID обновляемого работника, его собственная персона не конфликтует.
      */
     private Optional<Change> refusal(Worker worker, Integer owner) {
         Coordinates coordinates = worker.getCoordinates();
@@ -264,7 +264,7 @@ public class WorkerService {
     }
 
     /**
-     * Привязка задаётся со стороны персоны: внешний ключ — persons.worker_id.
+     * Привязка задаётся со стороны персоны: внешний ключ -- persons.worker_id.
      */
     private void attach(Worker worker, Person person) {
         if (person == null) {

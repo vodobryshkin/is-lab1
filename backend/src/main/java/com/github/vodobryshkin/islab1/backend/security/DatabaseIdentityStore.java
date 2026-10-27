@@ -9,7 +9,7 @@ import jakarta.security.enterprise.identitystore.IdentityStore;
 
 /**
  * Проверяет логин и пароль по пользователям в БД.
- * Имя вызывающего — логин; ролей нет, все вошедшие пользователи равноправны.
+ * Имя вызывающего -- логин; ролей нет, все вошедшие пользователи равноправны.
  */
 @ApplicationScoped
 public class DatabaseIdentityStore implements IdentityStore {

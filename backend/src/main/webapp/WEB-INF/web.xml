@@ -3,7 +3,6 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
          version="6.0">
-    <!-- По умолчанию любой адрес приложения, включая будущий WebSocket, требует входа. -->
     <security-constraint>
         <web-resource-collection>
             <web-resource-name>application</web-resource-name>
@@ -14,7 +13,6 @@
         </auth-constraint>
     </security-constraint>
 
-    <!-- Публичные операции перечислены явно; CSRF для них всё равно проверяется. -->
     <security-constraint>
         <web-resource-collection>
             <web-resource-name>public-auth</web-resource-name>
@@ -25,7 +23,6 @@
         </web-resource-collection>
     </security-constraint>
 
-    <!-- Ответ 401 без входа в JSON, а не HTML-страница контейнера. -->
     <error-page>
         <error-code>401</error-code>
         <location>/WEB-INF/errors/401.json</location>
@@ -36,12 +33,10 @@
         <mime-type>application/json</mime-type>
     </mime-mapping>
 
-    <!-- Тайм-аут бездействия задаёт сервер: default-session-timeout в configure-wildfly.cli. -->
     <session-config>
         <cookie-config>
             <http-only>true</http-only>
         </cookie-config>
-        <!-- ID сессии передаётся только в cookie, не в URL. -->
         <tracking-mode>COOKIE</tracking-mode>
     </session-config>
 </web-app>

@@ -9,8 +9,8 @@
 #           $WILDFLY_HOME/bin/standalone.sh
 #
 # Сервер читает переменные окружения при каждом запуске:
-#   IS_LAB1_DB_URL, IS_LAB1_DB_USER, IS_LAB1_DB_PASSWORD — подключение к PostgreSQL;
-#   IS_LAB1_SESSION_TIMEOUT_MINUTES — тайм-аут бездействия сессии, по умолчанию 30.
+#   IS_LAB1_DB_URL, IS_LAB1_DB_USER, IS_LAB1_DB_PASSWORD -- подключение к PostgreSQL;
+#   IS_LAB1_SESSION_TIMEOUT_MINUTES -- тайм-аут бездействия сессии, по умолчанию 30.
 # Cookie сессии получает Secure, когда запрос пришёл по HTTPS.
 
 embed-server --std-out=echo --server-config=standalone.xml

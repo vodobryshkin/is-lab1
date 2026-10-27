@@ -109,7 +109,7 @@ public class SpecialOperationService {
     /**
      * Считает работников с указанным статусом.
      *
-     * @param status статус; null — работники без статуса
+     * @param status статус; null -- работники без статуса
      * @return количество
      */
     public long countByStatus(Status status) {

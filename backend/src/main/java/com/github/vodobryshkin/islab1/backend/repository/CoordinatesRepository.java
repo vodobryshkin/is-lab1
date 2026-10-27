@@ -34,7 +34,7 @@ public class CoordinatesRepository {
      * Возвращает страницу координат; при равных значениях порядок задаёт ID по возрастанию.
      *
      * @param query проверенные параметры страницы
-     * @return координаты страницы; за концом списка — пустой список
+     * @return координаты страницы; за концом списка -- пустой список
      */
     public List<Coordinates> findPage(ListQuery query) {
         long offset = (long) (query.getPage() - 1) * query.getPageSize();

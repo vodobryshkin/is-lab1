@@ -37,7 +37,7 @@ public class AddressRepository {
      *
      * @param query проверенные параметры страницы
      * @param street подстрока улицы; null или пустая строка не фильтрует
-     * @return адреса страницы; за концом списка — пустой список
+     * @return адреса страницы; за концом списка -- пустой список
      */
     public List<Address> findPage(ListQuery query, String street) {
         long offset = (long) (query.getPage() - 1) * query.getPageSize();

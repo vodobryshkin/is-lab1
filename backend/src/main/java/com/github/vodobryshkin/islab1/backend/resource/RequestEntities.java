@@ -148,11 +148,11 @@ public class RequestEntities {
 
     /**
      * Читает объект как работника. ID, создателя, дату создания и привязку персоны задаёт
-     * сервер. Организация — null, ссылка (задан только ID) или новая без ID.
+     * сервер. Организация -- null, ссылка (задан только ID) или новая без ID.
      *
      * @param fields поля работника
      * @param update true для PUT: обязателен organization_id, допускающий
-     *     null, а новой организации нет; иначе — три формы создания
+     *     null, а новой организации нет; иначе -- три формы создания
      * @return работник без ID, создателя и даты создания
      */
     public Worker worker(RequestFields fields, boolean update) {
@@ -191,7 +191,7 @@ public class RequestEntities {
     }
 
     /**
-     * PUT: ключ organization_id обязателен; null — без организации.
+     * PUT: ключ organization_id обязателен; null -- без организации.
      */
     private Organization updatedOrganization(RequestFields fields) {
         return fields.hasNull(ORGANIZATION_ID_FIELD) ? null : organizationReference(fields);

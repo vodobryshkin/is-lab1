@@ -58,7 +58,7 @@ public class PersonRepository {
      *
      * @param query проверенные параметры страницы
      * @param filters параметры запроса с фильтрами контракта
-     * @return персоны страницы; за концом списка — пустой список
+     * @return персоны страницы; за концом списка -- пустой список
      */
     public List<Person> findPage(ListQuery query, Map<String, List<String>> filters) {
         long offset = (long) (query.getPage() - 1) * query.getPageSize();

@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Операции с адресами. Город адреса — новая локация, существующая локация или её отсутствие.
+ * Операции с адресами. Город адреса -- новая локация, существующая локация или её отсутствие.
  */
 @ApplicationScoped
 public class AddressService {

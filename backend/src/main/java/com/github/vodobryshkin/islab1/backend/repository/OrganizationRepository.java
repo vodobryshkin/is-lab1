@@ -63,7 +63,7 @@ public class OrganizationRepository {
      *
      * @param query проверенные параметры страницы
      * @param filters параметры запроса с фильтрами контракта
-     * @return организации страницы; за концом списка — пустой список
+     * @return организации страницы; за концом списка -- пустой список
      */
     public List<Organization> findPage(ListQuery query, Map<String, List<String>> filters) {
         long offset = (long) (query.getPage() - 1) * query.getPageSize();
