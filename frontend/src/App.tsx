@@ -6,6 +6,7 @@ import AuthPage from './pages/AuthPage'
 import CoordinatesPage from './pages/CoordinatesPage'
 import CreateWorkerPage from './pages/CreateWorkerPage'
 import LocationsPage from './pages/LocationsPage'
+import OrganizationsPage from './pages/OrganizationsPage'
 import PersonsPage from './pages/PersonsPage'
 import WorkersPage from './pages/WorkersPage'
 
@@ -23,6 +24,7 @@ function App() {
   const pages = [
     { hash: '', title: 'Список работников', content: <WorkersPage /> },
     { hash: '#new-worker', title: 'Новый работник', content: <CreateWorkerPage /> },
+    { hash: '#organizations', title: 'Организации', content: <OrganizationsPage /> },
     { hash: '#coordinates', title: 'Координаты', content: <CoordinatesPage /> },
     { hash: '#locations', title: 'Локации', content: <LocationsPage /> },
     { hash: '#addresses', title: 'Адреса', content: <AddressesPage /> },

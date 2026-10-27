@@ -104,6 +104,11 @@ export interface PersonListParams extends ListParams {
   nationality?: string
 }
 
+export interface OrganizationListParams extends ListParams {
+  full_name?: string
+  type?: string
+}
+
 export interface PersonWriteRequest {
   eye_color: string | null
   hair_color: string
@@ -319,9 +324,21 @@ export const api = createApi({
       invalidatesTags: (_result, error) => (error ? [] : [...dataTags]),
     }),
 
-    listOrganizations: build.query<Page<Organization>, void>({
-      query: () => ({ url: '/organizations', params: choiceParams }),
+    listOrganizations: build.query<Page<Organization>, OrganizationListParams>({
+      query: (params) => ({ url: '/organizations', params }),
       providesTags: ['Organization'],
+    }),
+    createOrganization: build.mutation<IdResponse, OrganizationRequest>({
+      query: (body) => ({ url: '/organizations', method: 'POST', body }),
+      invalidatesTags: (_result, error) => (error ? [] : [...dataTags]),
+    }),
+    updateOrganization: build.mutation<void, { id: number; body: OrganizationRequest }>({
+      query: ({ id, body }) => ({ url: `/organizations/${id}`, method: 'PUT', body }),
+      invalidatesTags: (_result, error) => (error ? [] : [...dataTags]),
+    }),
+    deleteOrganization: build.mutation<void, number>({
+      query: (id) => ({ url: `/organizations/${id}`, method: 'DELETE' }),
+      invalidatesTags: (_result, error) => (error ? [] : [...dataTags]),
     }),
   }),
 })
@@ -353,4 +370,7 @@ export const {
   useUpdatePersonMutation,
   useDeletePersonMutation,
   useListOrganizationsQuery,
+  useCreateOrganizationMutation,
+  useUpdateOrganizationMutation,
+  useDeleteOrganizationMutation,
 } = api

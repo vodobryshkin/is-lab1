@@ -4,6 +4,8 @@ import type {
   IdRef,
   Location,
   LocationFields,
+  Organization,
+  OrganizationRequest,
   Person,
   PersonWriteRequest,
   Worker,
@@ -37,6 +39,16 @@ export interface PersonState {
   location: LocationState
 }
 
+export interface OrganizationState {
+  fullName: string
+  annualTurnover: string
+  employeesCount: string
+  rating: string
+  type: string
+  official: AddressState
+  postal: AddressState
+}
+
 export interface WorkerState {
   name: string
   salary: string
@@ -46,17 +58,7 @@ export interface WorkerState {
   status: string
   coordinates: { mode: 'new' | 'existing'; id: string; x: string; y: string }
   person: PersonState & { mode: 'none' | 'new' | 'existing'; id: string }
-  organization: {
-    mode: 'none' | 'existing' | 'new'
-    id: string
-    fullName: string
-    annualTurnover: string
-    employeesCount: string
-    rating: string
-    type: string
-    official: AddressState
-    postal: AddressState
-  }
+  organization: OrganizationState & { mode: 'none' | 'existing' | 'new'; id: string }
 }
 
 export const emptyLocation: LocationState = { mode: 'new', id: '', x: '', y: '', z: '' }
@@ -77,6 +79,16 @@ export const emptyPerson: PersonState = {
   location: emptyLocation,
 }
 
+export const emptyOrganization: OrganizationState = {
+  fullName: '',
+  annualTurnover: '',
+  employeesCount: '',
+  rating: '',
+  type: '',
+  official: emptyAddress,
+  postal: emptyAddress,
+}
+
 export const emptyWorker: WorkerState = {
   name: '',
   salary: '',
@@ -86,17 +98,7 @@ export const emptyWorker: WorkerState = {
   status: '',
   coordinates: { mode: 'new', id: '', x: '', y: '' },
   person: { ...emptyPerson, mode: 'none', id: '' },
-  organization: {
-    mode: 'none',
-    id: '',
-    fullName: '',
-    annualTurnover: '',
-    employeesCount: '',
-    rating: '',
-    type: '',
-    official: emptyAddress,
-    postal: emptyAddress,
-  },
+  organization: { ...emptyOrganization, mode: 'none', id: '' },
 }
 
 // datetime-local ожидает локальное время без часового пояса: 2026-10-28T10:30
@@ -125,6 +127,18 @@ export function personStateFrom(person: Person): PersonState {
     weight: String(person.weight),
     nationality: person.nationality,
     location: locationStateFrom(person.location),
+  }
+}
+
+export function organizationStateFrom(organization: Organization): OrganizationState {
+  return {
+    fullName: organization.full_name,
+    annualTurnover: String(organization.annual_turnover),
+    employeesCount: String(organization.employees_count),
+    rating: String(organization.rating),
+    type: organization.type ?? '',
+    official: addressStateFrom(organization.official_address),
+    postal: addressStateFrom(organization.postal_address),
   }
 }
 
@@ -177,6 +191,27 @@ export function personRequest(person: PersonState): PersonWriteRequest {
   }
 }
 
+export function organizationRequest(organization: OrganizationState): OrganizationRequest {
+  const body: OrganizationRequest = {
+    full_name: organization.fullName,
+    annual_turnover: Number(organization.annualTurnover),
+    employees_count: Number(organization.employeesCount),
+    rating: Number(organization.rating),
+    type: organization.type || null,
+  }
+  if (organization.official.mode === 'existing') {
+    body.official_address_id = Number(organization.official.id)
+  } else {
+    body.official_address = addressRequest(organization.official)
+  }
+  if (organization.postal.mode === 'existing') {
+    body.postal_address_id = Number(organization.postal.id)
+  } else {
+    body.postal_address = addressRequest(organization.postal)
+  }
+  return body
+}
+
 export function workerRequest(state: WorkerState, forUpdate: boolean): WorkerRequest {
   const { coordinates, person, organization } = state
   const body: WorkerRequest = {
@@ -202,23 +237,7 @@ export function workerRequest(state: WorkerState, forUpdate: boolean): WorkerReq
   if (organization.mode === 'existing') {
     body.organization_id = Number(organization.id)
   } else if (organization.mode === 'new') {
-    body.organization = {
-      full_name: organization.fullName,
-      annual_turnover: Number(organization.annualTurnover),
-      employees_count: Number(organization.employeesCount),
-      rating: Number(organization.rating),
-      type: organization.type || null,
-    }
-    if (organization.official.mode === 'existing') {
-      body.organization.official_address_id = Number(organization.official.id)
-    } else {
-      body.organization.official_address = addressRequest(organization.official)
-    }
-    if (organization.postal.mode === 'existing') {
-      body.organization.postal_address_id = Number(organization.postal.id)
-    } else {
-      body.organization.postal_address = addressRequest(organization.postal)
-    }
+    body.organization = organizationRequest(organization)
   } else if (forUpdate) {
     // В PUT поле organization_id обязательно: null отвязывает организацию.
     body.organization_id = null

@@ -4,7 +4,6 @@ import type { SerializedError } from '@reduxjs/toolkit'
 import type { FetchBaseQueryError } from '@reduxjs/toolkit/query/react'
 import {
   choiceParams,
-  organizationTypes,
   positions,
   statuses,
   useListCoordinatesQuery,
@@ -12,9 +11,9 @@ import {
   useListPersonsQuery,
 } from '../api/api'
 import { errorText, fieldLabel, validationIssues } from '../api/errors'
-import AddressInput from '../components/AddressInput'
 import IdInput from '../components/IdInput'
 import Issues from '../components/Issues'
+import OrganizationFields from '../components/OrganizationFields'
 import PersonFields from '../components/PersonFields'
 import type { WorkerState } from '../forms'
 
@@ -35,7 +34,7 @@ function WorkerForm({ initial, forUpdate, submitTitle, isLoading, error, onSubmi
 
   const coordinatesList = useListCoordinatesQuery(choiceParams, { skip: coordinates.mode !== 'existing' })
   const personsList = useListPersonsQuery(choiceParams, { skip: person.mode !== 'existing' })
-  const organizationsList = useListOrganizationsQuery(undefined, { skip: organization.mode !== 'existing' })
+  const organizationsList = useListOrganizationsQuery(choiceParams, { skip: organization.mode !== 'existing' })
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -288,93 +287,12 @@ function WorkerForm({ initial, forUpdate, submitTitle, isLoading, error, onSubmi
             />
           )}
           {organization.mode === 'new' && (
-            <>
-              <label>
-                Полное название (уникальное)
-                <input
-                  type="text"
-                  required
-                  pattern=".*\S.*"
-                  title="Название не может быть пустым"
-                  value={organization.fullName}
-                  onChange={(event) =>
-                    setState({ ...state, organization: { ...organization, fullName: event.target.value } })
-                  }
-                />
-              </label>
-              <Issues issues={issues} field="organization.full_name" />
-              <label>
-                Годовой оборот (больше 0)
-                <input
-                  type="number"
-                  step="any"
-                  min={0}
-                  required
-                  value={organization.annualTurnover}
-                  onChange={(event) =>
-                    setState({ ...state, organization: { ...organization, annualTurnover: event.target.value } })
-                  }
-                />
-              </label>
-              <Issues issues={issues} field="organization.annual_turnover" />
-              <label>
-                Количество сотрудников (больше 0)
-                <input
-                  type="number"
-                  step={1}
-                  min={1}
-                  required
-                  value={organization.employeesCount}
-                  onChange={(event) =>
-                    setState({ ...state, organization: { ...organization, employeesCount: event.target.value } })
-                  }
-                />
-              </label>
-              <Issues issues={issues} field="organization.employees_count" />
-              <label>
-                Рейтинг (целое, больше 0)
-                <input
-                  type="number"
-                  step={1}
-                  min={1}
-                  max={2147483647}
-                  required
-                  value={organization.rating}
-                  onChange={(event) =>
-                    setState({ ...state, organization: { ...organization, rating: event.target.value } })
-                  }
-                />
-              </label>
-              <Issues issues={issues} field="organization.rating" />
-              <label>
-                Тип
-                <select
-                  value={organization.type}
-                  onChange={(event) =>
-                    setState({ ...state, organization: { ...organization, type: event.target.value } })
-                  }
-                >
-                  <option value="">не указан</option>
-                  {organizationTypes.map((value) => (
-                    <option key={value}>{value}</option>
-                  ))}
-                </select>
-              </label>
-              <AddressInput
-                legend="Официальный адрес"
-                value={organization.official}
-                onChange={(official) => setState({ ...state, organization: { ...organization, official } })}
-                issues={issues}
-                field="organization.official_address"
-              />
-              <AddressInput
-                legend="Почтовый адрес"
-                value={organization.postal}
-                onChange={(postal) => setState({ ...state, organization: { ...organization, postal } })}
-                issues={issues}
-                field="organization.postal_address"
-              />
-            </>
+            <OrganizationFields
+              value={organization}
+              onChange={(value) => setState({ ...state, organization: { ...organization, ...value } })}
+              issues={issues}
+              field="organization"
+            />
           )}
         </fieldset>
 
