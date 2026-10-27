@@ -5,6 +5,7 @@ import com.github.vodobryshkin.islab1.backend.dto.ErrorResponse;
 import com.github.vodobryshkin.islab1.backend.dto.IdResponse;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
 import com.github.vodobryshkin.islab1.backend.dto.PageResponse;
+import com.github.vodobryshkin.islab1.backend.dto.PersonRequest;
 import com.github.vodobryshkin.islab1.backend.dto.PersonResponse;
 import com.github.vodobryshkin.islab1.backend.service.PersonService;
 import jakarta.enterprise.context.RequestScoped;
@@ -39,28 +40,24 @@ public class PersonResource {
 
     private final PersonService service;
     private final RequestReader requestReader;
-    private final RequestEntities entities;
 
     /**
      * Создаёт ресурс.
      *
      * @param service операции с персонами
      * @param requestReader чтение запросов
-     * @param entities сборка сущностей из полей запроса
      */
     @Inject
-    public PersonResource(PersonService service, RequestReader requestReader,
-            RequestEntities entities) {
+    public PersonResource(PersonService service, RequestReader requestReader) {
         this.service = service;
         this.requestReader = requestReader;
-        this.entities = entities;
     }
 
     /**
      * Нужен CDI для прокси и Jakarta REST, который требует публичный конструктор.
      */
     public PersonResource() {
-        this(null, null, null);
+        this(null, null);
     }
 
     /**
@@ -73,7 +70,9 @@ public class PersonResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(String body, @Context UriInfo uriInfo) {
-        Person person = readPerson(body);
+        PersonRequest request = requestReader.read(body, PersonRequest.class);
+        request.setId(null);
+        Person person = request.toEntity();
         Long locationId = person.getLocation().getId();
         Optional<Long> id = service.create(person);
 
@@ -144,7 +143,7 @@ public class PersonResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("id") String rawId, String body) {
         long id = requestReader.id(rawId);
-        Person values = readPerson(body);
+        Person values = requestReader.read(body, PersonRequest.class).toEntity();
         Long locationId = values.getLocation().getId();
 
         return switch (service.update(id, values)) {
@@ -179,11 +178,5 @@ public class PersonResource {
                     .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
                     .build();
         };
-    }
-
-    private Person readPerson(String body) {
-        RequestFields fields = requestReader.read(body);
-
-        return fields.validate(entities.person(fields));
     }
 }

@@ -97,7 +97,7 @@ public class AuthResource {
     @Path("/register")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response register(String body) {
-        CredentialsRequest credentials = readCredentials(body);
+        CredentialsRequest credentials = requestReader.read(body, CredentialsRequest.class);
 
         try {
             Long id = userService.register(credentials.getUsername(), credentials.getPassword());
@@ -126,7 +126,7 @@ public class AuthResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response login(String body, @Context HttpServletRequest request,
             @Context HttpServletResponse response) throws ServletException {
-        CredentialsRequest credentials = readCredentials(body);
+        CredentialsRequest credentials = requestReader.read(body, CredentialsRequest.class);
 
         if (request.getUserPrincipal() != null) {
             eventSessions.end(request.getSession());
@@ -187,13 +187,6 @@ public class AuthResource {
                 .orElseThrow();
 
         return Response.ok().entity(body).cacheControl(noStore()).build();
-    }
-
-    private CredentialsRequest readCredentials(String body) {
-        RequestFields fields = requestReader.read(body);
-
-        return fields.validate(
-                new CredentialsRequest(fields.string("username"), fields.string("password")));
     }
 
     private boolean isUniqueViolation(Throwable exception) {

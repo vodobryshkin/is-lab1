@@ -48,18 +48,6 @@ const deleteCoordinatesConflictOperationExample = #{
 @doc("Ошибки данных координат.")
 union CoordinatesRequestValidationIssue {
     coordinates: CoordinatesValidationIssue<"", "">,
-
-    body: {
-        field: "$";
-        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE";
-        message: string;
-    },
-
-    unknown_field: {
-        field: string;
-        code: "UNKNOWN_FIELD";
-        message: string;
-    },
 }
 
 @error

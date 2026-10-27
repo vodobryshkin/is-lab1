@@ -4,7 +4,9 @@ import com.github.vodobryshkin.islab1.backend.domain.Organization;
 import com.github.vodobryshkin.islab1.backend.dto.CountResponse;
 import com.github.vodobryshkin.islab1.backend.dto.ErrorResponse;
 import com.github.vodobryshkin.islab1.backend.dto.IdResponse;
+import com.github.vodobryshkin.islab1.backend.dto.IndexSalariesRequest;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
+import com.github.vodobryshkin.islab1.backend.dto.OrganizationRequest;
 import com.github.vodobryshkin.islab1.backend.dto.OrganizationResponse;
 import com.github.vodobryshkin.islab1.backend.dto.PageResponse;
 import com.github.vodobryshkin.islab1.backend.service.Change;
@@ -42,28 +44,24 @@ public class OrganizationResource {
 
     private final OrganizationService service;
     private final RequestReader requestReader;
-    private final RequestEntities entities;
 
     /**
      * Создаёт ресурс.
      *
      * @param service операции с организациями
      * @param requestReader чтение запросов
-     * @param entities сборка сущностей из полей запроса
      */
     @Inject
-    public OrganizationResource(OrganizationService service, RequestReader requestReader,
-            RequestEntities entities) {
+    public OrganizationResource(OrganizationService service, RequestReader requestReader) {
         this.service = service;
         this.requestReader = requestReader;
-        this.entities = entities;
     }
 
     /**
      * Нужен CDI для прокси и Jakarta REST, который требует публичный конструктор.
      */
     public OrganizationResource() {
-        this(null, null, null);
+        this(null, null);
     }
 
     /**
@@ -76,7 +74,9 @@ public class OrganizationResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(String body, @Context UriInfo uriInfo) {
-        Change change = service.create(readOrganization(body));
+        Organization organization =
+                requestReader.read(body, OrganizationRequest.class).toEntity();
+        Change change = service.create(organization);
 
         return switch (change.getOutcome()) {
             case DONE -> Response.created(uriInfo.getAbsolutePathBuilder()
@@ -144,7 +144,8 @@ public class OrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("id") String rawId, String body) {
         long id = requestReader.id(rawId);
-        Change change = service.update(id, readOrganization(body));
+        Organization values = requestReader.read(body, OrganizationRequest.class).toEntity();
+        Change change = service.update(id, values);
 
         return switch (change.getOutcome()) {
             case DONE -> Response.noContent().build();
@@ -171,15 +172,8 @@ public class OrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response indexSalaries(@PathParam("id") String rawId, String body) {
         long id = requestReader.id(rawId);
-        RequestFields fields = requestReader.read(body).allowOnly("coefficient");
-        Double coefficient = fields.float64("coefficient");
-
-        if (coefficient != null && coefficient <= 0) {
-            fields.reject("coefficient", "MUST_BE_POSITIVE",
-                    "coefficient must be greater than zero.");
-        }
-
-        Change change = service.indexSalaries(id, fields.validate(coefficient));
+        IndexSalariesRequest request = requestReader.read(body, IndexSalariesRequest.class);
+        Change change = service.indexSalaries(id, request.getCoefficient());
 
         return switch (change.getOutcome()) {
             case DONE -> Response.ok().entity(new CountResponse(change.getId())).build();
@@ -214,12 +208,6 @@ public class OrganizationResource {
                     .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
                     .build();
         };
-    }
-
-    private Organization readOrganization(String body) {
-        RequestFields fields = requestReader.read(body);
-
-        return fields.validate(entities.organization(fields));
     }
 
     private Response referenceNotFound(Change change) {

@@ -10,7 +10,7 @@ Content-Type: application/json
 HTTP 400
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.message" == "The request body contains invalid JSON."
+jsonpath "$.message" == "The request body contains invalid JSON or a value of the wrong type."
 
 POST {{base_url}}/auth/register
 X-CSRF-Token: {{csrf}}
@@ -19,18 +19,28 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'username')].code" contains "REQUIRED"
+jsonpath "$.errors[?(@.field == 'username')].code" contains "MUST_NOT_BE_NULL"
 
 POST {{base_url}}/auth/register
 X-CSRF-Token: {{csrf}}
 {
     "username": null,
-    "password": 123456
+    "password": "secret_1"
 }
 HTTP 422
 [Asserts]
+jsonpath "$.errors" count == 1
 jsonpath "$.errors[?(@.field == 'username')].code" contains "MUST_NOT_BE_NULL"
-jsonpath "$.errors[?(@.field == 'password')].code" contains "INVALID_TYPE"
+
+POST {{base_url}}/auth/register
+X-CSRF-Token: {{csrf}}
+{
+    "username": "number_password",
+    "password": 123456
+}
+HTTP 400
+[Asserts]
+jsonpath "$.message" == "The request body contains invalid JSON or a value of the wrong type."
 
 POST {{base_url}}/auth/register
 X-CSRF-Token: {{csrf}}

@@ -6,7 +6,7 @@ const badRequestExample: BadRequestError = #{
     statusCode: 400,
     contentType: "application/json",
     body: #{
-        message: "The request body contains invalid JSON."
+        message: "The request body contains invalid JSON or a value of the wrong type."
     }
 };
 
@@ -40,8 +40,9 @@ const listParameterValidationOperationExample = #{
 
 @error
 @doc("""
-    Ошибка: запрос невозможно обработать. Тело содержит некорректный JSON
-    или параметр пути либо запроса неверен; сообщение называет параметр и причину.
+    Ошибка: запрос невозможно обработать. Тело не является JSON-объектом, содержит
+    значение неверного типа или неизвестное значение перечисления, либо неверен
+    параметр пути или запроса. Неизвестные поля тела игнорируются.
     """)
 @example(badRequestExample)
 model BadRequestError is ErrorResult<400>;

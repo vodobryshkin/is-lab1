@@ -5,8 +5,10 @@ import com.github.vodobryshkin.islab1.backend.domain.Worker;
 import com.github.vodobryshkin.islab1.backend.dto.CountResponse;
 import com.github.vodobryshkin.islab1.backend.dto.CreateWorkerResponse;
 import com.github.vodobryshkin.islab1.backend.dto.ErrorResponse;
+import com.github.vodobryshkin.islab1.backend.dto.HireRequest;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
 import com.github.vodobryshkin.islab1.backend.dto.PageResponse;
+import com.github.vodobryshkin.islab1.backend.dto.WorkerRequest;
 import com.github.vodobryshkin.islab1.backend.dto.WorkerResponse;
 import com.github.vodobryshkin.islab1.backend.service.Change;
 import com.github.vodobryshkin.islab1.backend.service.WorkerService;
@@ -26,7 +28,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
-import java.math.BigInteger;
 import java.util.Set;
 
 /**
@@ -42,28 +43,24 @@ public class WorkerResource {
 
     private final WorkerService service;
     private final RequestReader requestReader;
-    private final RequestEntities entities;
 
     /**
      * Создаёт ресурс.
      *
      * @param service операции с работниками
      * @param requestReader чтение запросов
-     * @param entities сборка сущностей из полей запроса
      */
     @Inject
-    public WorkerResource(WorkerService service, RequestReader requestReader,
-            RequestEntities entities) {
+    public WorkerResource(WorkerService service, RequestReader requestReader) {
         this.service = service;
         this.requestReader = requestReader;
-        this.entities = entities;
     }
 
     /**
      * Нужен CDI для прокси и Jakarta REST, который требует публичный конструктор.
      */
     public WorkerResource() {
-        this(null, null, null);
+        this(null, null);
     }
 
     /**
@@ -78,7 +75,7 @@ public class WorkerResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(String body, @Context HttpServletRequest request,
             @Context UriInfo uriInfo) {
-        Worker worker = readWorker(body, false);
+        Worker worker = requestReader.read(body, WorkerRequest.class).toEntity();
         Change change = service.create(worker, request.getUserPrincipal().getName());
 
         return switch (change.getOutcome()) {
@@ -180,12 +177,8 @@ public class WorkerResource {
             throw requestReader.badRequest("Parameter rating is required.");
         }
 
-        if (!raw.matches("-?\\d+")) {
-            throw requestReader.badRequest("Parameter rating must be an integer.");
-        }
-
-        if (new BigInteger(raw).bitLength() >= Integer.SIZE) {
-            throw requestReader.badRequest("Parameter rating must fit into int32.");
+        if (!raw.matches("-?\\d{1,10}") || Long.parseLong(raw) != (int) Long.parseLong(raw)) {
+            throw requestReader.badRequest("Parameter rating must be an int32 integer.");
         }
 
         int rating = Integer.parseInt(raw);
@@ -209,7 +202,9 @@ public class WorkerResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("id") String rawId, String body) {
         int id = requestReader.workerId(rawId);
-        Change change = service.update(id, readWorker(body, true));
+        WorkerRequest request = requestReader.read(body, WorkerRequest.class);
+        request.setOrganization(null);
+        Change change = service.update(id, request.toEntity());
 
         return switch (change.getOutcome()) {
             case DONE -> Response.noContent().build();
@@ -233,8 +228,8 @@ public class WorkerResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response hire(@PathParam("id") String rawId, String body) {
         int id = requestReader.workerId(rawId);
-        RequestFields fields = requestReader.read(body).allowOnly("organization_id");
-        long organizationId = fields.validate(fields.id("organization_id"));
+        long organizationId =
+                requestReader.read(body, HireRequest.class).getOrganizationId();
 
         return switch (service.hire(id, organizationId)) {
             case DONE -> Response.noContent().build();
@@ -286,12 +281,6 @@ public class WorkerResource {
         }
 
         throw requestReader.badRequest("Parameter status has an unsupported value.");
-    }
-
-    private Worker readWorker(String body, boolean update) {
-        RequestFields fields = requestReader.read(body);
-
-        return fields.validate(entities.worker(fields, update), "user", "creation_date");
     }
 
     private Response conflict(Change change) {

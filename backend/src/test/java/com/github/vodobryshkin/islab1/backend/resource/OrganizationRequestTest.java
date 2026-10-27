@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import com.github.vodobryshkin.islab1.backend.domain.Organization;
 import com.github.vodobryshkin.islab1.backend.domain.OrganizationType;
 import com.github.vodobryshkin.islab1.backend.dto.ErrorResponse;
+import com.github.vodobryshkin.islab1.backend.dto.OrganizationRequest;
 import com.github.vodobryshkin.islab1.backend.dto.ValidationErrorResponse;
 import jakarta.validation.Validation;
 import jakarta.validation.ValidatorFactory;
@@ -16,8 +17,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Проверяет чтение организации из JSON по контракту: варианты адресов, обязательные
- * поля, nullable type, конечный положительный оборот и имена нарушений.
+ * Проверяет чтение организации из JSON: варианты адресов, обязательные поля и имена нарушений.
  */
 class OrganizationRequestTest {
     private static final String FIELDS =
@@ -32,7 +32,6 @@ class OrganizationRequestTest {
 
     private final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     private final RequestReader reader = new RequestReader(factory.getValidator());
-    private final RequestEntities entities = new RequestEntities();
 
     @AfterEach
     void closeFactory() {
@@ -108,8 +107,7 @@ class OrganizationRequestTest {
                 + ", \"official_address_id\": 10, \"postal_address_id\": 20");
 
         // Assert
-        assertThat(actual).containsExactlyInAnyOrder("official_address MUTUALLY_EXCLUSIVE",
-                "official_address_id MUTUALLY_EXCLUSIVE");
+        assertThat(actual).containsExactly("official_address INVALID_COMBINATION");
     }
 
     @Test
@@ -118,7 +116,7 @@ class OrganizationRequestTest {
         List<String> actual = issues(FIELDS + ", \"postal_address_id\": 20");
 
         // Assert
-        assertThat(actual).containsExactly("official_address REQUIRED");
+        assertThat(actual).containsExactly("official_address INVALID_COMBINATION");
     }
 
     @Test
@@ -127,7 +125,7 @@ class OrganizationRequestTest {
         List<String> actual = issues(FIELDS + ", \"official_address\": null, \"postal_address_id\": 0");
 
         // Assert
-        assertThat(actual).containsExactlyInAnyOrder("official_address MUST_NOT_BE_NULL",
+        assertThat(actual).containsExactlyInAnyOrder("official_address INVALID_COMBINATION",
                 "postal_address_id MUST_BE_POSITIVE");
     }
 
@@ -156,36 +154,87 @@ class OrganizationRequestTest {
     }
 
     @Test
-    void reports_structure_errors_only_once_per_field() {
+    void reports_missing_and_out_of_range_fields() {
         // Act
         List<String> actual = issues("\"annual_turnover\": 1e39, \"full_name\": null, "
-                + "\"rating\": \"5\", \"type\": \"STATE\", \"flag\": true, "
-                + NEW_OFFICIAL + ", " + NEW_POSTAL);
+                + "\"rating\": 5, \"flag\": true, " + NEW_OFFICIAL + ", " + NEW_POSTAL);
 
         // Assert
         assertThat(actual).containsExactlyInAnyOrder("annual_turnover OUT_OF_RANGE",
-                "employees_count REQUIRED", "full_name MUST_NOT_BE_NULL", "rating INVALID_TYPE",
-                "type INVALID_ENUM_VALUE", "flag UNKNOWN_FIELD");
+                "employees_count MUST_NOT_BE_NULL", "full_name MUST_NOT_BE_EMPTY");
+    }
+
+    @Test
+    void rejects_unknown_enum_value_with_400() {
+        // Act
+        WebApplicationException actual = catchThrowableOfType(WebApplicationException.class,
+                () -> read(FIELDS.replace("TRUST", "STATE") + ", " + NEW_OFFICIAL + ", " + NEW_POSTAL));
+
+        // Assert
+        assertThat(actual.getResponse().getStatus()).isEqualTo(400);
+    }
+
+    @Test
+    void rejects_fractional_and_too_large_integers_with_400() {
+        // Act
+        WebApplicationException fractional = catchThrowableOfType(WebApplicationException.class,
+                () -> read(FIELDS.replace("\"rating\": 5", "\"rating\": 1.5") + ", " + NEW_OFFICIAL + ", " + NEW_POSTAL));
+        WebApplicationException large = catchThrowableOfType(WebApplicationException.class,
+                () -> read(FIELDS.replace("\"rating\": 5", "\"rating\": 4294967297") + ", " + NEW_OFFICIAL + ", " + NEW_POSTAL));
+
+        // Assert
+        assertAll(
+                () -> assertThat(fractional.getResponse().getStatus()).isEqualTo(400),
+                () -> assertThat(large.getResponse().getStatus()).isEqualTo(400)
+        );
+    }
+
+    @Test
+    void rejects_string_instead_of_number_with_400() {
+        // Act
+        WebApplicationException actual = catchThrowableOfType(WebApplicationException.class,
+                () -> read(FIELDS.replace("\"rating\": 5", "\"rating\": \"5\"") + ", " + NEW_OFFICIAL + ", " + NEW_POSTAL));
+
+        // Assert
+        assertThat(actual.getResponse().getStatus()).isEqualTo(400);
+    }
+
+    @Test
+    void rejects_number_instead_of_string_with_400() {
+        // Act
+        WebApplicationException actual = catchThrowableOfType(WebApplicationException.class,
+                () -> read(FIELDS.replace("\"ООО Ромашка\"", "5") + ", " + NEW_OFFICIAL + ", " + NEW_POSTAL));
+
+        // Assert
+        assertThat(actual.getResponse().getStatus()).isEqualTo(400);
+    }
+
+    @Test
+    void rejects_string_instead_of_float_with_400() {
+        // Act
+        WebApplicationException actual = catchThrowableOfType(WebApplicationException.class,
+                () -> read(FIELDS.replace("1.5", "\"1.5\"") + ", " + NEW_OFFICIAL + ", " + NEW_POSTAL));
+
+        // Assert
+        assertThat(actual.getResponse().getStatus()).isEqualTo(400);
     }
 
     @Test
     void rejects_malformed_json_with_400() {
         // Act
         WebApplicationException actual = catchThrowableOfType(WebApplicationException.class,
-                () -> reader.read("{\"full_name\":"));
+                () -> reader.read("{\"full_name\":", OrganizationRequest.class));
 
         // Assert
         assertAll(
                 () -> assertThat(actual.getResponse().getStatus()).isEqualTo(400),
                 () -> assertThat(actual.getResponse().getEntity())
-                        .isEqualTo(new ErrorResponse("The request body contains invalid JSON."))
+                        .isEqualTo(new ErrorResponse("The request body contains invalid JSON or a value of the wrong type."))
         );
     }
 
     private Organization read(String fields) {
-        RequestFields body = reader.read("{" + fields + "}");
-
-        return body.validate(entities.organization(body));
+        return reader.read("{" + fields + "}", OrganizationRequest.class).toEntity();
     }
 
     private List<String> issues(String fields) {

@@ -17,18 +17,18 @@ const locationValidationErrorExample: LocationValidationError = #{
         errors: #[
             #{
                 field: "x",
-                code: "OUT_OF_RANGE",
-                message: "x must fit into int32."
+                code: "MUST_NOT_BE_NULL",
+                message: "x must not be null."
             },
             #{
                 field: "y",
-                code: "OUT_OF_RANGE",
-                message: "y must fit into int32."
+                code: "MUST_NOT_BE_NULL",
+                message: "y must not be null."
             },
             #{
                 field: "z",
-                code: "OUT_OF_RANGE",
-                message: "z must fit into int64."
+                code: "MUST_NOT_BE_NULL",
+                message: "z must not be null."
             }
         ]
     }
@@ -53,18 +53,6 @@ const deleteLocationConflictOperationExample = #{
 @doc("Ошибки данных локации.")
 union LocationRequestValidationIssue {
     location: LocationValidationIssue<"", "">,
-
-    body: {
-        field: "$";
-        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE";
-        message: string;
-    },
-
-    unknown_field: {
-        field: string;
-        code: "UNKNOWN_FIELD";
-        message: string;
-    },
 }
 
 @error

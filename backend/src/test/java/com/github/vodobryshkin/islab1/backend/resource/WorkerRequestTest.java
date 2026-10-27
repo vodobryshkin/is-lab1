@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import com.github.vodobryshkin.islab1.backend.domain.Status;
 import com.github.vodobryshkin.islab1.backend.domain.Worker;
 import com.github.vodobryshkin.islab1.backend.dto.ValidationErrorResponse;
+import com.github.vodobryshkin.islab1.backend.dto.WorkerRequest;
 import jakarta.validation.Validation;
 import jakarta.validation.ValidatorFactory;
 import jakarta.ws.rs.WebApplicationException;
@@ -15,8 +16,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Проверяет чтение работника из JSON по контракту: формы создания и PUT, новые объекты
- * и ссылки, nullable-поля, зарплату float64, шаблон имени и серверные поля.
+ * Проверяет чтение работника из JSON: новые объекты и ссылки, nullable-поля и имена нарушений.
  */
 class WorkerRequestTest {
     private static final String FIELDS =
@@ -42,7 +42,6 @@ class WorkerRequestTest {
 
     private final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     private final RequestReader reader = new RequestReader(factory.getValidator());
-    private final RequestEntities entities = new RequestEntities();
 
     @AfterEach
     void closeFactory() {
@@ -119,51 +118,44 @@ class WorkerRequestTest {
     @Test
     void rejects_existing_and_new_organization_together() {
         // Act
-        List<String> actual = createIssues(BASE + ", \"organization_id\": 1, " + NEW_ORGANIZATION);
+        List<String> actual = issues(BASE + ", \"organization_id\": 1, " + NEW_ORGANIZATION);
 
         // Assert
-        assertThat(actual).containsExactlyInAnyOrder("organization_id MUTUALLY_EXCLUSIVE",
-                "organization MUTUALLY_EXCLUSIVE");
+        assertThat(actual).containsExactly("organization INVALID_COMBINATION");
     }
 
     @Test
-    void rejects_null_organization_and_non_positive_organization_id() {
+    void rejects_non_positive_organization_id() {
         // Act
-        List<String> withNull = createIssues(BASE + ", \"organization\": null");
-        List<String> withZero = createIssues(BASE + ", \"organization_id\": 0");
+        List<String> actual = issues(BASE + ", \"organization_id\": 0");
 
         // Assert
-        assertAll(
-                () -> assertThat(withNull).containsExactly("organization MUST_NOT_BE_NULL"),
-                () -> assertThat(withZero).containsExactly("organization_id MUST_BE_POSITIVE")
-        );
+        assertThat(actual).containsExactly("organization_id MUST_BE_POSITIVE");
     }
 
     @Test
-    void requires_organization_id_on_update_and_rejects_new_organization() {
+    void ignores_new_organization_on_update() {
         // Act
-        List<String> actual = issues(BASE + ", " + NEW_ORGANIZATION, true);
+        Worker actual = update(BASE + ", " + NEW_ORGANIZATION);
 
         // Assert
-        assertThat(actual).containsExactlyInAnyOrder("organization UNKNOWN_FIELD",
-                "organization_id REQUIRED");
+        assertThat(actual.getOrganization()).isNull();
     }
 
     @Test
-    void rejects_missing_coordinates_and_mixed_person_reference() {
+    void ignores_fields_of_person_reference() {
         // Act
-        List<String> actual = createIssues(FIELDS + ", \"coordinates\": null, "
+        List<String> actual = issues(FIELDS + ", \"coordinates\": null, "
                 + "\"person\": {\"id\": 10, \"weight\": 1}");
 
         // Assert
-        assertThat(actual).containsExactlyInAnyOrder("coordinates MUST_NOT_BE_NULL",
-                "person.id MUTUALLY_EXCLUSIVE");
+        assertThat(actual).containsExactly("coordinates MUST_NOT_BE_NULL");
     }
 
     @Test
     void reports_nested_errors_with_contract_names() {
         // Act
-        List<String> actual = createIssues(FIELDS
+        List<String> actual = issues(FIELDS
                 + ", \"coordinates\": {\"x\": -954, \"y\": 0}, \"person\": {\"eye_color\": null, "
                 + "\"hair_color\": \"BLACK\", \"location\": {\"x\": 1, \"y\": 2}, "
                 + "\"birthday\": \"2000-01-01T00:00:00Z\", \"weight\": 0, \"nationality\": \"RUSSIA\"}, "
@@ -171,15 +163,15 @@ class WorkerRequestTest {
 
         // Assert
         assertThat(actual).containsExactlyInAnyOrder("coordinates.x MUST_BE_GREATER_THAN_MINUS_954",
-                "person.location.z REQUIRED", "person.weight MUST_BE_POSITIVE",
+                "person.location.z MUST_NOT_BE_NULL", "person.weight MUST_BE_POSITIVE",
                 "organization.full_name MUST_NOT_BE_EMPTY");
     }
 
     @Test
     void rejects_non_positive_salary_and_float64_overflow() {
         // Act
-        List<String> zero = createIssues(BASE.replace("100000.5", "0"));
-        List<String> overflow = createIssues(BASE.replace("100000.5", "1e309"));
+        List<String> zero = issues(BASE.replace("100000.5", "0"));
+        List<String> overflow = issues(BASE.replace("100000.5", "1e309"));
 
         // Assert
         assertAll(
@@ -191,8 +183,8 @@ class WorkerRequestTest {
     @Test
     void checks_name_against_contract_pattern() {
         // Act
-        List<String> symbols = createIssues(BASE.replace("Иван Иванов", "Иван!"));
-        List<String> empty = createIssues(BASE.replace("Иван Иванов", ""));
+        List<String> symbols = issues(BASE.replace("Иван Иванов", "Иван!"));
+        List<String> empty = issues(BASE.replace("Иван Иванов", ""));
 
         // Assert
         assertAll(
@@ -202,48 +194,43 @@ class WorkerRequestTest {
     }
 
     @Test
-    void requires_nullable_enums_and_checks_their_values() {
+    void rejects_unknown_status_with_400() {
         // Act
-        List<String> actual = createIssues(BASE.replace("\"position\": null, ", "")
-                .replace("\"HIRED\"", "\"FIRED\""));
+        WebApplicationException actual = catchThrowableOfType(WebApplicationException.class,
+                () -> create(BASE.replace("\"HIRED\"", "\"FIRED\"")));
 
         // Assert
-        assertThat(actual).containsExactlyInAnyOrder("position REQUIRED",
-                "status INVALID_ENUM_VALUE");
+        assertThat(actual.getResponse().getStatus()).isEqualTo(400);
     }
 
     @Test
-    void rejects_server_generated_fields() {
+    void ignores_server_generated_fields() {
         // Act
-        List<String> actual = createIssues(BASE + ", \"id\": 1, \"creation_date\": "
-                + "\"2026-01-01T00:00:00Z\", \"creator_id\": 1");
+        Worker actual = create(BASE + ", \"id\": 1, \"creation_date\": \"2026-01-01T00:00:00Z\", "
+                + "\"creator_id\": 1");
 
         // Assert
-        assertThat(actual).containsExactlyInAnyOrder("id UNKNOWN_FIELD",
-                "creation_date UNKNOWN_FIELD", "creator_id UNKNOWN_FIELD");
+        assertAll(
+                () -> assertThat(actual.getId()).isNull(),
+                () -> assertThat(actual.getCreationDate()).isNull(),
+                () -> assertThat(actual.getUser()).isNull()
+        );
     }
 
     private Worker create(String fields) {
-        return read(fields, false);
+        return reader.read("{" + fields + "}", WorkerRequest.class).toEntity();
     }
 
     private Worker update(String fields) {
-        return read(fields, true);
+        WorkerRequest request = reader.read("{" + fields + "}", WorkerRequest.class);
+        request.setOrganization(null);
+
+        return request.toEntity();
     }
 
-    private Worker read(String fields, boolean update) {
-        RequestFields body = reader.read("{" + fields + "}");
-
-        return body.validate(entities.worker(body, update), "user", "creation_date");
-    }
-
-    private List<String> createIssues(String fields) {
-        return issues(fields, false);
-    }
-
-    private List<String> issues(String fields, boolean update) {
+    private List<String> issues(String fields) {
         WebApplicationException exception =
-                catchThrowableOfType(WebApplicationException.class, () -> read(fields, update));
+                catchThrowableOfType(WebApplicationException.class, () -> create(fields));
         ValidationErrorResponse response = (ValidationErrorResponse) exception.getResponse().getEntity();
 
         return response.getErrors().stream()

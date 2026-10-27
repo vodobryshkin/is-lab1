@@ -53,18 +53,6 @@ const deletePersonConflictOperationExample = #{
 @doc("Ошибки данных персоны.")
 union PersonRequestValidationIssue {
     person: PersonValidationIssue<"", "">,
-
-    body: {
-        field: "$";
-        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE";
-        message: string;
-    },
-
-    unknown_field: {
-        field: string;
-        code: "UNKNOWN_FIELD";
-        message: string;
-    },
 }
 
 @error

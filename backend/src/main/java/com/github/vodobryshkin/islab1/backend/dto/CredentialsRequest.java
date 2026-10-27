@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 /**
@@ -14,6 +15,7 @@ import lombok.ToString;
  */
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class CredentialsRequest {
     @NotNull(message = "Username must not be null.")
     @NotEmpty(message = "Username must not be empty.")

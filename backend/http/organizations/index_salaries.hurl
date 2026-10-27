@@ -158,7 +158,7 @@ Content-Type: application/json
 ```
 HTTP 400
 [Asserts]
-jsonpath "$.message" == "The request body contains invalid JSON."
+jsonpath "$.message" == "The request body contains invalid JSON or a value of the wrong type."
 
 POST {{base_url}}/organizations/1/index_salaries
 X-CSRF-Token: {{csrf}}
@@ -223,30 +223,17 @@ HTTP 422
 [Asserts]
 header "Content-Type" contains "application/json"
 jsonpath "$.errors[0].field" == "coefficient"
-jsonpath "$.errors[0].code" == "REQUIRED"
+jsonpath "$.errors[0].code" == "MUST_NOT_BE_NULL"
 
 POST {{base_url}}/organizations/1/index_salaries
 X-CSRF-Token: {{csrf}}
 {
     "coefficient": "1.1"
 }
-HTTP 422
+HTTP 400
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.errors[0].field" == "coefficient"
-jsonpath "$.errors[0].code" == "INVALID_TYPE"
-
-POST {{base_url}}/organizations/1/index_salaries
-X-CSRF-Token: {{csrf}}
-{
-    "coefficient": 2,
-    "status": "HIRED"
-}
-HTTP 422
-[Asserts]
-header "Content-Type" contains "application/json"
-jsonpath "$.errors[0].field" == "status"
-jsonpath "$.errors[0].code" == "UNKNOWN_FIELD"
+jsonpath "$.message" == "The request body contains invalid JSON or a value of the wrong type."
 
 GET {{base_url}}/workers/1
 HTTP 200

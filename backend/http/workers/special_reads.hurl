@@ -135,19 +135,19 @@ GET {{base_url}}/workers/rating_less_than?rating=abc
 HTTP 400
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.message" == "Parameter rating must be an integer."
+jsonpath "$.message" == "Parameter rating must be an int32 integer."
 
 GET {{base_url}}/workers/rating_less_than?rating=1.5
 HTTP 400
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.message" == "Parameter rating must be an integer."
+jsonpath "$.message" == "Parameter rating must be an int32 integer."
 
 GET {{base_url}}/workers/rating_less_than?rating=2147483648
 HTTP 400
 [Asserts]
 header "Content-Type" contains "application/json"
-jsonpath "$.message" == "Parameter rating must fit into int32."
+jsonpath "$.message" == "Parameter rating must be an int32 integer."
 
 GET {{base_url}}/workers/rating_less_than
 HTTP 400

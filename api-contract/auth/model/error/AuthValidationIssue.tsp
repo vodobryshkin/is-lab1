@@ -15,7 +15,7 @@ const authBadRequestExample: BadRequestError = #{
     statusCode: 400,
     contentType: "application/json",
     body: #{
-        message: "The request body contains invalid JSON."
+        message: "The request body contains invalid JSON or a value of the wrong type."
     }
 };
 
@@ -41,21 +41,15 @@ const credentialsValidationOperationExample = #{
 union AuthValidationIssue {
     username: {
         field: "username";
-        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE"
-            | "MUST_NOT_BE_EMPTY" | "OUT_OF_RANGE" | "MUST_MATCH_PATTERN";
+        code: "MUST_NOT_BE_NULL" | "MUST_NOT_BE_EMPTY" | "OUT_OF_RANGE"
+            | "MUST_MATCH_PATTERN";
         message: string;
     },
 
     password: {
         field: "password";
-        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE"
-            | "MUST_NOT_BE_EMPTY" | "OUT_OF_RANGE" | "MUST_MATCH_PATTERN";
-        message: string;
-    },
-
-    body: {
-        field: "$";
-        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE";
+        code: "MUST_NOT_BE_NULL" | "MUST_NOT_BE_EMPTY" | "OUT_OF_RANGE"
+            | "MUST_MATCH_PATTERN";
         message: string;
     },
 }

@@ -47,42 +47,69 @@ X-CSRF-Token: {{csrf}}
 {
     "hair_color": null,
     "location": null,
-    "birthday": "yesterday",
     "weight": 0,
-    "nationality": "FRANCE",
     "age": 30
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'eye_color')].code" contains "REQUIRED"
 jsonpath "$.errors[?(@.field == 'hair_color')].code" contains "MUST_NOT_BE_NULL"
 jsonpath "$.errors[?(@.field == 'location')].code" contains "MUST_NOT_BE_NULL"
-jsonpath "$.errors[?(@.field == 'birthday')].code" contains "INVALID_DATE_TIME"
+jsonpath "$.errors[?(@.field == 'birthday')].code" contains "MUST_NOT_BE_NULL"
 jsonpath "$.errors[?(@.field == 'weight')].code" contains "MUST_BE_POSITIVE"
-jsonpath "$.errors[?(@.field == 'nationality')].code" contains "INVALID_ENUM_VALUE"
-jsonpath "$.errors[?(@.field == 'age')].code" contains "UNKNOWN_FIELD"
-jsonpath "$.errors" count == 7
+jsonpath "$.errors[?(@.field == 'nationality')].code" contains "MUST_NOT_BE_NULL"
+jsonpath "$.errors" count == 5
 
 POST {{base_url}}/persons
 X-CSRF-Token: {{csrf}}
 {
-    "eye_color": "PINK",
-    "hair_color": 1,
+    "hair_color": "BLACK",
+    "location": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+    },
+    "birthday": "2000-01-01T00:00:00Z",
+    "weight": 1,
+    "nationality": "FRANCE"
+}
+HTTP 400
+[Asserts]
+jsonpath "$.message" == "The request body contains invalid JSON or a value of the wrong type."
+
+POST {{base_url}}/persons
+X-CSRF-Token: {{csrf}}
+{
+    "hair_color": "BLACK",
     "location": {
         "x": 1
     },
-    "birthday": "2000-05-06T10:08:09",
+    "birthday": "2000-05-06T10:08:09Z",
     "weight": 1e39,
     "nationality": "RUSSIA"
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'eye_color')].code" contains "INVALID_ENUM_VALUE"
-jsonpath "$.errors[?(@.field == 'hair_color')].code" contains "INVALID_TYPE"
-jsonpath "$.errors[?(@.field == 'location.y')].code" contains "REQUIRED"
-jsonpath "$.errors[?(@.field == 'location.z')].code" contains "REQUIRED"
-jsonpath "$.errors[?(@.field == 'birthday')].code" contains "INVALID_DATE_TIME"
+jsonpath "$.errors" count == 3
+jsonpath "$.errors[?(@.field == 'location.y')].code" contains "MUST_NOT_BE_NULL"
+jsonpath "$.errors[?(@.field == 'location.z')].code" contains "MUST_NOT_BE_NULL"
 jsonpath "$.errors[?(@.field == 'weight')].code" contains "OUT_OF_RANGE"
+
+POST {{base_url}}/persons
+X-CSRF-Token: {{csrf}}
+{
+    "hair_color": "BLACK",
+    "location": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+    },
+    "birthday": "2000-05-06T10:08:09",
+    "weight": 1,
+    "nationality": "RUSSIA"
+}
+HTTP 400
+[Asserts]
+jsonpath "$.message" == "The request body contains invalid JSON or a value of the wrong type."
 
 POST {{base_url}}/persons
 X-CSRF-Token: {{csrf}}
@@ -90,8 +117,7 @@ X-CSRF-Token: {{csrf}}
     "eye_color": null,
     "hair_color": "BLACK",
     "location": {
-        "id": 1,
-        "z": 1
+        "id": 0
     },
     "birthday": "2000-01-01T00:00:00Z",
     "weight": -1,
@@ -99,7 +125,8 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'location.id')].code" contains "MUTUALLY_EXCLUSIVE"
+jsonpath "$.errors" count == 2
+jsonpath "$.errors[?(@.field == 'location.id')].code" contains "MUST_BE_POSITIVE"
 jsonpath "$.errors[?(@.field == 'weight')].code" contains "MUST_BE_POSITIVE"
 
 POST {{base_url}}/persons

@@ -42,19 +42,17 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
+jsonpath "$.errors" count == 1
 jsonpath "$.errors[?(@.field == 'street')].code" contains "MUST_NOT_BE_EMPTY"
-jsonpath "$.errors[?(@.field == 'town')].code" contains "REQUIRED"
-jsonpath "$.errors[?(@.field == 'flat')].code" contains "UNKNOWN_FIELD"
 
 POST {{base_url}}/addresses
 X-CSRF-Token: {{csrf}}
 {
     "town": "Moscow"
 }
-HTTP 422
+HTTP 400
 [Asserts]
-jsonpath "$.errors[?(@.field == 'street')].code" contains "REQUIRED"
-jsonpath "$.errors[?(@.field == 'town')].code" contains "INVALID_TYPE"
+jsonpath "$.message" == "The request body contains invalid JSON or a value of the wrong type."
 
 POST {{base_url}}/addresses
 X-CSRF-Token: {{csrf}}
@@ -62,29 +60,28 @@ X-CSRF-Token: {{csrf}}
     "street": "Kronverksky",
     "town": {
         "x": null,
-        "y": "2",
         "w": 1
     }
 }
 HTTP 422
 [Asserts]
+jsonpath "$.errors" count == 3
 jsonpath "$.errors[?(@.field == 'town.x')].code" contains "MUST_NOT_BE_NULL"
-jsonpath "$.errors[?(@.field == 'town.y')].code" contains "INVALID_TYPE"
-jsonpath "$.errors[?(@.field == 'town.z')].code" contains "REQUIRED"
-jsonpath "$.errors[?(@.field == 'town.w')].code" contains "UNKNOWN_FIELD"
+jsonpath "$.errors[?(@.field == 'town.y')].code" contains "MUST_NOT_BE_NULL"
+jsonpath "$.errors[?(@.field == 'town.z')].code" contains "MUST_NOT_BE_NULL"
 
 POST {{base_url}}/addresses
 X-CSRF-Token: {{csrf}}
 {
     "street": "Kronverksky",
     "town": {
-        "id": 1,
-        "x": 1
+        "id": 0
     }
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'town.id')].code" contains "MUTUALLY_EXCLUSIVE"
+jsonpath "$.errors" count == 1
+jsonpath "$.errors[?(@.field == 'town.id')].code" contains "MUST_BE_POSITIVE"
 
 POST {{base_url}}/addresses
 X-CSRF-Token: {{csrf}}

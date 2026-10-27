@@ -56,7 +56,7 @@ Content-Type: application/json
 ```
 HTTP 400
 [Asserts]
-jsonpath "$.message" == "The request body contains invalid JSON."
+jsonpath "$.message" == "The request body contains invalid JSON or a value of the wrong type."
 
 POST {{base_url}}/workers
 X-CSRF-Token: {{csrf}}
@@ -68,12 +68,17 @@ X-CSRF-Token: {{csrf}}
     },
     "salary": 0,
     "rating": 0,
-    "start_date": "not a date",
-    "position": "CLEANER",
     "status": null,
     "person": null,
     "organization_id": 1,
-    "organization": null,
+    "organization": {
+        "full_name": "Both",
+        "annual_turnover": 1,
+        "employees_count": 1,
+        "rating": 1,
+        "official_address_id": 1,
+        "postal_address_id": 1
+    },
     "creator_id": 1
 }
 HTTP 422
@@ -83,10 +88,25 @@ jsonpath "$.errors[?(@.field == 'name')].code" exists
 jsonpath "$.errors[?(@.field == 'coordinates.x')].code" == "MUST_BE_GREATER_THAN_MINUS_954"
 jsonpath "$.errors[?(@.field == 'salary')].code" == "MUST_BE_POSITIVE"
 jsonpath "$.errors[?(@.field == 'rating')].code" == "MUST_BE_POSITIVE"
-jsonpath "$.errors[?(@.field == 'start_date')].code" == "INVALID_DATE_TIME"
-jsonpath "$.errors[?(@.field == 'position')].code" == "INVALID_ENUM_VALUE"
-jsonpath "$.errors[?(@.field == 'organization_id')].code" == "MUTUALLY_EXCLUSIVE"
-jsonpath "$.errors[?(@.field == 'creator_id')].code" == "UNKNOWN_FIELD"
+jsonpath "$.errors[?(@.field == 'start_date')].code" == "MUST_NOT_BE_NULL"
+jsonpath "$.errors[?(@.field == 'organization')].code" == "INVALID_COMBINATION"
+
+POST {{base_url}}/workers
+X-CSRF-Token: {{csrf}}
+{
+    "name": "Wrong Date",
+    "coordinates": {
+        "x": 1,
+        "y": 1
+    },
+    "salary": 1,
+    "rating": 1,
+    "start_date": "not a date",
+    "position": "CLEANER"
+}
+HTTP 400
+[Asserts]
+jsonpath "$.message" == "The request body contains invalid JSON or a value of the wrong type."
 
 POST {{base_url}}/workers
 X-CSRF-Token: {{csrf}}
@@ -95,48 +115,9 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'person')].code" == "REQUIRED"
-jsonpath "$.errors[?(@.field == 'coordinates')].code" == "REQUIRED"
-
-PUT {{base_url}}/workers/1
-X-CSRF-Token: {{csrf}}
-{
-    "name": "Update Without Organization Key",
-    "coordinates": {
-        "x": 1,
-        "y": 1
-    },
-    "salary": 1,
-    "rating": 1,
-    "start_date": "2026-10-01T09:00:00Z",
-    "position": null,
-    "status": null,
-    "person": null
-}
-HTTP 422
-[Asserts]
-jsonpath "$.errors[?(@.field == 'organization_id')].code" == "REQUIRED"
-
-PUT {{base_url}}/workers/1
-X-CSRF-Token: {{csrf}}
-{
-    "name": "Update With New Organization",
-    "coordinates": {
-        "x": 1,
-        "y": 1
-    },
-    "salary": 1,
-    "rating": 1,
-    "start_date": "2026-10-01T09:00:00Z",
-    "position": null,
-    "status": null,
-    "person": null,
-    "organization_id": null,
-    "organization": null
-}
-HTTP 422
-[Asserts]
-jsonpath "$.errors[?(@.field == 'organization')].code" == "UNKNOWN_FIELD"
+jsonpath "$.errors[?(@.field == 'person')]" not exists
+jsonpath "$.errors[?(@.field == 'coordinates')].code" == "MUST_NOT_BE_NULL"
+jsonpath "$.errors[?(@.field == 'salary')].code" == "MUST_NOT_BE_NULL"
 
 GET {{base_url}}/workers
 HTTP 200

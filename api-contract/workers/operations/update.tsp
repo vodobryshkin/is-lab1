@@ -44,7 +44,7 @@ const updateWorkerBadRequestOperationExample = #{
     returnType: #{
         ...badRequestExample,
         body: #{
-            message: "The request body contains invalid JSON."
+            message: "The request body contains invalid JSON or a value of the wrong type."
         }
     }
 };

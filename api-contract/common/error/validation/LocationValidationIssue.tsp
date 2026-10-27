@@ -1,29 +1,28 @@
 namespace WorkersApi.Errors;
 
-@doc("Нарушения полей локации.")
+@doc("Нарушения полей локации. У ссылки по ID проверяется только id.")
 union LocationValidationIssue<path extends string, separator extends string = "."> {
     id: {
         field: "${path}${separator}id";
-        code: "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "MUST_BE_POSITIVE"
-            | "OUT_OF_RANGE" | "MUTUALLY_EXCLUSIVE";
+        code: "MUST_BE_POSITIVE";
         message: string;
     },
 
     x: {
         field: "${path}${separator}x";
-        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "OUT_OF_RANGE";
+        code: "MUST_NOT_BE_NULL";
         message: string;
     },
 
     y: {
         field: "${path}${separator}y";
-        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "OUT_OF_RANGE";
+        code: "MUST_NOT_BE_NULL";
         message: string;
     },
 
     z: {
         field: "${path}${separator}z";
-        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE" | "OUT_OF_RANGE";
+        code: "MUST_NOT_BE_NULL";
         message: string;
     },
 }

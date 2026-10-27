@@ -56,8 +56,6 @@ X-CSRF-Token: {{csrf}}
     "full_name": " ",
     "annual_turnover": 0,
     "employees_count": 0,
-    "rating": "5",
-    "type": "STATE",
     "official_address": {
         "street": "A",
         "town": null
@@ -70,13 +68,25 @@ HTTP 422
 jsonpath "$.errors[?(@.field == 'full_name')].code" contains "MUST_NOT_BE_EMPTY"
 jsonpath "$.errors[?(@.field == 'annual_turnover')].code" contains "MUST_BE_POSITIVE"
 jsonpath "$.errors[?(@.field == 'employees_count')].code" contains "MUST_BE_POSITIVE"
-jsonpath "$.errors[?(@.field == 'rating')].code" contains "INVALID_TYPE"
-jsonpath "$.errors[?(@.field == 'type')].code" contains "INVALID_ENUM_VALUE"
-jsonpath "$.errors[?(@.field == 'official_address')].code" contains "MUTUALLY_EXCLUSIVE"
-jsonpath "$.errors[?(@.field == 'official_address_id')].code" contains "MUTUALLY_EXCLUSIVE"
-jsonpath "$.errors[?(@.field == 'postal_address')].code" contains "REQUIRED"
-jsonpath "$.errors[?(@.field == 'flag')].code" contains "UNKNOWN_FIELD"
-jsonpath "$.errors" count == 9
+jsonpath "$.errors[?(@.field == 'rating')].code" contains "MUST_NOT_BE_NULL"
+jsonpath "$.errors[?(@.field == 'official_address')].code" contains "INVALID_COMBINATION"
+jsonpath "$.errors[?(@.field == 'postal_address')].code" contains "INVALID_COMBINATION"
+jsonpath "$.errors" count == 6
+
+POST {{base_url}}/organizations
+X-CSRF-Token: {{csrf}}
+{
+    "full_name": "Wrong Types",
+    "annual_turnover": 1,
+    "employees_count": 1,
+    "rating": "5",
+    "type": "STATE",
+    "official_address_id": 1,
+    "postal_address_id": 1
+}
+HTTP 400
+[Asserts]
+jsonpath "$.message" == "The request body contains invalid JSON or a value of the wrong type."
 
 POST {{base_url}}/organizations
 X-CSRF-Token: {{csrf}}

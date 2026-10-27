@@ -4,6 +4,7 @@ import com.github.vodobryshkin.islab1.backend.domain.Location;
 import com.github.vodobryshkin.islab1.backend.dto.ErrorResponse;
 import com.github.vodobryshkin.islab1.backend.dto.IdResponse;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
+import com.github.vodobryshkin.islab1.backend.dto.LocationRequest;
 import com.github.vodobryshkin.islab1.backend.dto.LocationResponse;
 import com.github.vodobryshkin.islab1.backend.dto.PageResponse;
 import com.github.vodobryshkin.islab1.backend.service.LocationService;
@@ -66,7 +67,9 @@ public class LocationResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(String body, @Context UriInfo uriInfo) {
-        Long id = service.create(readLocation(body));
+        LocationRequest request = requestReader.read(body, LocationRequest.class);
+        request.setId(null);
+        Long id = service.create(request.toEntity());
 
         return Response.created(uriInfo.getAbsolutePathBuilder().path(id.toString()).build())
                 .entity(new IdResponse(id))
@@ -123,7 +126,9 @@ public class LocationResource {
     public Response update(@PathParam("id") String rawId, String body) {
         long id = requestReader.id(rawId);
 
-        if (!service.update(id, readLocation(body))) {
+        Location values = requestReader.read(body, LocationRequest.class).toEntity();
+
+        if (!service.update(id, values)) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
                     .build();
@@ -153,12 +158,5 @@ public class LocationResource {
                     .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
                     .build();
         };
-    }
-
-    private Location readLocation(String body) {
-        RequestFields fields = requestReader.read(body).allowOnly("x", "y", "z");
-
-        return fields.validate(
-                new Location(null, fields.int32("x"), fields.int32("y"), fields.int64("z")));
     }
 }

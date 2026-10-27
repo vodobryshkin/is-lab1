@@ -1,6 +1,7 @@
 package com.github.vodobryshkin.islab1.backend.resource;
 
 import com.github.vodobryshkin.islab1.backend.domain.Address;
+import com.github.vodobryshkin.islab1.backend.dto.AddressRequest;
 import com.github.vodobryshkin.islab1.backend.dto.AddressResponse;
 import com.github.vodobryshkin.islab1.backend.dto.ErrorResponse;
 import com.github.vodobryshkin.islab1.backend.dto.IdResponse;
@@ -38,28 +39,24 @@ public class AddressResource {
 
     private final AddressService service;
     private final RequestReader requestReader;
-    private final RequestEntities entities;
 
     /**
      * Создаёт ресурс.
      *
      * @param service операции с адресами
      * @param requestReader чтение запросов
-     * @param entities сборка сущностей из полей запроса
      */
     @Inject
-    public AddressResource(AddressService service, RequestReader requestReader,
-            RequestEntities entities) {
+    public AddressResource(AddressService service, RequestReader requestReader) {
         this.service = service;
         this.requestReader = requestReader;
-        this.entities = entities;
     }
 
     /**
      * Нужен CDI для прокси и Jakarta REST, который требует публичный конструктор.
      */
     public AddressResource() {
-        this(null, null, null);
+        this(null, null);
     }
 
     /**
@@ -72,7 +69,7 @@ public class AddressResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(String body, @Context UriInfo uriInfo) {
-        Address address = readAddress(body);
+        Address address = requestReader.read(body, AddressRequest.class).toEntity();
         Optional<Long> id = service.create(address);
 
         if (id.isEmpty()) {
@@ -136,7 +133,7 @@ public class AddressResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("id") String rawId, String body) {
         long id = requestReader.id(rawId);
-        Address values = readAddress(body);
+        Address values = requestReader.read(body, AddressRequest.class).toEntity();
 
         return switch (service.update(id, values)) {
             case DONE -> Response.noContent().build();
@@ -170,12 +167,5 @@ public class AddressResource {
                     .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
                     .build();
         };
-    }
-
-    private Address readAddress(String body) {
-        RequestFields fields = requestReader.read(body).allowOnly(STREET, "town");
-
-        return fields.validate(new Address(null, fields.string(STREET),
-                entities.location(fields, "town", true)));
     }
 }

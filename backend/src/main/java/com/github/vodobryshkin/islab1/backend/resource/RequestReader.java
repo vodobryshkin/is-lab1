@@ -1,16 +1,18 @@
 package com.github.vodobryshkin.islab1.backend.resource;
 
+import com.github.vodobryshkin.islab1.backend.dto.CoordinatesRequest;
 import com.github.vodobryshkin.islab1.backend.dto.ErrorResponse;
 import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
+import com.github.vodobryshkin.islab1.backend.dto.LocationRequest;
+import com.github.vodobryshkin.islab1.backend.dto.PersonRequest;
 import com.github.vodobryshkin.islab1.backend.dto.ValidationErrorResponse;
 import com.github.vodobryshkin.islab1.backend.dto.ValidationIssue;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.json.Json;
-import jakarta.json.JsonException;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonReader;
-import jakarta.json.JsonValue;
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
+import jakarta.json.bind.JsonbConfig;
+import jakarta.json.bind.JsonbException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import jakarta.validation.constraints.Min;
@@ -18,7 +20,6 @@ import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
-import java.io.StringReader;
 import java.math.BigInteger;
 import java.util.Comparator;
 import java.util.List;
@@ -31,7 +32,6 @@ import java.util.stream.Collectors;
 
 /**
  * Читает тело, ID пути и параметры списка и отклоняет неверный запрос ответом 400 или 422.
- * Тело разбирается через JSON-P, чтобы различать отсутствие поля, null и неверный тип.
  */
 @ApplicationScoped
 public class RequestReader {
@@ -43,12 +43,17 @@ public class RequestReader {
             "NotEmpty", List.of("MUST_NOT_BE_EMPTY", " must not be empty."),
             "NotBlank", List.of("MUST_NOT_BE_EMPTY", " must not be empty."),
             "Positive", List.of("MUST_BE_POSITIVE", " must be greater than zero."),
-            "Pattern", List.of("MUST_MATCH_PATTERN", " has an invalid format."));
+            "Pattern", List.of("MUST_MATCH_PATTERN", " has an invalid format."),
+            "AssertTrue", List.of("INVALID_COMBINATION", " has an invalid combination."));
 
     private static final List<String> CONSTRAINTS = List.of("NotNull", "NotEmpty", "NotBlank",
-            "Size", "Min", "Positive", "DecimalMax", "Pattern");
+            "Size", "Min", "Positive", "DecimalMax", "Pattern", "AssertTrue");
 
     private final Validator validator;
+    private final Jsonb jsonb = JsonbBuilder.create(new JsonbConfig()
+            .withDeserializers(new StrictDeserializer.Text(), new StrictDeserializer.Int32(),
+                    new StrictDeserializer.Int64(), new StrictDeserializer.Float32(),
+                    new StrictDeserializer.Float64()));
 
     /**
      * Создаёт чтение запросов.
@@ -68,37 +73,43 @@ public class RequestReader {
     }
 
     /**
-     * Разбирает тело запроса как JSON-объект.
+     * Читает тело запроса в DTO и проверяет его через Jakarta Validation.
      *
      * @param body тело запроса
-     * @return поля тела
+     * @param type класс DTO
+     * @param <T> тип DTO
+     * @return проверенный DTO
      */
-    public RequestFields read(String body) {
-        if (body == null || body.isBlank()) {
-            throw invalid(List.of(
-                    new ValidationIssue("$", "REQUIRED", "Request body is required.")));
+    public <T> T read(String body, Class<T> type) {
+        T value;
+
+        try {
+            value = jsonb.fromJson(body, type);
+        } catch (JsonbException exception) {
+            throw new WebApplicationException(exception, badRequest(
+                    "The request body contains invalid JSON or a value of the wrong type.")
+                    .getResponse());
         }
 
-        JsonValue json;
-
-        try (JsonReader reader = Json.createReader(new StringReader(body))) {
-            json = reader.readValue();
-        } catch (JsonException exception) {
-            throw new WebApplicationException(exception,
-                    badRequest("The request body contains invalid JSON.").getResponse());
+        if (value == null) {
+            throw badRequest("The request body must be a JSON object.");
         }
 
-        if (json.getValueType() == JsonValue.ValueType.NULL) {
-            throw invalid(List.of(new ValidationIssue("$", "MUST_NOT_BE_NULL",
-                    "Request body must not be null.")));
+        List<ValidationIssue> issues = validator.validate(value).stream()
+                .filter(violation -> !isReferenceField(violation))
+                .collect(Collectors.groupingBy(this::fieldOf,
+                        Collectors.minBy(Comparator.comparingInt(this::orderOf))))
+                .values()
+                .stream()
+                .flatMap(Optional::stream)
+                .map(this::toIssue)
+                .toList();
+
+        if (!issues.isEmpty()) {
+            throw invalid(issues);
         }
 
-        if (!(json instanceof JsonObject object)) {
-            throw invalid(List.of(new ValidationIssue("$", "INVALID_TYPE",
-                    "Request body must be a JSON object.")));
-        }
-
-        return new RequestFields(this, object);
+        return value;
     }
 
     /**
@@ -168,28 +179,11 @@ public class RequestReader {
      * @param issues нарушения
      * @return исключение, которое завершает запрос
      */
-    WebApplicationException invalid(List<ValidationIssue> issues) {
+    private WebApplicationException invalid(List<ValidationIssue> issues) {
         return new WebApplicationException(Response.status(422)
                 .type(MediaType.APPLICATION_JSON_TYPE)
                 .entity(new ValidationErrorResponse(issues))
                 .build());
-    }
-
-    /**
-     * Проверяет объект через Jakarta Validation и переводит нарушения в коды контракта.
-     *
-     * @param value проверяемый объект
-     * @return по одному нарушению на каждое неверное поле
-     */
-    List<ValidationIssue> violations(Object value) {
-        return validator.validate(value).stream()
-                .collect(Collectors.groupingBy(this::fieldOf,
-                        Collectors.minBy(Comparator.comparingInt(this::orderOf))))
-                .values()
-                .stream()
-                .flatMap(Optional::stream)
-                .map(this::toIssue)
-                .toList();
     }
 
     private long positive(String name, String raw, long max) {
@@ -210,6 +204,21 @@ public class RequestReader {
         return value.longValue();
     }
 
+    /**
+     * Проверяет, относится ли нарушение к полям вложенной ссылки по ID.
+     * У ссылки задан только ID, поэтому её остальные поля не проверяются.
+     */
+    private boolean isReferenceField(ConstraintViolation<?> violation) {
+        Object bean = violation.getLeafBean();
+        String path = violation.getPropertyPath().toString();
+        boolean reference = bean instanceof CoordinatesRequest coordinates
+                && coordinates.getId() != null
+                || bean instanceof LocationRequest location && location.getId() != null
+                || bean instanceof PersonRequest person && person.getId() != null;
+
+        return reference && path.contains(".") && !path.endsWith(".id");
+    }
+
     private int orderOf(ConstraintViolation<?> violation) {
         return CONSTRAINTS.indexOf(constraintOf(violation));
     }
@@ -218,7 +227,9 @@ public class RequestReader {
      * Путь свойств Java переводится в snake_case контракта, например official_address.town.x.
      */
     private String fieldOf(ConstraintViolation<?> violation) {
-        return SNAKE_CASE_BOUNDARY.matcher(violation.getPropertyPath().toString())
+        String path = violation.getPropertyPath().toString().replaceAll("Valid$", "");
+
+        return SNAKE_CASE_BOUNDARY.matcher(path)
                 .replaceAll("$1_$2").toLowerCase(Locale.ROOT);
     }
 

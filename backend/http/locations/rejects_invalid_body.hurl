@@ -39,15 +39,25 @@ POST {{base_url}}/locations
 X-CSRF-Token: {{csrf}}
 {
     "x": null,
-    "y": 2147483648,
     "w": 1
 }
 HTTP 422
 [Asserts]
+jsonpath "$.errors" count == 3
 jsonpath "$.errors[?(@.field == 'x')].code" contains "MUST_NOT_BE_NULL"
-jsonpath "$.errors[?(@.field == 'y')].code" contains "OUT_OF_RANGE"
-jsonpath "$.errors[?(@.field == 'z')].code" contains "REQUIRED"
-jsonpath "$.errors[?(@.field == 'w')].code" contains "UNKNOWN_FIELD"
+jsonpath "$.errors[?(@.field == 'y')].code" contains "MUST_NOT_BE_NULL"
+jsonpath "$.errors[?(@.field == 'z')].code" contains "MUST_NOT_BE_NULL"
+
+POST {{base_url}}/locations
+X-CSRF-Token: {{csrf}}
+{
+    "x": 1,
+    "y": 2147483648,
+    "z": 1
+}
+HTTP 400
+[Asserts]
+jsonpath "$.message" == "The request body contains invalid JSON or a value of the wrong type."
 
 POST {{base_url}}/locations
 X-CSRF-Token: {{csrf}}
@@ -56,18 +66,17 @@ X-CSRF-Token: {{csrf}}
     "y": 1,
     "z": 9223372036854775808
 }
-HTTP 422
+HTTP 400
 [Asserts]
-jsonpath "$.errors[?(@.field == 'x')].code" contains "INVALID_TYPE"
-jsonpath "$.errors[?(@.field == 'z')].code" contains "OUT_OF_RANGE"
+jsonpath "$.message" == "The request body contains invalid JSON or a value of the wrong type."
 
 POST {{base_url}}/locations
 X-CSRF-Token: {{csrf}}
 Content-Type: application/json
 `"location"`
-HTTP 422
+HTTP 400
 [Asserts]
-jsonpath "$.errors[?(@.field == '$')].code" contains "INVALID_TYPE"
+jsonpath "$.message" == "The request body contains invalid JSON or a value of the wrong type."
 
 PUT {{base_url}}/locations/{{id}}
 X-CSRF-Token: {{csrf}}
@@ -77,7 +86,7 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'z')].code" contains "REQUIRED"
+jsonpath "$.errors[?(@.field == 'z')].code" contains "MUST_NOT_BE_NULL"
 
 GET {{base_url}}/locations/{{id}}
 HTTP 200

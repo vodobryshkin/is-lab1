@@ -1,6 +1,7 @@
 package com.github.vodobryshkin.islab1.backend.resource;
 
 import com.github.vodobryshkin.islab1.backend.domain.Coordinates;
+import com.github.vodobryshkin.islab1.backend.dto.CoordinatesRequest;
 import com.github.vodobryshkin.islab1.backend.dto.CoordinatesResponse;
 import com.github.vodobryshkin.islab1.backend.dto.ErrorResponse;
 import com.github.vodobryshkin.islab1.backend.dto.IdResponse;
@@ -66,7 +67,9 @@ public class CoordinatesResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(String body, @Context UriInfo uriInfo) {
-        Long id = service.create(readCoordinates(body));
+        CoordinatesRequest request = requestReader.read(body, CoordinatesRequest.class);
+        request.setId(null);
+        Long id = service.create(request.toEntity());
 
         return Response.created(uriInfo.getAbsolutePathBuilder().path(id.toString()).build())
                 .entity(new IdResponse(id))
@@ -123,7 +126,9 @@ public class CoordinatesResource {
     public Response update(@PathParam("id") String rawId, String body) {
         long id = requestReader.id(rawId);
 
-        if (!service.update(id, readCoordinates(body))) {
+        Coordinates values = requestReader.read(body, CoordinatesRequest.class).toEntity();
+
+        if (!service.update(id, values)) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
                     .build();
@@ -153,11 +158,5 @@ public class CoordinatesResource {
                     .entity(new ErrorResponse(NOT_FOUND.formatted(id)))
                     .build();
         };
-    }
-
-    private Coordinates readCoordinates(String body) {
-        RequestFields fields = requestReader.read(body).allowOnly("x", "y");
-
-        return fields.validate(new Coordinates(null, fields.int32("x"), fields.int64("y")));
     }
 }

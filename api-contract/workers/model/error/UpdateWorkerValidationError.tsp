@@ -17,8 +17,8 @@ const updateWorkerValidationExample: UpdateWorkerValidationError = #{
             },
             #{
                 field: "organization_id",
-                code: "REQUIRED",
-                message: "organization_id is required."
+                code: "MUST_BE_POSITIVE",
+                message: "organization_id must be greater than zero."
             }
         ]
     }

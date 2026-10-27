@@ -56,19 +56,19 @@ X-CSRF-Token: {{csrf}}
 }
 HTTP 422
 [Asserts]
-jsonpath "$.errors[?(@.field == 'x')].code" contains "REQUIRED"
+jsonpath "$.errors" count == 2
+jsonpath "$.errors[?(@.field == 'x')].code" contains "MUST_NOT_BE_NULL"
 jsonpath "$.errors[?(@.field == 'y')].code" contains "MUST_BE_GREATER_THAN_MINUS_392"
 
 POST {{base_url}}/coordinates
 X-CSRF-Token: {{csrf}}
 {
-    "x": null,
+    "x": 1,
     "y": "1"
 }
-HTTP 422
+HTTP 400
 [Asserts]
-jsonpath "$.errors[?(@.field == 'x')].code" contains "MUST_NOT_BE_NULL"
-jsonpath "$.errors[?(@.field == 'y')].code" contains "INVALID_TYPE"
+jsonpath "$.message" == "The request body contains invalid JSON or a value of the wrong type."
 
 POST {{base_url}}/coordinates
 X-CSRF-Token: {{csrf}}
@@ -76,9 +76,9 @@ X-CSRF-Token: {{csrf}}
     "x": 1.5,
     "y": 1
 }
-HTTP 422
+HTTP 400
 [Asserts]
-jsonpath "$.errors[?(@.field == 'x')].code" contains "INVALID_TYPE"
+jsonpath "$.message" == "The request body contains invalid JSON or a value of the wrong type."
 
 POST {{base_url}}/coordinates
 X-CSRF-Token: {{csrf}}
@@ -86,10 +86,9 @@ X-CSRF-Token: {{csrf}}
     "x": 2147483648,
     "y": 9223372036854775808
 }
-HTTP 422
+HTTP 400
 [Asserts]
-jsonpath "$.errors[?(@.field == 'x')].code" contains "OUT_OF_RANGE"
-jsonpath "$.errors[?(@.field == 'y')].code" contains "OUT_OF_RANGE"
+jsonpath "$.message" == "The request body contains invalid JSON or a value of the wrong type."
 
 POST {{base_url}}/coordinates
 X-CSRF-Token: {{csrf}}
@@ -98,32 +97,30 @@ X-CSRF-Token: {{csrf}}
     "y": 1,
     "z": 1
 }
-HTTP 422
-[Asserts]
-jsonpath "$.errors[?(@.field == 'z')].code" contains "UNKNOWN_FIELD"
+HTTP 201
 
 POST {{base_url}}/coordinates
 X-CSRF-Token: {{csrf}}
 Content-Type: application/json
 `[1, 2]`
-HTTP 422
+HTTP 400
 [Asserts]
-jsonpath "$.errors[?(@.field == '$')].code" contains "INVALID_TYPE"
+jsonpath "$.message" == "The request body contains invalid JSON or a value of the wrong type."
 
 POST {{base_url}}/coordinates
 X-CSRF-Token: {{csrf}}
 Content-Type: application/json
 `null`
-HTTP 422
+HTTP 400
 [Asserts]
-jsonpath "$.errors[?(@.field == '$')].code" contains "MUST_NOT_BE_NULL"
+jsonpath "$.message" == "The request body must be a JSON object."
 
 POST {{base_url}}/coordinates
 X-CSRF-Token: {{csrf}}
 Content-Type: application/json
-HTTP 422
+HTTP 400
 [Asserts]
-jsonpath "$.errors[?(@.field == '$')].code" contains "REQUIRED"
+jsonpath "$.message" == "The request body contains invalid JSON or a value of the wrong type."
 
 POST {{base_url}}/coordinates
 X-CSRF-Token: {{csrf}}
@@ -131,7 +128,7 @@ Content-Type: application/json
 `{"x": 1,`
 HTTP 400
 [Asserts]
-jsonpath "$.message" == "The request body contains invalid JSON."
+jsonpath "$.message" == "The request body contains invalid JSON or a value of the wrong type."
 
 PUT {{base_url}}/coordinates/{{id}}
 X-CSRF-Token: {{csrf}}
@@ -150,4 +147,4 @@ jsonpath "$.y" == -391
 GET {{base_url}}/coordinates
 HTTP 200
 [Asserts]
-jsonpath "$.total_items" == 1
+jsonpath "$.total_items" == 2

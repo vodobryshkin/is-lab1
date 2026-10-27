@@ -15,7 +15,7 @@ const addressBadRequestOperationExample = #{
         statusCode: 400,
         contentType: "application/json",
         body: #{
-            message: "The request body contains invalid JSON."
+            message: "The request body contains invalid JSON or a value of the wrong type."
         }
     }
 };
@@ -50,8 +50,8 @@ const addressValidationErrorExample: AddressValidationError = #{
             },
             #{
                 field: "town.x",
-                code: "OUT_OF_RANGE",
-                message: "town.x must fit into int32."
+                code: "MUST_NOT_BE_NULL",
+                message: "town.x must not be null."
             }
         ]
     }
@@ -68,18 +68,6 @@ const addressValidationOperationExample = #{
 @doc("Ошибки данных адреса.")
 union AddressRequestValidationIssue {
     address: AddressValidationIssue<"", "">,
-
-    body: {
-        field: "$";
-        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE";
-        message: string;
-    },
-
-    unknown_field: {
-        field: string;
-        code: "UNKNOWN_FIELD";
-        message: string;
-    },
 }
 
 @error

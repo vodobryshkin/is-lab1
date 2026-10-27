@@ -20,8 +20,8 @@ const organizationAddressOptionsValidationOperationExample = #{
         body: #{
             errors: #[
                 #{
-                    field: "official_address_id",
-                    code: "MUTUALLY_EXCLUSIVE",
+                    field: "official_address",
+                    code: "INVALID_COMBINATION",
                     message: "Use either official_address or official_address_id."
                 }
             ]
@@ -83,12 +83,6 @@ const organizationValidationOperationExample = #{
 @doc("Ошибки данных организации.")
 union OrganizationRequestValidationIssue {
     organization: OrganizationValidationIssue<"", "">,
-
-    body: {
-        field: "$";
-        code: "REQUIRED" | "MUST_NOT_BE_NULL" | "INVALID_TYPE";
-        message: string;
-    },
 }
 
 @error
