@@ -6,17 +6,13 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
- * Хранилище координат в БД. Транзакциями управляет вызывающий сервис.
+ * Хранилище координат.
  */
 @ApplicationScoped
 public class CoordinatesRepository {
-    private static final Map<String, String> SORT_COLUMNS =
-            Map.of("id", "c.id", "x", "c.x", "y", "c.y");
-
     @PersistenceContext(unitName = "is-lab1")
     private EntityManager entityManager;
 
@@ -31,25 +27,24 @@ public class CoordinatesRepository {
     }
 
     /**
-     * Возвращает страницу координат, при равных значениях порядок задаёт ID по возрастанию.
+     * Возвращает страницу координат.
      *
-     * @param query проверенные параметры страницы
-     * @return координаты страницы, за концом списка -- пустой список
+     * @param query параметры страницы
+     * @return координаты страницы
      */
     public List<Coordinates> findPage(ListQuery query) {
         long offset = (long) (query.getPage() - 1) * query.getPageSize();
-
-        if (offset > Integer.MAX_VALUE) {
-            return List.of();
-        }
-
-        String order = SORT_COLUMNS.get(query.getSortBy())
-                + (query.isAscending() ? " ASC" : " DESC");
+        String column = switch (query.getSortBy()) {
+            case "x" -> "c.x";
+            case "y" -> "c.y";
+            default -> "c.id";
+        };
+        String order = query.isAscending() ? "ASC" : "DESC";
 
         return entityManager.createQuery(
-                        "SELECT c FROM Coordinates c ORDER BY " + order + ", c.id ASC",
+                        "SELECT c FROM Coordinates c ORDER BY " + column + " " + order + ", c.id",
                         Coordinates.class)
-                .setFirstResult((int) offset)
+                .setFirstResult((int) Math.min(offset, Integer.MAX_VALUE))
                 .setMaxResults(query.getPageSize())
                 .getResultList();
     }
@@ -65,7 +60,7 @@ public class CoordinatesRepository {
     }
 
     /**
-     * Проверяет, ссылается ли на координаты хотя бы один работник.
+     * Проверяет, используются ли координаты работниками.
      *
      * @param id ID координат
      * @return true, если координаты используются
@@ -78,19 +73,18 @@ public class CoordinatesRepository {
     }
 
     /**
-     * Сохраняет новые координаты, ID выдаёт последовательность БД.
+     * Сохраняет новые координаты.
      *
-     * @param coordinates координаты без ID
+     * @param coordinates координаты
      */
     public void save(Coordinates coordinates) {
         entityManager.persist(coordinates);
     }
 
     /**
-     * Удаляет координаты и сразу отправляет DELETE: внешний ключ БД отклонит удаление,
-     * если работник сослался на координаты после проверки isUsed.
+     * Удаляет координаты.
      *
-     * @param coordinates сохранённые координаты
+     * @param coordinates координаты
      */
     public void delete(Coordinates coordinates) {
         entityManager.remove(coordinates);

@@ -98,7 +98,7 @@ public class AddressService {
      *
      * @param id ID адреса
      * @param values новые значения
-     * @return DONE, NOT_FOUND или REFERENCE_NOT_FOUND
+     * @return DONE, NOT_FOUND, REFERENCE_NOT_FOUND
      */
     @Transactional
     public Outcome update(long id, Address values) {
@@ -122,7 +122,7 @@ public class AddressService {
      * Удаляет адрес, если его не используют организации. Локацию адреса не удаляет.
      *
      * @param id ID адреса
-     * @return DONE, NOT_FOUND или IN_USE
+     * @return DONE, NOT_FOUND, IN_USE
      */
     @Transactional
     public Outcome delete(long id) {

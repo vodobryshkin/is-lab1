@@ -6,17 +6,13 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
- * Хранилище локаций в БД. Транзакциями управляет вызывающий сервис.
+ * Хранилище локаций.
  */
 @ApplicationScoped
 public class LocationRepository {
-    private static final Map<String, String> SORT_COLUMNS =
-            Map.of("id", "l.id", "x", "l.x", "y", "l.y", "z", "l.z");
-
     @PersistenceContext(unitName = "is-lab1")
     private EntityManager entityManager;
 
@@ -31,25 +27,25 @@ public class LocationRepository {
     }
 
     /**
-     * Возвращает страницу локаций, при равных значениях порядок задаёт ID по возрастанию.
+     * Возвращает страницу локаций.
      *
-     * @param query проверенные параметры страницы
-     * @return локации страницы, за концом списка -- пустой список
+     * @param query параметры страницы
+     * @return локации страницы
      */
     public List<Location> findPage(ListQuery query) {
         long offset = (long) (query.getPage() - 1) * query.getPageSize();
-
-        if (offset > Integer.MAX_VALUE) {
-            return List.of();
-        }
-
-        String order = SORT_COLUMNS.get(query.getSortBy())
-                + (query.isAscending() ? " ASC" : " DESC");
+        String column = switch (query.getSortBy()) {
+            case "x" -> "l.x";
+            case "y" -> "l.y";
+            case "z" -> "l.z";
+            default -> "l.id";
+        };
+        String order = query.isAscending() ? "ASC" : "DESC";
 
         return entityManager.createQuery(
-                        "SELECT l FROM Location l ORDER BY " + order + ", l.id ASC",
+                        "SELECT l FROM Location l ORDER BY " + column + " " + order + ", l.id",
                         Location.class)
-                .setFirstResult((int) offset)
+                .setFirstResult((int) Math.min(offset, Integer.MAX_VALUE))
                 .setMaxResults(query.getPageSize())
                 .getResultList();
     }
@@ -65,7 +61,7 @@ public class LocationRepository {
     }
 
     /**
-     * Проверяет, ссылается ли на локацию адрес или персона.
+     * Проверяет, используется ли локация адресами или персонами.
      *
      * @param id ID локации
      * @return true, если локация используется
@@ -82,19 +78,18 @@ public class LocationRepository {
     }
 
     /**
-     * Сохраняет новую локацию, ID выдаёт последовательность БД.
+     * Сохраняет новую локацию.
      *
-     * @param location локация без ID
+     * @param location локация
      */
     public void save(Location location) {
         entityManager.persist(location);
     }
 
     /**
-     * Удаляет локацию и сразу отправляет DELETE: внешний ключ БД отклонит удаление,
-     * если адрес или персона сослались на локацию после проверки isUsed.
+     * Удаляет локацию.
      *
-     * @param location сохранённая локация
+     * @param location локация
      */
     public void delete(Location location) {
         entityManager.remove(location);

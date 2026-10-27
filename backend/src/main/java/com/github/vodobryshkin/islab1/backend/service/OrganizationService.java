@@ -14,7 +14,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -65,8 +64,7 @@ public class OrganizationService {
      * Сохраняет организацию вместе с новыми адресами и локациями в одной транзакции.
      *
      * @param organization организация, у ссылки на адрес или локацию задан только ID
-     * @return DONE с ID, REFERENCE_NOT_FOUND с недостающей ссылкой
-     *     или CONFLICT, если полное название занято
+     * @return DONE, REFERENCE_NOT_FOUND, CONFLICT
      */
     @Transactional
     public Change create(Organization organization) {
@@ -95,24 +93,26 @@ public class OrganizationService {
     }
 
     /**
-     * Возвращает страницу организаций.
+     * Возвращает страницу организаций с фильтрами по подстроке.
      *
      * @param query параметры страницы
-     * @param filters параметры запроса с фильтрами контракта
+     * @param fullName подстрока полного названия или null
+     * @param type подстрока типа или null
      * @return организации страницы
      */
-    public List<Organization> findPage(ListQuery query, Map<String, List<String>> filters) {
-        return repository.findPage(query, filters);
+    public List<Organization> findPage(ListQuery query, String fullName, String type) {
+        return repository.findPage(query, fullName, type);
     }
 
     /**
-     * Считает организации с учётом фильтров.
+     * Считает организации с фильтрами по подстроке.
      *
-     * @param filters параметры запроса с фильтрами контракта
+     * @param fullName подстрока полного названия или null
+     * @param type подстрока типа или null
      * @return количество
      */
-    public long count(Map<String, List<String>> filters) {
-        return repository.count(filters);
+    public long count(String fullName, String type) {
+        return repository.count(fullName, type);
     }
 
     /**
@@ -120,8 +120,7 @@ public class OrganizationService {
      *
      * @param id ID организации
      * @param values новые значения
-     * @return DONE, NOT_FOUND, REFERENCE_NOT_FOUND с недостающей
-     *     ссылкой или CONFLICT, если название занято другой организацией
+     * @return DONE, NOT_FOUND, REFERENCE_NOT_FOUND, CONFLICT
      */
     @Transactional
     public Change update(long id, Organization values) {
@@ -164,8 +163,7 @@ public class OrganizationService {
      *
      * @param organizationId ID организации
      * @param coefficient положительный конечный коэффициент
-     * @return DONE с числом проиндексированных работников в id (0 для
-     *     организации без работников), NOT_FOUND или CONFLICT
+     * @return DONE, NOT_FOUND, CONFLICT
      */
     @Transactional
     public Change indexSalaries(long organizationId, double coefficient) {
@@ -197,7 +195,7 @@ public class OrganizationService {
      * Удаляет организацию, если на неё не ссылаются работники. Адреса не удаляет.
      *
      * @param id ID организации
-     * @return DONE, NOT_FOUND или IN_USE
+     * @return DONE, NOT_FOUND, IN_USE
      */
     @Transactional
     public Outcome delete(long id) {
@@ -222,8 +220,7 @@ public class OrganizationService {
      * и занятость полного названия.
      *
      * @param organization новая организация
-     * @return REFERENCE_NOT_FOUND с недостающей ссылкой, CONFLICT
-     *     с видом "organization" или пустой результат, если создать можно
+     * @return REFERENCE_NOT_FOUND, CONFLICT или пустой результат
      */
     public Optional<Change> refusal(Organization organization) {
         Optional<Change> missing = missingReference(organization);

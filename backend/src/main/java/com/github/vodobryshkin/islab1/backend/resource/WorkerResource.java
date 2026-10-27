@@ -37,10 +37,7 @@ import java.util.Set;
 @Produces(MediaType.APPLICATION_JSON)
 public class WorkerResource {
     private static final Set<String> SORT_FIELDS = Set.of("id", "name", "salary", "rating",
-            "start_date", "creation_date", "position", "status", "organization_full_name",
-            "organization_type", "organization_official_address_street",
-            "organization_postal_address_street", "person_eye_color", "person_hair_color",
-            "person_nationality");
+            "start_date", "creation_date", "position", "status");
     private static final String NOT_FOUND = "Worker with id=%d does not exist.";
 
     private final WorkerService service;
@@ -123,11 +120,16 @@ public class WorkerResource {
      */
     @GET
     public Response list(@Context UriInfo uriInfo) {
-        MultivaluedMap<String, String> filters = uriInfo.getQueryParameters();
-        ListQuery query = requestReader.listQuery(filters, SORT_FIELDS);
+        MultivaluedMap<String, String> parameters = uriInfo.getQueryParameters();
+        ListQuery query = requestReader.listQuery(parameters, SORT_FIELDS);
+        String name = parameters.getFirst("name");
+        String position = parameters.getFirst("position");
+        String status = parameters.getFirst("status");
         PageResponse<WorkerResponse> page = new PageResponse<>(
-                service.findPage(query, filters).stream().map(WorkerResponse::new).toList(),
-                query.getPage(), query.getPageSize(), service.count(filters));
+                service.findPage(query, name, position, status).stream()
+                        .map(WorkerResponse::new)
+                        .toList(),
+                query.getPage(), query.getPageSize(), service.count(name, position, status));
 
         return Response.ok().entity(page).build();
     }
@@ -141,8 +143,7 @@ public class WorkerResource {
     @GET
     @Path("/count_by_status")
     public Response countByStatus(@Context UriInfo uriInfo) {
-        String raw = uriInfo.getQueryParameters().getFirst("status");
-        Status status = "null".equals(raw) ? null : statusParameter(raw);
+        Status status = statusParameter(uriInfo, true);
         CountResponse count = new CountResponse(service.countByStatus(status));
 
         return Response.ok().entity(count).build();
@@ -157,7 +158,7 @@ public class WorkerResource {
     @GET
     @Path("/count_by_status_greater_than")
     public Response countByStatusGreaterThan(@Context UriInfo uriInfo) {
-        Status status = statusParameter(uriInfo.getQueryParameters().getFirst("status"));
+        Status status = statusParameter(uriInfo, false);
         CountResponse count =
                 new CountResponse(service.countByStatusGreaterThan(status));
 
@@ -267,9 +268,15 @@ public class WorkerResource {
         };
     }
 
-    private Status statusParameter(String raw) {
+    private Status statusParameter(UriInfo uriInfo, boolean nullable) {
+        String raw = uriInfo.getQueryParameters().getFirst("status");
+
         if (raw == null) {
             throw requestReader.badRequest("Parameter status is required.");
+        }
+
+        if (nullable && "null".equals(raw)) {
+            return null;
         }
 
         for (Status status : Status.values()) {

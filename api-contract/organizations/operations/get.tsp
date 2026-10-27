@@ -81,7 +81,7 @@ const listOrganizationsFilteredOperationExample = #{
     ...listOrganizationsSuccessOperationExample,
     parameters: #{
         full_name: "магистр",
-        official_address_street: "пушк",
+        type: "trust",
         sort_by: "full_name",
         sort_order: "desc"
     }
@@ -105,8 +105,7 @@ op listOrganizations(
     @query
     sort_by?:
         "id" | "full_name" | "annual_turnover" | "employees_count" | "rating"
-        | "type" | "official_address_id" | "postal_address_id"
-        | "official_address_street" | "postal_address_street" = "id",
+        | "type" = "id",
 
     @doc("Название организации.")
     @query
@@ -115,14 +114,6 @@ op listOrganizations(
     @doc("Тип организации.")
     @query
     type?: SubstringFilter,
-
-    @doc("Улица официального адреса.")
-    @query
-    official_address_street?: SubstringFilter,
-
-    @doc("Улица почтового адреса.")
-    @query
-    postal_address_street?: SubstringFilter,
 ):
     WorkersApi.Ok.OkResponse<PageResponse<GetSingleOrganizationResponse>>
     | BadRequestError

@@ -9,7 +9,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -79,24 +78,29 @@ public class PersonService {
     }
 
     /**
-     * Возвращает страницу персон.
+     * Возвращает страницу персон с фильтрами по подстроке.
      *
      * @param query параметры страницы
-     * @param filters параметры запроса, учитываются только фильтры контракта
+     * @param eyeColor подстрока цвета глаз или null
+     * @param hairColor подстрока цвета волос или null
+     * @param nationality подстрока национальности или null
      * @return персоны страницы
      */
-    public List<Person> findPage(ListQuery query, Map<String, List<String>> filters) {
-        return repository.findPage(query, filters);
+    public List<Person> findPage(ListQuery query, String eyeColor, String hairColor,
+            String nationality) {
+        return repository.findPage(query, eyeColor, hairColor, nationality);
     }
 
     /**
-     * Считает персоны с учётом фильтров.
+     * Считает персоны с фильтрами по подстроке.
      *
-     * @param filters параметры запроса, учитываются только фильтры контракта
+     * @param eyeColor подстрока цвета глаз или null
+     * @param hairColor подстрока цвета волос или null
+     * @param nationality подстрока национальности или null
      * @return количество
      */
-    public long count(Map<String, List<String>> filters) {
-        return repository.count(filters);
+    public long count(String eyeColor, String hairColor, String nationality) {
+        return repository.count(eyeColor, hairColor, nationality);
     }
 
     /**
@@ -105,7 +109,7 @@ public class PersonService {
      *
      * @param id ID персоны
      * @param values новые значения
-     * @return DONE, NOT_FOUND или REFERENCE_NOT_FOUND
+     * @return DONE, NOT_FOUND, REFERENCE_NOT_FOUND
      */
     @Transactional
     public Outcome update(long id, Person values) {
@@ -138,7 +142,7 @@ public class PersonService {
      * Внешний ключ такому удалению не мешает, поэтому запрет обеспечивает эта проверка.
      *
      * @param id ID персоны
-     * @return DONE, NOT_FOUND или IN_USE
+     * @return DONE, NOT_FOUND, IN_USE
      */
     @Transactional
     public Outcome delete(long id) {

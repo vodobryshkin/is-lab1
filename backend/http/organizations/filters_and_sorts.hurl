@@ -117,20 +117,6 @@ jsonpath "$.total_items" == 0
 
 GET {{base_url}}/organizations
 [Query]
-official_address_street: невск
-HTTP 200
-[Asserts]
-jsonpath "$.total_items" == 1
-jsonpath "$.items[0].id" == {{first}}
-
-GET {{base_url}}/organizations?postal_address_street=KRON
-HTTP 200
-[Asserts]
-jsonpath "$.total_items" == 1
-jsonpath "$.items[0].id" == {{second}}
-
-GET {{base_url}}/organizations
-[Query]
 full_name: ромашка
 type: pub
 HTTP 200
@@ -171,18 +157,10 @@ jsonpath "$.items" count == 2
 jsonpath "$.items[0].id" == {{first}}
 jsonpath "$.items[1].id" == {{third}}
 
-GET {{base_url}}/organizations?sort_by=official_address_street
-HTTP 200
+GET {{base_url}}/organizations?sort_by=postal_address_id
+HTTP 400
 [Asserts]
-jsonpath "$.items[0].id" == {{second}}
-jsonpath "$.items[1].id" == {{third}}
-jsonpath "$.items[2].id" == {{first}}
-
-GET {{base_url}}/organizations?sort_by=postal_address_id&sort_order=desc
-HTTP 200
-[Asserts]
-jsonpath "$.items[0].id" == {{third}}
-jsonpath "$.items[2].id" == {{first}}
+jsonpath "$.message" == "Parameter sort_by has an unsupported value."
 
 GET {{base_url}}/organizations?sort_by=address
 HTTP 400

@@ -117,11 +117,17 @@ public class PersonResource {
      */
     @GET
     public Response list(@Context UriInfo uriInfo) {
-        MultivaluedMap<String, String> filters = uriInfo.getQueryParameters();
-        ListQuery query = requestReader.listQuery(filters, SORT_FIELDS);
+        MultivaluedMap<String, String> parameters = uriInfo.getQueryParameters();
+        ListQuery query = requestReader.listQuery(parameters, SORT_FIELDS);
+        String eyeColor = parameters.getFirst("eye_color");
+        String hairColor = parameters.getFirst("hair_color");
+        String nationality = parameters.getFirst("nationality");
         PageResponse<PersonResponse> page = new PageResponse<>(
-                service.findPage(query, filters).stream().map(PersonResponse::new).toList(),
-                query.getPage(), query.getPageSize(), service.count(filters));
+                service.findPage(query, eyeColor, hairColor, nationality).stream()
+                        .map(PersonResponse::new)
+                        .toList(),
+                query.getPage(), query.getPageSize(),
+                service.count(eyeColor, hairColor, nationality));
 
         return Response.ok().entity(page).build();
     }

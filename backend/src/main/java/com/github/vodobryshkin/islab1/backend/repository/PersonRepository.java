@@ -8,25 +8,16 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.PersistenceContext;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
- * Хранилище персон в БД. Транзакциями управляет вызывающий сервис.
+ * Хранилище персон.
  */
 @ApplicationScoped
 public class PersonRepository {
-    private static final Map<String, String> SORT_COLUMNS = Map.of(
-            "id", "p.id",
-            "eye_color", "p.eyeColor",
-            "hair_color", "p.hairColor",
-            "nationality", "p.nationality",
-            "birthday", "p.birthday",
-            "weight", "p.weight");
-
     @PersistenceContext(unitName = "is-lab1")
     private EntityManager entityManager;
 
@@ -41,8 +32,7 @@ public class PersonRepository {
     }
 
     /**
-     * Ищет персону и блокирует её строку до конца транзакции, чтобы одновременные
-     * запросы не привязали одну персону к двум работникам.
+     * Ищет персону по ID и блокирует её до конца транзакции.
      *
      * @param id ID персоны
      * @return персона или пустой результат
@@ -53,93 +43,114 @@ public class PersonRepository {
     }
 
     /**
-     * Возвращает страницу персон, прошедших фильтры-подстроки по цветам и национальности.
-     * null при сортировке идёт последним, при равных значениях порядок задаёт ID.
+     * Возвращает страницу персон с фильтрами по подстроке.
      *
-     * @param query проверенные параметры страницы
-     * @param filters параметры запроса с фильтрами контракта
-     * @return персоны страницы, за концом списка -- пустой список
+     * @param query параметры страницы
+     * @param eyeColor подстрока цвета глаз или null
+     * @param hairColor подстрока цвета волос или null
+     * @param nationality подстрока национальности или null
+     * @return персоны страницы
      */
-    public List<Person> findPage(ListQuery query, Map<String, List<String>> filters) {
-        long offset = (long) (query.getPage() - 1) * query.getPageSize();
-        String eyeColor = filter(filters, "eye_color");
-        String hairColor = filter(filters, "hair_color");
-        String nationality = filter(filters, "nationality");
-        List<Color> eyeColors = matching(Color.values(), eyeColor);
-        List<Color> hairColors = matching(Color.values(), hairColor);
-        List<Country> nationalities = matching(Country.values(), nationality);
+    public List<Person> findPage(ListQuery query, String eyeColor, String hairColor,
+            String nationality) {
+        String eyeColorText = eyeColor == null ? "" : eyeColor.toLowerCase(Locale.ROOT);
+        String hairColorText = hairColor == null ? "" : hairColor.toLowerCase(Locale.ROOT);
+        String nationalityText = nationality == null ? "" : nationality.toLowerCase(Locale.ROOT);
+        List<Color> eyeColors = Stream.of(Color.values())
+                .filter(value -> value.name().toLowerCase(Locale.ROOT).contains(eyeColorText))
+                .toList();
+        List<Color> hairColors = Stream.of(Color.values())
+                .filter(value -> value.name().toLowerCase(Locale.ROOT).contains(hairColorText))
+                .toList();
+        List<Country> nationalities = Stream.of(Country.values())
+                .filter(value -> value.name().toLowerCase(Locale.ROOT).contains(nationalityText))
+                .toList();
 
-        if (offset > Integer.MAX_VALUE || eyeColors.isEmpty() || hairColors.isEmpty()
-                || nationalities.isEmpty()) {
+        if (eyeColors.isEmpty() || hairColors.isEmpty() || nationalities.isEmpty()) {
             return List.of();
         }
 
-        String order = SORT_COLUMNS.get(query.getSortBy())
-                + (query.isAscending() ? " ASC" : " DESC");
+        long offset = (long) (query.getPage() - 1) * query.getPageSize();
+        String column = switch (query.getSortBy()) {
+            case "eye_color" -> "p.eyeColor";
+            case "hair_color" -> "p.hairColor";
+            case "nationality" -> "p.nationality";
+            case "birthday" -> "p.birthday";
+            case "weight" -> "p.weight";
+            default -> "p.id";
+        };
+        String order = query.isAscending() ? "ASC" : "DESC";
 
         return entityManager.createQuery("SELECT p FROM Person p"
-                        + " WHERE (:eyeColorText = '' OR p.eyeColor IN :eyeColors)"
-                        + " AND (:hairColorText = '' OR p.hairColor IN :hairColors)"
-                        + " AND (:nationalityText = '' OR p.nationality IN :nationalities)"
-                        + " ORDER BY " + order + " NULLS LAST, p.id ASC", Person.class)
-                .setParameter("eyeColorText", eyeColor)
+                        + " WHERE (:eyeColor = '' OR p.eyeColor IN :eyeColors)"
+                        + " AND (:hairColor = '' OR p.hairColor IN :hairColors)"
+                        + " AND (:nationality = '' OR p.nationality IN :nationalities)"
+                        + " ORDER BY " + column + " " + order + " NULLS LAST, p.id",
+                        Person.class)
+                .setParameter("eyeColor", eyeColorText)
                 .setParameter("eyeColors", eyeColors)
-                .setParameter("hairColorText", hairColor)
+                .setParameter("hairColor", hairColorText)
                 .setParameter("hairColors", hairColors)
-                .setParameter("nationalityText", nationality)
+                .setParameter("nationality", nationalityText)
                 .setParameter("nationalities", nationalities)
-                .setFirstResult((int) offset)
+                .setFirstResult((int) Math.min(offset, Integer.MAX_VALUE))
                 .setMaxResults(query.getPageSize())
                 .getResultList();
     }
 
     /**
-     * Считает персоны, прошедшие фильтры-подстроки по цветам и национальности.
+     * Считает персоны с фильтрами по подстроке.
      *
-     * @param filters параметры запроса с фильтрами контракта
+     * @param eyeColor подстрока цвета глаз или null
+     * @param hairColor подстрока цвета волос или null
+     * @param nationality подстрока национальности или null
      * @return количество
      */
-    public long count(Map<String, List<String>> filters) {
-        String eyeColor = filter(filters, "eye_color");
-        String hairColor = filter(filters, "hair_color");
-        String nationality = filter(filters, "nationality");
-        List<Color> eyeColors = matching(Color.values(), eyeColor);
-        List<Color> hairColors = matching(Color.values(), hairColor);
-        List<Country> nationalities = matching(Country.values(), nationality);
+    public long count(String eyeColor, String hairColor, String nationality) {
+        String eyeColorText = eyeColor == null ? "" : eyeColor.toLowerCase(Locale.ROOT);
+        String hairColorText = hairColor == null ? "" : hairColor.toLowerCase(Locale.ROOT);
+        String nationalityText = nationality == null ? "" : nationality.toLowerCase(Locale.ROOT);
+        List<Color> eyeColors = Stream.of(Color.values())
+                .filter(value -> value.name().toLowerCase(Locale.ROOT).contains(eyeColorText))
+                .toList();
+        List<Color> hairColors = Stream.of(Color.values())
+                .filter(value -> value.name().toLowerCase(Locale.ROOT).contains(hairColorText))
+                .toList();
+        List<Country> nationalities = Stream.of(Country.values())
+                .filter(value -> value.name().toLowerCase(Locale.ROOT).contains(nationalityText))
+                .toList();
 
         if (eyeColors.isEmpty() || hairColors.isEmpty() || nationalities.isEmpty()) {
             return 0;
         }
 
         return entityManager.createQuery("SELECT COUNT(p) FROM Person p"
-                        + " WHERE (:eyeColorText = '' OR p.eyeColor IN :eyeColors)"
-                        + " AND (:hairColorText = '' OR p.hairColor IN :hairColors)"
-                        + " AND (:nationalityText = '' OR p.nationality IN :nationalities)",
+                        + " WHERE (:eyeColor = '' OR p.eyeColor IN :eyeColors)"
+                        + " AND (:hairColor = '' OR p.hairColor IN :hairColors)"
+                        + " AND (:nationality = '' OR p.nationality IN :nationalities)",
                         Long.class)
-                .setParameter("eyeColorText", eyeColor)
+                .setParameter("eyeColor", eyeColorText)
                 .setParameter("eyeColors", eyeColors)
-                .setParameter("hairColorText", hairColor)
+                .setParameter("hairColor", hairColorText)
                 .setParameter("hairColors", hairColors)
-                .setParameter("nationalityText", nationality)
+                .setParameter("nationality", nationalityText)
                 .setParameter("nationalities", nationalities)
                 .getSingleResult();
     }
 
     /**
-     * Сохраняет новую персону, ID выдаёт последовательность БД.
+     * Сохраняет новую персону.
      *
-     * @param person персона без ID с сохранённой локацией
+     * @param person персона
      */
     public void save(Person person) {
         entityManager.persist(person);
     }
 
     /**
-     * Отвязывает персону от работника и сразу отправляет UPDATE.
-     * Ограничение уникальности worker_id не отложено, поэтому отвязка должна дойти до БД раньше
-     * новой привязки.
+     * Отвязывает персону от работника.
      *
-     * @param person сохранённая персона
+     * @param person персона
      */
     public void unlink(Person person) {
         person.setWorker(null);
@@ -147,29 +158,11 @@ public class PersonRepository {
     }
 
     /**
-     * Удаляет персону, её локацию не удаляет.
+     * Удаляет персону.
      *
-     * @param person сохранённая персона
+     * @param person персона
      */
     public void delete(Person person) {
         entityManager.remove(person);
-    }
-
-    private String filter(Map<String, List<String>> filters, String name) {
-        List<String> values = filters.getOrDefault(name, List.of());
-
-        return values.isEmpty() ? "" : values.get(0).toLowerCase(Locale.ROOT);
-    }
-
-    private <E extends Enum<E>> List<E> matching(E[] values, String filter) {
-        List<E> result = new ArrayList<>();
-
-        for (E value : values) {
-            if (value.name().toLowerCase(Locale.ROOT).contains(filter)) {
-                result.add(value);
-            }
-        }
-
-        return result;
     }
 }

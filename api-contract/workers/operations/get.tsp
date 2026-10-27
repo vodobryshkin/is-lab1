@@ -111,8 +111,7 @@ const listWorkersFilteredOperationExample = #{
     ...listWorkersSuccessOperationExample,
     parameters: #{
         name: "добрыш",
-        organization_full_name: "магистр",
-        person_hair_color: "brown",
+        status: "hir",
         sort_by: "name",
         sort_order: "desc"
     }
@@ -136,10 +135,7 @@ op listWorkers(
     @query
     sort_by?:
         "id" | "name" | "salary" | "rating" | "start_date" | "creation_date"
-        | "position" | "status" | "organization_full_name" | "organization_type"
-        | "organization_official_address_street"
-        | "organization_postal_address_street" | "person_eye_color"
-        | "person_hair_color" | "person_nationality" = "id",
+        | "position" | "status" = "id",
 
     @doc("Имя работника.")
     @query
@@ -152,34 +148,6 @@ op listWorkers(
     @doc("Статус работника.")
     @query
     status?: SubstringFilter,
-
-    @doc("Название организации.")
-    @query
-    organization_full_name?: SubstringFilter,
-
-    @doc("Тип организации.")
-    @query
-    organization_type?: SubstringFilter,
-
-    @doc("Улица официального адреса организации.")
-    @query
-    organization_official_address_street?: SubstringFilter,
-
-    @doc("Улица почтового адреса организации.")
-    @query
-    organization_postal_address_street?: SubstringFilter,
-
-    @doc("Цвет глаз персоны.")
-    @query
-    person_eye_color?: SubstringFilter,
-
-    @doc("Цвет волос персоны.")
-    @query
-    person_hair_color?: SubstringFilter,
-
-    @doc("Национальность персоны.")
-    @query
-    person_nationality?: SubstringFilter,
 ):
     WorkersApi.Ok.OkResponse<PageResponse<GetSingleWorkerResponse>>
     | BadRequestError

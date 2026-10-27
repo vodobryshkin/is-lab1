@@ -17,7 +17,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -73,9 +72,7 @@ public class WorkerService {
      *
      * @param worker работник, у ссылок на координаты, персону и организацию задан только ID
      * @param username логин вошедшего пользователя
-     * @return DONE с ID работника, REFERENCE_NOT_FOUND с недостающей
-     *     ссылкой, CONFLICT с видом "organization" (название занято)
-     *     или "person" (персона уже связана с работником)
+     * @return DONE, REFERENCE_NOT_FOUND, CONFLICT
      */
     @Transactional
     public Change create(Worker worker, String username) {
@@ -103,9 +100,7 @@ public class WorkerService {
      *
      * @param id ID работника
      * @param values новые значения, организация -- только ссылка или null
-     * @return DONE, NOT_FOUND, REFERENCE_NOT_FOUND с недостающей
-     *     ссылкой, CONFLICT с видом "person", если персона связана
-     *     с другим работником
+     * @return DONE, NOT_FOUND, REFERENCE_NOT_FOUND, CONFLICT
      */
     @Transactional
     public Change update(int id, Worker values) {
@@ -148,7 +143,7 @@ public class WorkerService {
      * Удаляет работника, если с ним не связана персона.
      *
      * @param id ID работника
-     * @return DONE, NOT_FOUND или IN_USE
+     * @return DONE, NOT_FOUND, IN_USE
      */
     @Transactional
     public Outcome delete(int id) {
@@ -173,8 +168,7 @@ public class WorkerService {
      *
      * @param workerId ID работника
      * @param organizationId ID существующей организации
-     * @return DONE, NOT_FOUND без работника или
-     *     REFERENCE_NOT_FOUND без организации, при отказе ничего не меняется
+     * @return DONE, NOT_FOUND, REFERENCE_NOT_FOUND
      */
     @Transactional
     public Outcome hire(int workerId, long organizationId) {
@@ -249,24 +243,28 @@ public class WorkerService {
     }
 
     /**
-     * Возвращает страницу работников с вложенными объектами.
+     * Возвращает страницу работников с фильтрами по подстроке.
      *
-     * @param query страница и сортировка
-     * @param filters фильтры-подстроки из параметров запроса
+     * @param query параметры страницы
+     * @param name подстрока имени или null
+     * @param position подстрока должности или null
+     * @param status подстрока статуса или null
      * @return работники страницы
      */
-    public List<Worker> findPage(ListQuery query, Map<String, List<String>> filters) {
-        return repository.findPage(query, filters);
+    public List<Worker> findPage(ListQuery query, String name, String position, String status) {
+        return repository.findPage(query, name, position, status);
     }
 
     /**
-     * Считает работников, прошедших фильтры.
+     * Считает работников с фильтрами по подстроке.
      *
-     * @param filters фильтры-подстроки из параметров запроса
+     * @param name подстрока имени или null
+     * @param position подстрока должности или null
+     * @param status подстрока статуса или null
      * @return количество
      */
-    public long count(Map<String, List<String>> filters) {
-        return repository.count(filters);
+    public long count(String name, String position, String status) {
+        return repository.count(name, position, status);
     }
 
     /**

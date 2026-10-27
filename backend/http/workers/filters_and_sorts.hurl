@@ -51,29 +51,7 @@ jsonpath "$.total_items" == 1
 jsonpath "$.items" count == 1
 jsonpath "$.items[0].id" == 2
 
-GET {{base_url}}/workers
-[Query]
-organization_full_name: 100%
-HTTP 200
-[Asserts]
-jsonpath "$.total_items" == 1
-jsonpath "$.items" count == 1
-jsonpath "$.items[0].id" == 2
-
-GET {{base_url}}/workers
-[Query]
-organization_full_name: магистр
-HTTP 200
-[Asserts]
-jsonpath "$.total_items" == 2
-jsonpath "$.items" count == 2
-jsonpath "$.items[0].id" == 1
-jsonpath "$.items[1].id" == 4
-
-GET {{base_url}}/workers
-[Query]
-organization_full_name: магистр
-status: hired
+GET {{base_url}}/workers?name=ANNA&status=hired
 HTTP 200
 [Asserts]
 jsonpath "$.total_items" == 1
@@ -94,67 +72,34 @@ jsonpath "$.total_items" == 1
 jsonpath "$.items" count == 1
 jsonpath "$.items[0].id" == 3
 
-GET {{base_url}}/workers?organization_type=trust
-HTTP 200
-[Asserts]
-jsonpath "$.total_items" == 1
-jsonpath "$.items" count == 1
-jsonpath "$.items[0].id" == 2
-
-GET {{base_url}}/workers
-[Query]
-organization_official_address_street: невск
-HTTP 200
-[Asserts]
-jsonpath "$.total_items" == 2
-jsonpath "$.items" count == 2
-jsonpath "$.items[0].id" == 1
-jsonpath "$.items[1].id" == 4
-
-GET {{base_url}}/workers?organization_postal_address_street=kron
-HTTP 200
-[Asserts]
-jsonpath "$.total_items" == 3
-jsonpath "$.items" count == 3
-jsonpath "$.items[0].id" == 1
-jsonpath "$.items[1].id" == 2
-jsonpath "$.items[2].id" == 4
-
-GET {{base_url}}/workers?person_hair_color=bro
-HTTP 200
-[Asserts]
-jsonpath "$.total_items" == 1
-jsonpath "$.items" count == 1
-jsonpath "$.items[0].id" == 1
-
-GET {{base_url}}/workers?person_eye_color=b
+GET {{base_url}}/workers?position=xyz
 HTTP 200
 [Asserts]
 jsonpath "$.total_items" == 0
 jsonpath "$.items" count == 0
 
-GET {{base_url}}/workers?person_nationality=ital&name=bor
+GET {{base_url}}/workers?name=bor
 HTTP 200
 [Asserts]
 jsonpath "$.total_items" == 1
-jsonpath "$.items" count == 1
 jsonpath "$.items[0].id" == 3
 
-GET {{base_url}}/workers?sort_by=organization_full_name&sort_order=asc
+GET {{base_url}}/workers?sort_by=name&sort_order=desc
 HTTP 200
 [Asserts]
-jsonpath "$.total_items" == 4
 jsonpath "$.items" count == 4
-jsonpath "$.items[0].id" == 2
-jsonpath "$.items[1].id" == 1
-jsonpath "$.items[2].id" == 4
-jsonpath "$.items[3].id" == 3
+jsonpath "$.items[0].id" == 4
+jsonpath "$.items[1].id" == 3
 
-GET {{base_url}}/workers?sort_by=organization_full_name&sort_order=desc
+GET {{base_url}}/workers?sort_by=name
 HTTP 200
 [Asserts]
-jsonpath "$.total_items" == 4
-jsonpath "$.items" count == 4
+jsonpath "$.items[2].id" == 3
+jsonpath "$.items[3].id" == 4
+
+GET {{base_url}}/workers?sort_by=status
+HTTP 200
+[Asserts]
 jsonpath "$.items[0].id" == 1
 jsonpath "$.items[1].id" == 4
 jsonpath "$.items[2].id" == 2
@@ -170,15 +115,10 @@ jsonpath "$.items[1].id" == 4
 jsonpath "$.items[2].id" == 3
 jsonpath "$.items[3].id" == 1
 
-GET {{base_url}}/workers?sort_by=person_hair_color
-HTTP 200
+GET {{base_url}}/workers?sort_by=organization_full_name
+HTTP 400
 [Asserts]
-jsonpath "$.total_items" == 4
-jsonpath "$.items" count == 4
-jsonpath "$.items[0].id" == 3
-jsonpath "$.items[1].id" == 1
-jsonpath "$.items[2].id" == 2
-jsonpath "$.items[3].id" == 4
+jsonpath "$.message" == "Parameter sort_by has an unsupported value."
 
 GET {{base_url}}/workers?page=2&page_size=3
 HTTP 200

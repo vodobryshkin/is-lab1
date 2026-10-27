@@ -35,8 +35,7 @@ import java.util.Set;
 @Produces(MediaType.APPLICATION_JSON)
 public class OrganizationResource {
     private static final Set<String> SORT_FIELDS = Set.of("id", "full_name", "annual_turnover",
-            "employees_count", "rating", "type", "official_address_id", "postal_address_id",
-            "official_address_street", "postal_address_street");
+            "employees_count", "rating", "type");
     private static final String NOT_FOUND = "Organization with id=%d does not exist.";
     private static final String NAME_TAKEN =
             "Another organization with this full_name already exists.";
@@ -120,11 +119,15 @@ public class OrganizationResource {
      */
     @GET
     public Response list(@Context UriInfo uriInfo) {
-        MultivaluedMap<String, String> filters = uriInfo.getQueryParameters();
-        ListQuery query = requestReader.listQuery(filters, SORT_FIELDS);
+        MultivaluedMap<String, String> parameters = uriInfo.getQueryParameters();
+        ListQuery query = requestReader.listQuery(parameters, SORT_FIELDS);
+        String fullName = parameters.getFirst("full_name");
+        String type = parameters.getFirst("type");
         PageResponse<OrganizationResponse> page = new PageResponse<>(
-                service.findPage(query, filters).stream().map(OrganizationResponse::new).toList(),
-                query.getPage(), query.getPageSize(), service.count(filters));
+                service.findPage(query, fullName, type).stream()
+                        .map(OrganizationResponse::new)
+                        .toList(),
+                query.getPage(), query.getPageSize(), service.count(fullName, type));
 
         return Response.ok().entity(page).build();
     }

@@ -7,7 +7,7 @@ import jakarta.persistence.PersistenceContext;
 import java.util.Optional;
 
 /**
- * Хранилище пользователей в БД. Транзакциями управляет вызывающий сервис.
+ * Хранилище пользователей.
  */
 @ApplicationScoped
 public class UserRepository {
@@ -15,7 +15,7 @@ public class UserRepository {
     private EntityManager entityManager;
 
     /**
-     * Ищет пользователя по логину с учётом регистра.
+     * Ищет пользователя по логину.
      *
      * @param username логин
      * @return пользователь или пустой результат
@@ -29,10 +29,9 @@ public class UserRepository {
     }
 
     /**
-     * Сохраняет нового пользователя и сразу отправляет INSERT, чтобы нарушение
-     * уникальности логина возникло внутри транзакции сервиса.
+     * Сохраняет нового пользователя.
      *
-     * @param user новый пользователь без ID
+     * @param user пользователь
      */
     public void save(User user) {
         entityManager.persist(user);
