@@ -74,7 +74,7 @@ jobs:
 
   coverage:
     name: Hurl and code coverage
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     services:
       postgres:
