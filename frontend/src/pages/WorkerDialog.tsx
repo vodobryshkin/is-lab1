@@ -1,13 +1,14 @@
 import { useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
 import { useGetWorkerQuery } from '../api/api'
-import type { Address } from '../api/api'
+import type { Address, Worker } from '../api/api'
 import { errorText } from '../api/errors'
 import { formatDate, formatLocation, formatValue } from '../format'
 
 interface Props {
   id: number
   onClose: () => void
+  onEdit?: (worker: Worker) => void
 }
 
 function Fields({ rows }: { rows: [string, ReactNode][] }) {
@@ -30,7 +31,7 @@ function addressText(address: Address) {
   return `${address.street} (ID ${address.id})${town}`
 }
 
-function WorkerDialog({ id, onClose }: Props) {
+function WorkerDialog({ id, onClose, onEdit }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const { data: worker, error, isFetching } = useGetWorkerQuery(id)
 
@@ -99,7 +100,7 @@ function WorkerDialog({ id, onClose }: Props) {
                 ['Цвет глаз', formatValue(worker.person.eye_color)],
                 ['Цвет волос', worker.person.hair_color],
                 ['Местоположение', `${formatLocation(worker.person.location)}, ID локации ${worker.person.location.id}`],
-                ['Дата рождения', formatDate(worker.person.birthday)],
+                ['Дата рождения', new Date(worker.person.birthday).toLocaleDateString('ru-RU')],
                 ['Вес', worker.person.weight],
                 ['Национальность', worker.person.nationality],
               ]}
@@ -111,6 +112,11 @@ function WorkerDialog({ id, onClose }: Props) {
       )}
 
       <form method="dialog">
+        {worker && !error && onEdit && (
+          <button type="button" onClick={() => onEdit(worker)}>
+            Изменить
+          </button>
+        )}
         <button type="submit">Закрыть</button>
       </form>
     </dialog>

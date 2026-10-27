@@ -34,7 +34,7 @@ nav button {
   margin-right: 0;
 }
 
-form input {
+form input:not([type='radio']) {
   display: block;
   width: 100%;
   max-width: 24rem;
@@ -113,4 +113,47 @@ dialog {
 
 dialog h2 {
   margin-top: 0;
+}
+
+.menu ul {
+  margin: 1rem 0 0;
+}
+
+.menu li:first-child {
+  margin-left: 0;
+}
+
+.radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.worker-form fieldset fieldset {
+  margin-left: 1rem;
+}
+
+.worker-form label {
+  display: block;
+  margin-bottom: 0;
+}
+
+.worker-form select {
+  display: block;
+}
+
+.row-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.row-actions button {
+  margin-right: 0;
+  white-space: nowrap;
+}
+
+.worker-form input:not([type='radio']),
+.worker-form select {
+  margin-bottom: 0.75rem;
 }

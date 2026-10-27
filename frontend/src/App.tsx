@@ -1,11 +1,26 @@
+import { useEffect, useState } from 'react'
 import { useGetSessionQuery, useLogoutMutation } from './api/api'
 import { errorText, isUnauthorized } from './api/errors'
 import AuthPage from './pages/AuthPage'
+import CreateWorkerPage from './pages/CreateWorkerPage'
 import WorkersPage from './pages/WorkersPage'
 
 function App() {
   const session = useGetSessionQuery()
   const [logout, logoutState] = useLogoutMutation()
+  const [hash, setHash] = useState(window.location.hash)
+
+  useEffect(() => {
+    const updateHash = () => setHash(window.location.hash)
+    window.addEventListener('hashchange', updateHash)
+    return () => window.removeEventListener('hashchange', updateHash)
+  }, [])
+
+  const pages = [
+    { hash: '', title: 'Список работников' },
+    { hash: '#new-worker', title: 'Новый работник' },
+  ]
+  const currentHash = pages.some((page) => page.hash === hash) ? hash : ''
 
   const loggedIn = !!session.data && !session.error
 
@@ -24,7 +39,7 @@ function App() {
       </>
     )
   } else if (session.data) {
-    content = <WorkersPage />
+    content = currentHash === '#new-worker' ? <CreateWorkerPage /> : <WorkersPage />
   }
 
   return (
@@ -41,6 +56,19 @@ function App() {
             </nav>
           )}
         </section>
+        {loggedIn && (
+          <section>
+            <nav className="menu">
+              <ul>
+                {pages.map((page) => (
+                  <li key={page.hash}>
+                    {page.hash === currentHash ? <strong>{page.title}</strong> : <a href={page.hash || '#'}>{page.title}</a>}
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </section>
+        )}
         {logoutState.isError && (
           <section>
             <p role="alert">{errorText(logoutState.error)}</p>

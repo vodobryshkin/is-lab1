@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useListWorkersQuery } from '../api/api'
+import type { Worker } from '../api/api'
 import { errorText } from '../api/errors'
 import { formatDate, formatValue } from '../format'
+import EditWorkerDialog from './EditWorkerDialog'
 import WorkerDialog from './WorkerDialog'
 
 const sortFields = [
@@ -27,6 +29,7 @@ function WorkersPage() {
   const [filters, setFilters] = useState(emptyFilters)
   const [idInput, setIdInput] = useState('')
   const [openedId, setOpenedId] = useState<number | null>(null)
+  const [editing, setEditing] = useState<Worker | null>(null)
 
   const list = useListWorkersQuery({
     page,
@@ -189,9 +192,14 @@ function WorkersPage() {
               {list.data.items.map((worker) => (
                 <tr key={worker.id}>
                   <td>
-                    <button type="button" onClick={() => setOpenedId(worker.id)}>
-                      Подробнее
-                    </button>
+                    <div className="row-actions">
+                      <button type="button" onClick={() => setOpenedId(worker.id)}>
+                        Подробнее
+                      </button>
+                      <button type="button" onClick={() => setEditing(worker)}>
+                        Изменить
+                      </button>
+                    </div>
                   </td>
                   <td>{worker.id}</td>
                   <td>{worker.name}</td>
@@ -228,7 +236,17 @@ function WorkersPage() {
         </div>
       )}
 
-      {openedId !== null && <WorkerDialog id={openedId} onClose={() => setOpenedId(null)} />}
+      {openedId !== null && (
+        <WorkerDialog
+          id={openedId}
+          onClose={() => setOpenedId(null)}
+          onEdit={(worker) => {
+            setOpenedId(null)
+            setEditing(worker)
+          }}
+        />
+      )}
+      {editing && <EditWorkerDialog key={editing.id} worker={editing} onClose={() => setEditing(null)} />}
     </>
   )
 }
