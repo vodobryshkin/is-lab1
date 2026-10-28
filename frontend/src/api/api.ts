@@ -178,7 +178,7 @@ interface CreateWorkerResponse {
 // Списки для выбора существующих объектов: сервер отдаёт не больше 100 за раз.
 export const choiceParams: ListParams = { page: 1, page_size: 100 }
 
-const dataTags = ['Worker', 'Coordinates', 'Location', 'Address', 'Organization', 'Person'] as const
+export const dataTags = ['Worker', 'Coordinates', 'Location', 'Address', 'Organization', 'Person'] as const
 
 const rawBaseQuery = fetchBaseQuery({ baseUrl: '/api/v1', credentials: 'include' })
 
