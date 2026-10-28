@@ -6,8 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.github.vodobryshkin.islab1.backend.domain.Status;
 import com.github.vodobryshkin.islab1.backend.domain.Worker;
-import com.github.vodobryshkin.islab1.backend.dto.ValidationErrorResponse;
-import com.github.vodobryshkin.islab1.backend.dto.WorkerRequest;
+import com.github.vodobryshkin.islab1.backend.dto.common.ValidationErrorResponse;
+import com.github.vodobryshkin.islab1.backend.dto.worker.WorkerRequest;
 import jakarta.validation.Validation;
 import jakarta.validation.ValidatorFactory;
 import jakarta.ws.rs.WebApplicationException;

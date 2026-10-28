@@ -1,12 +1,12 @@
 package com.github.vodobryshkin.islab1.backend.resource;
 
 import com.github.vodobryshkin.islab1.backend.domain.Person;
-import com.github.vodobryshkin.islab1.backend.dto.ErrorResponse;
-import com.github.vodobryshkin.islab1.backend.dto.IdResponse;
-import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
-import com.github.vodobryshkin.islab1.backend.dto.PageResponse;
-import com.github.vodobryshkin.islab1.backend.dto.PersonRequest;
-import com.github.vodobryshkin.islab1.backend.dto.PersonResponse;
+import com.github.vodobryshkin.islab1.backend.dto.common.ErrorResponse;
+import com.github.vodobryshkin.islab1.backend.dto.common.IdResponse;
+import com.github.vodobryshkin.islab1.backend.dto.common.ListQuery;
+import com.github.vodobryshkin.islab1.backend.dto.common.PageResponse;
+import com.github.vodobryshkin.islab1.backend.dto.person.PersonRequest;
+import com.github.vodobryshkin.islab1.backend.dto.person.PersonResponse;
 import com.github.vodobryshkin.islab1.backend.service.PersonService;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;

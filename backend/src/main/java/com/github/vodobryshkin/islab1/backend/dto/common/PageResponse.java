@@ -1,4 +1,4 @@
-package com.github.vodobryshkin.islab1.backend.dto;
+package com.github.vodobryshkin.islab1.backend.dto.common;
 
 import jakarta.json.bind.annotation.JsonbProperty;
 import java.util.List;

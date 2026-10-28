@@ -2,7 +2,7 @@ package com.github.vodobryshkin.islab1.backend.repository;
 
 import com.github.vodobryshkin.islab1.backend.domain.Organization;
 import com.github.vodobryshkin.islab1.backend.domain.OrganizationType;
-import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
+import com.github.vodobryshkin.islab1.backend.dto.common.ListQuery;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

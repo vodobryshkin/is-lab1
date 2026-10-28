@@ -1,6 +1,6 @@
 package com.github.vodobryshkin.islab1.backend.events;
 
-import com.github.vodobryshkin.islab1.backend.dto.ErrorResponse;
+import com.github.vodobryshkin.islab1.backend.dto.common.ErrorResponse;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.servlet.FilterChain;

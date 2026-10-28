@@ -1,4 +1,4 @@
-package com.github.vodobryshkin.islab1.backend.dto;
+package com.github.vodobryshkin.islab1.backend.dto.worker;
 
 import jakarta.json.bind.annotation.JsonbNillable;
 import jakarta.json.bind.annotation.JsonbProperty;

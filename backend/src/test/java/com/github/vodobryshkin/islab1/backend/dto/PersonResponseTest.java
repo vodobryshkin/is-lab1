@@ -6,6 +6,9 @@ import com.github.vodobryshkin.islab1.backend.ConstraintViolations;
 import com.github.vodobryshkin.islab1.backend.domain.Color;
 import com.github.vodobryshkin.islab1.backend.domain.Country;
 import java.time.ZonedDateTime;
+
+import com.github.vodobryshkin.islab1.backend.dto.location.LocationResponse;
+import com.github.vodobryshkin.islab1.backend.dto.person.PersonResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 

@@ -1,8 +1,11 @@
-package com.github.vodobryshkin.islab1.backend.dto;
+package com.github.vodobryshkin.islab1.backend.dto.worker;
 
 import com.github.vodobryshkin.islab1.backend.domain.Position;
 import com.github.vodobryshkin.islab1.backend.domain.Status;
 import com.github.vodobryshkin.islab1.backend.domain.Worker;
+import com.github.vodobryshkin.islab1.backend.dto.corrdinates.CoordinatesResponse;
+import com.github.vodobryshkin.islab1.backend.dto.organization.OrganizationResponse;
+import com.github.vodobryshkin.islab1.backend.dto.person.PersonResponse;
 import jakarta.json.bind.annotation.JsonbNillable;
 import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.validation.Valid;

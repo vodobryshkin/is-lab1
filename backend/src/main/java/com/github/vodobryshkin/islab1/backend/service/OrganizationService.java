@@ -4,7 +4,7 @@ import com.github.vodobryshkin.islab1.backend.domain.Address;
 import com.github.vodobryshkin.islab1.backend.domain.Location;
 import com.github.vodobryshkin.islab1.backend.domain.Organization;
 import com.github.vodobryshkin.islab1.backend.domain.Worker;
-import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
+import com.github.vodobryshkin.islab1.backend.dto.common.ListQuery;
 import com.github.vodobryshkin.islab1.backend.events.EventSessions;
 import com.github.vodobryshkin.islab1.backend.repository.AddressRepository;
 import com.github.vodobryshkin.islab1.backend.repository.LocationRepository;

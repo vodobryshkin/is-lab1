@@ -1,4 +1,4 @@
-package com.github.vodobryshkin.islab1.backend.dto;
+package com.github.vodobryshkin.islab1.backend.dto.common;
 
 import java.util.List;
 import lombok.AllArgsConstructor;

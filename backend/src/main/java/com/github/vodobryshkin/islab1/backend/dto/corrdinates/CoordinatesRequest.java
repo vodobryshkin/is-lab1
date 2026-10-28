@@ -1,4 +1,4 @@
-package com.github.vodobryshkin.islab1.backend.dto;
+package com.github.vodobryshkin.islab1.backend.dto.corrdinates;
 
 import com.github.vodobryshkin.islab1.backend.domain.Coordinates;
 import jakarta.validation.constraints.Min;

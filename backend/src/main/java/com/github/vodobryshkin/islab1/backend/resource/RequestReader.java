@@ -1,12 +1,12 @@
 package com.github.vodobryshkin.islab1.backend.resource;
 
-import com.github.vodobryshkin.islab1.backend.dto.CoordinatesRequest;
-import com.github.vodobryshkin.islab1.backend.dto.ErrorResponse;
-import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
-import com.github.vodobryshkin.islab1.backend.dto.LocationRequest;
-import com.github.vodobryshkin.islab1.backend.dto.PersonRequest;
-import com.github.vodobryshkin.islab1.backend.dto.ValidationErrorResponse;
-import com.github.vodobryshkin.islab1.backend.dto.ValidationIssue;
+import com.github.vodobryshkin.islab1.backend.dto.corrdinates.CoordinatesRequest;
+import com.github.vodobryshkin.islab1.backend.dto.common.ErrorResponse;
+import com.github.vodobryshkin.islab1.backend.dto.common.ListQuery;
+import com.github.vodobryshkin.islab1.backend.dto.location.LocationRequest;
+import com.github.vodobryshkin.islab1.backend.dto.person.PersonRequest;
+import com.github.vodobryshkin.islab1.backend.dto.common.ValidationErrorResponse;
+import com.github.vodobryshkin.islab1.backend.dto.common.ValidationIssue;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.json.bind.Jsonb;

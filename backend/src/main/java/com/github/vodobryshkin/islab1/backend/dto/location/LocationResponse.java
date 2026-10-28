@@ -1,4 +1,4 @@
-package com.github.vodobryshkin.islab1.backend.dto;
+package com.github.vodobryshkin.islab1.backend.dto.location;
 
 import com.github.vodobryshkin.islab1.backend.domain.Location;
 import jakarta.validation.constraints.NotNull;

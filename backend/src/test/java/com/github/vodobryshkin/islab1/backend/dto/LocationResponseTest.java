@@ -3,6 +3,7 @@ package com.github.vodobryshkin.islab1.backend.dto;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.vodobryshkin.islab1.backend.ConstraintViolations;
+import com.github.vodobryshkin.islab1.backend.dto.location.LocationResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 

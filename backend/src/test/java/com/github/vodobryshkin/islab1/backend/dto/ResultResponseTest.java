@@ -3,6 +3,13 @@ package com.github.vodobryshkin.islab1.backend.dto;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+
+import com.github.vodobryshkin.islab1.backend.dto.common.IdResponse;
+import com.github.vodobryshkin.islab1.backend.dto.common.PageResponse;
+import com.github.vodobryshkin.islab1.backend.dto.security.CredentialsRequest;
+import com.github.vodobryshkin.islab1.backend.dto.security.CsrfTokenResponse;
+import com.github.vodobryshkin.islab1.backend.dto.worker.CreateWorkerResponse;
+import com.github.vodobryshkin.islab1.backend.dto.worker.CurrentUserResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 

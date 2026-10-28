@@ -1,6 +1,7 @@
-package com.github.vodobryshkin.islab1.backend.dto;
+package com.github.vodobryshkin.islab1.backend.dto.address;
 
 import com.github.vodobryshkin.islab1.backend.domain.Address;
+import com.github.vodobryshkin.islab1.backend.dto.location.LocationRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

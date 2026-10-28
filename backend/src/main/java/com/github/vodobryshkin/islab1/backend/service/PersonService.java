@@ -2,7 +2,7 @@ package com.github.vodobryshkin.islab1.backend.service;
 
 import com.github.vodobryshkin.islab1.backend.domain.Location;
 import com.github.vodobryshkin.islab1.backend.domain.Person;
-import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
+import com.github.vodobryshkin.islab1.backend.dto.common.ListQuery;
 import com.github.vodobryshkin.islab1.backend.events.EventSessions;
 import com.github.vodobryshkin.islab1.backend.repository.PersonRepository;
 import jakarta.enterprise.context.ApplicationScoped;

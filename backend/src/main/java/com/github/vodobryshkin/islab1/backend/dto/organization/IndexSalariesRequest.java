@@ -1,4 +1,4 @@
-package com.github.vodobryshkin.islab1.backend.dto;
+package com.github.vodobryshkin.islab1.backend.dto.organization;
 
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.NotNull;

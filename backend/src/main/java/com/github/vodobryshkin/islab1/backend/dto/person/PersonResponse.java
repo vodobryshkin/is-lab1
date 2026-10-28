@@ -1,8 +1,9 @@
-package com.github.vodobryshkin.islab1.backend.dto;
+package com.github.vodobryshkin.islab1.backend.dto.person;
 
 import com.github.vodobryshkin.islab1.backend.domain.Color;
 import com.github.vodobryshkin.islab1.backend.domain.Country;
 import com.github.vodobryshkin.islab1.backend.domain.Person;
+import com.github.vodobryshkin.islab1.backend.dto.location.LocationResponse;
 import jakarta.json.bind.annotation.JsonbNillable;
 import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.validation.Valid;

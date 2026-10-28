@@ -1,4 +1,4 @@
-package com.github.vodobryshkin.islab1.backend.dto;
+package com.github.vodobryshkin.islab1.backend.dto.worker;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -3,7 +3,7 @@ package com.github.vodobryshkin.islab1.backend.repository;
 import com.github.vodobryshkin.islab1.backend.domain.Position;
 import com.github.vodobryshkin.islab1.backend.domain.Status;
 import com.github.vodobryshkin.islab1.backend.domain.Worker;
-import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
+import com.github.vodobryshkin.islab1.backend.dto.common.ListQuery;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;

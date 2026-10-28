@@ -1,8 +1,9 @@
-package com.github.vodobryshkin.islab1.backend.dto;
+package com.github.vodobryshkin.islab1.backend.dto.organization;
 
 import com.github.vodobryshkin.islab1.backend.domain.Address;
 import com.github.vodobryshkin.islab1.backend.domain.Organization;
 import com.github.vodobryshkin.islab1.backend.domain.OrganizationType;
+import com.github.vodobryshkin.islab1.backend.dto.address.AddressRequest;
 import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;

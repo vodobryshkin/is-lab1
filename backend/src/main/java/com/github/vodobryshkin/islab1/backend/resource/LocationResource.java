@@ -1,12 +1,12 @@
 package com.github.vodobryshkin.islab1.backend.resource;
 
 import com.github.vodobryshkin.islab1.backend.domain.Location;
-import com.github.vodobryshkin.islab1.backend.dto.ErrorResponse;
-import com.github.vodobryshkin.islab1.backend.dto.IdResponse;
-import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
-import com.github.vodobryshkin.islab1.backend.dto.LocationRequest;
-import com.github.vodobryshkin.islab1.backend.dto.LocationResponse;
-import com.github.vodobryshkin.islab1.backend.dto.PageResponse;
+import com.github.vodobryshkin.islab1.backend.dto.common.ErrorResponse;
+import com.github.vodobryshkin.islab1.backend.dto.common.IdResponse;
+import com.github.vodobryshkin.islab1.backend.dto.common.ListQuery;
+import com.github.vodobryshkin.islab1.backend.dto.location.LocationRequest;
+import com.github.vodobryshkin.islab1.backend.dto.location.LocationResponse;
+import com.github.vodobryshkin.islab1.backend.dto.common.PageResponse;
 import com.github.vodobryshkin.islab1.backend.service.LocationService;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;

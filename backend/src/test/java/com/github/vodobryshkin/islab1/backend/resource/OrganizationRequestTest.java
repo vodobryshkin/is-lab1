@@ -6,9 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.github.vodobryshkin.islab1.backend.domain.Organization;
 import com.github.vodobryshkin.islab1.backend.domain.OrganizationType;
-import com.github.vodobryshkin.islab1.backend.dto.ErrorResponse;
-import com.github.vodobryshkin.islab1.backend.dto.OrganizationRequest;
-import com.github.vodobryshkin.islab1.backend.dto.ValidationErrorResponse;
+import com.github.vodobryshkin.islab1.backend.dto.common.ErrorResponse;
+import com.github.vodobryshkin.islab1.backend.dto.organization.OrganizationRequest;
+import com.github.vodobryshkin.islab1.backend.dto.common.ValidationErrorResponse;
 import jakarta.validation.Validation;
 import jakarta.validation.ValidatorFactory;
 import jakarta.ws.rs.WebApplicationException;

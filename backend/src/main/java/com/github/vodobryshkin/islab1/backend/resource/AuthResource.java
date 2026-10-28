@@ -1,10 +1,10 @@
 package com.github.vodobryshkin.islab1.backend.resource;
 
-import com.github.vodobryshkin.islab1.backend.dto.CredentialsRequest;
-import com.github.vodobryshkin.islab1.backend.dto.CsrfTokenResponse;
-import com.github.vodobryshkin.islab1.backend.dto.CurrentUserResponse;
-import com.github.vodobryshkin.islab1.backend.dto.ErrorResponse;
-import com.github.vodobryshkin.islab1.backend.dto.IdResponse;
+import com.github.vodobryshkin.islab1.backend.dto.security.CredentialsRequest;
+import com.github.vodobryshkin.islab1.backend.dto.security.CsrfTokenResponse;
+import com.github.vodobryshkin.islab1.backend.dto.worker.CurrentUserResponse;
+import com.github.vodobryshkin.islab1.backend.dto.common.ErrorResponse;
+import com.github.vodobryshkin.islab1.backend.dto.common.IdResponse;
 import com.github.vodobryshkin.islab1.backend.events.EventSessions;
 import com.github.vodobryshkin.islab1.backend.security.CsrfProtection;
 import com.github.vodobryshkin.islab1.backend.service.UserService;

@@ -1,6 +1,6 @@
 package com.github.vodobryshkin.islab1.backend.security;
 
-import com.github.vodobryshkin.islab1.backend.dto.ErrorResponse;
+import com.github.vodobryshkin.islab1.backend.dto.common.ErrorResponse;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.servlet.http.HttpServletRequest;

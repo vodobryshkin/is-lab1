@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.vodobryshkin.islab1.backend.ConstraintViolations;
 import com.github.vodobryshkin.islab1.backend.domain.OrganizationType;
+import com.github.vodobryshkin.islab1.backend.dto.address.AddressResponse;
+import com.github.vodobryshkin.islab1.backend.dto.organization.OrganizationResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 

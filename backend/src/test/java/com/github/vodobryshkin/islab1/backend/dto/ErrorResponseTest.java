@@ -3,6 +3,10 @@ package com.github.vodobryshkin.islab1.backend.dto;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+
+import com.github.vodobryshkin.islab1.backend.dto.common.ErrorResponse;
+import com.github.vodobryshkin.islab1.backend.dto.common.ValidationErrorResponse;
+import com.github.vodobryshkin.islab1.backend.dto.common.ValidationIssue;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 

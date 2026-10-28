@@ -1,14 +1,14 @@
 package com.github.vodobryshkin.islab1.backend.resource;
 
 import com.github.vodobryshkin.islab1.backend.domain.Organization;
-import com.github.vodobryshkin.islab1.backend.dto.CountResponse;
-import com.github.vodobryshkin.islab1.backend.dto.ErrorResponse;
-import com.github.vodobryshkin.islab1.backend.dto.IdResponse;
-import com.github.vodobryshkin.islab1.backend.dto.IndexSalariesRequest;
-import com.github.vodobryshkin.islab1.backend.dto.ListQuery;
-import com.github.vodobryshkin.islab1.backend.dto.OrganizationRequest;
-import com.github.vodobryshkin.islab1.backend.dto.OrganizationResponse;
-import com.github.vodobryshkin.islab1.backend.dto.PageResponse;
+import com.github.vodobryshkin.islab1.backend.dto.common.CountResponse;
+import com.github.vodobryshkin.islab1.backend.dto.common.ErrorResponse;
+import com.github.vodobryshkin.islab1.backend.dto.common.IdResponse;
+import com.github.vodobryshkin.islab1.backend.dto.organization.IndexSalariesRequest;
+import com.github.vodobryshkin.islab1.backend.dto.common.ListQuery;
+import com.github.vodobryshkin.islab1.backend.dto.organization.OrganizationRequest;
+import com.github.vodobryshkin.islab1.backend.dto.organization.OrganizationResponse;
+import com.github.vodobryshkin.islab1.backend.dto.common.PageResponse;
 import com.github.vodobryshkin.islab1.backend.service.Change;
 import com.github.vodobryshkin.islab1.backend.service.OrganizationService;
 import jakarta.enterprise.context.RequestScoped;
