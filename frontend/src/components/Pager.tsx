@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+
 interface Props {
   page: number
   pageSize: number
@@ -9,6 +11,13 @@ interface Props {
 
 function Pager({ page, pageSize, totalItems, isFetching, onPage, onPageSize }: Props) {
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
+
+  // Записи могли удалить (в том числе другие пользователи), и текущая страница оказалась за концом списка.
+  useEffect(() => {
+    if (page > totalPages) {
+      onPage(totalPages)
+    }
+  }, [page, totalPages, onPage])
 
   return (
     <div className="inline-form">

@@ -69,10 +69,14 @@ function WorkersPage() {
     setPage(1)
   }
 
+  function openDetails(id: number) {
+    deleteState.reset()
+    setOpenedId(id)
+  }
+
   function openById(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    deleteState.reset()
-    setOpenedId(Number(idInput))
+    openDetails(Number(idInput))
   }
 
   return (
@@ -189,7 +193,7 @@ function WorkersPage() {
                 <tr key={worker.id}>
                   <td>
                     <div className="row-actions">
-                      <button type="button" onClick={() => setOpenedId(worker.id)}>
+                      <button type="button" onClick={() => openDetails(worker.id)}>
                         Подробнее
                       </button>
                       <button type="button" onClick={() => setEditing(worker)}>

@@ -193,12 +193,7 @@ const baseQuery: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> =
 ) => {
   const request = typeof args === 'string' ? { url: args } : args
   if (!request.method || request.method === 'GET') {
-    const result = await rawBaseQuery(request, queryApi, extraOptions)
-    // Сессия могла закончиться: перечитываем её, чтобы приложение вернулось к экрану входа.
-    if (result.error?.status === 401 && request.url !== '/auth/session') {
-      queryApi.dispatch(api.util.invalidateTags(['Session']))
-    }
-    return result
+    return checkSession(await rawBaseQuery(request, queryApi, extraOptions))
   }
 
   if (!csrfToken) {
@@ -217,7 +212,15 @@ const baseQuery: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> =
   if (result.error?.status === 403 || request.url === '/auth/login' || request.url === '/auth/logout') {
     csrfToken = null
   }
-  return result
+  return checkSession(result)
+
+  // Сессия могла закончиться: перечитываем её, чтобы приложение вернулось к экрану входа.
+  function checkSession(result: Awaited<ReturnType<typeof rawBaseQuery>>) {
+    if (result.error?.status === 401 && request.url !== '/auth/session') {
+      queryApi.dispatch(api.util.invalidateTags(['Session']))
+    }
+    return result
+  }
 }
 
 export const api = createApi({
